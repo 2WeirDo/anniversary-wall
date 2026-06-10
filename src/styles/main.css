@@ -1239,7 +1239,7 @@ body::after {
 /* ---- 单张卡片容器 ---- */
 .timeline-card {
   width: 100%;
-  margin-bottom: 3rem;
+  margin-bottom: 1.2rem;
   opacity: 0;
   transform: translateY(40px);
   transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
@@ -1360,24 +1360,24 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.25rem 0;
+  padding: 0;
   color: var(--color-accent);
   position: relative;
 }
 .timeline-connector-line {
   width: 1px;
-  height: 18px;
+  height: 12px;
   background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
   opacity: 0.2;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .timeline-connector-gem {
   position: relative;
   animation: gemPulse 3s ease-in-out infinite;
 }
 .timeline-connector-gem svg {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   display: block;
 }
 
