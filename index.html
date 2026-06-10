@@ -130,6 +130,16 @@
     <section id="letter" class="section letter" data-section="1">
       <div class="letter-container">
         <div class="letter-card">
+          <!-- 蜡封 -->
+          <div class="letter-seal" aria-hidden="true">
+            <svg viewBox="0 0 60 60" class="letter-seal-svg">
+              <circle cx="30" cy="30" r="28" fill="#E87890" stroke="#D4607A" stroke-width="2"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+              <path d="M30 18C30 18 20 28 20 36C20 41.5 24.5 46 30 46C35.5 46 40 41.5 40 36C40 28 30 18 30 18Z" fill="#D4607A"/>
+            </svg>
+          </div>
+          <!-- 信封撕边 -->
+          <div class="letter-tear" aria-hidden="true"></div>
           <div class="letter-decoration top-left">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" />
@@ -138,8 +148,23 @@
           </div>
           <div class="letter-body">
             <h2 class="letter-title"></h2>
+            <div class="letter-ornament" aria-hidden="true">
+              <svg width="120" height="16" viewBox="0 0 120 16">
+                <line x1="0" y1="8" x2="45" y2="8" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+                <circle cx="52" cy="8" r="2.5" fill="currentColor" opacity="0.5"/>
+                <path d="M58 8 Q60 3 62 8 Q64 13 66 8 Q68 3 70 8" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.4"/>
+                <circle cx="74" cy="8" r="2.5" fill="currentColor" opacity="0.5"/>
+                <line x1="81" y1="8" x2="120" y2="8" stroke="currentColor" stroke-width="0.5" opacity="0.3"/>
+              </svg>
+            </div>
             <div class="letter-text"></div>
+            <div class="letter-ornament letter-ornament--bottom" aria-hidden="true">
+              <svg width="120" height="12" viewBox="0 0 120 12">
+                <path d="M40 6 Q50 2 60 6 Q70 10 80 6" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.4"/>
+              </svg>
+            </div>
             <div class="letter-sign">
+              <span class="sign-flourish" aria-hidden="true">— ✦ —</span>
               <span class="sign-name"></span>
               <span class="sign-date"></span>
             </div>
