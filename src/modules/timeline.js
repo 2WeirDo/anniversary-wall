@@ -27,12 +27,24 @@ export class Timeline {
       const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
       const side = index % 2 === 0 ? 'left' : 'right';
 
-      // 连接线（卡片之间）
+      // 连接线 — 精致分隔符
       if (index > 0) {
         fragments.push(`<div class="timeline-connector" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 21C12 21 3 14 3 8.5C3 5.5 5.5 3.5 8 3.5C10 3.5 12 6 12 6C12 6 14 3.5 16 3.5C18.5 3.5 21 5.5 21 8.5C21 14 12 21 12 21Z" />
-          </svg>
+          <div class="timeline-connector-line"></div>
+          <div class="timeline-connector-gem">
+            <svg viewBox="0 0 40 40" fill="none">
+              <line x1="20" y1="0" x2="20" y2="14" stroke="currentColor" stroke-width="0.5" opacity="0.25"/>
+              <line x1="20" y1="26" x2="20" y2="40" stroke="currentColor" stroke-width="0.5" opacity="0.25"/>
+              <polygon points="20,4 24,12 20,20 16,12" fill="currentColor" opacity="0.35"/>
+              <polygon points="20,20 24,28 20,36 16,28" fill="currentColor" opacity="0.15"/>
+              <circle cx="20" cy="20" r="3" fill="currentColor" opacity="0.5"/>
+              <circle cx="20" cy="20" r="7" fill="none" stroke="currentColor" stroke-width="0.4" opacity="0.2"/>
+              <circle cx="6" cy="30" r="1.2" fill="currentColor" opacity="0.3"/>
+              <circle cx="34" cy="10" r="1" fill="currentColor" opacity="0.25"/>
+              <circle cx="8" cy="8" r="0.8" fill="currentColor" opacity="0.2"/>
+              <circle cx="33" cy="32" r="0.9" fill="currentColor" opacity="0.2"/>
+            </svg>
+          </div>
         </div>`);
       }
 

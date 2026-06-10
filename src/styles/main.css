@@ -572,28 +572,29 @@ body::after {
   opacity: 0.9;
 }
 
-/* ---- 回到顶部按钮 ---- */
+/* ---- 回到顶部按钮（与主题切换按钮风格一致）---- */
 .back-to-top {
   position: fixed;
   bottom: 84px;
   right: 28px;
   z-index: var(--z-music);
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   border: 1.5px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-md);
-  transition: all 0.4s var(--ease-spring);
+  transition: all 0.5s var(--ease-spring);
   opacity: 0;
   transform: translateY(12px);
   pointer-events: none;
-  color: var(--color-text-light);
+  color: var(--color-gold);
+  padding: 0;
 }
 .back-to-top.visible {
   opacity: 1;
@@ -601,15 +602,18 @@ body::after {
   pointer-events: auto;
 }
 .back-to-top:hover {
-  transform: translateY(-3px) scale(1.08);
+  transform: scale(1.1);
   box-shadow: var(--shadow-lg);
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+  border-color: var(--color-gold);
 }
-.back-to-top:active { transform: scale(0.92); }
+.back-to-top:active { transform: scale(0.9); }
 .back-to-top:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 3px;
+}
+[data-theme="dark"] .back-to-top {
+  background: rgba(30, 25, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ========================================
@@ -1354,20 +1358,32 @@ body::after {
 /* ---- 卡片之间的连接器 ---- */
 .timeline-connector {
   display: flex;
-  justify-content: center;
-  padding: 0.5rem 0;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0;
   color: var(--color-accent);
-  opacity: 0.6;
-  animation: heartbeat 2s ease-in-out infinite;
+  position: relative;
 }
-.timeline-connector svg {
-  width: 22px;
-  height: 22px;
+.timeline-connector-line {
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
+  opacity: 0.2;
+  margin-bottom: 2px;
+}
+.timeline-connector-gem {
+  position: relative;
+  animation: gemPulse 3s ease-in-out infinite;
+}
+.timeline-connector-gem svg {
+  width: 44px;
+  height: 44px;
+  display: block;
 }
 
-@keyframes heartbeat {
-  0%, 100% { transform: scale(0.85); opacity: 0.35; }
-  50% { transform: scale(1.1); opacity: 0.7; }
+@keyframes gemPulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 0.85; }
 }
 
 /* ---- 响应式：移动端单列 ---- */
