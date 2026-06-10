@@ -25,8 +25,8 @@ export const PHOTO_FLIP_TEXTS = content.photos.map(p => p.flipText);
 function circularOffset(i, current, total) {
   let offset = i - current;
   const half = total / 2;
-  if (offset > half) offset -= total;
-  if (offset < -half) offset += total;
+  while (offset > half) offset -= total;
+  while (offset < -half) offset += total;
   return offset;
 }
 
@@ -99,27 +99,40 @@ export class Carousel {
   }
 
   /**
-   * 单张卡片布局 — 全部用连续公式，没有 if/else 硬切换
-   *
-   * 参数从「中心 (offset=0)」到「远侧 (offset>=2)」平滑过渡：
-   *   xPercent: offset * 60        — 线性展开
-   *   scale:     1.0 → 0.5        — 指数衰减
-   *   opacity:   1.0 → 0.15       — 指数衰减
-   *   rotateY:   offset * 18°     — 线性倾斜
-   *   zIndex:    10 → 0           — 阶梯下降
+   * 单张卡片布局
+   * 保留原始视觉参数，在 [0.35, 0.65] 区间用 smoothstep
+   * 把"中心模式"和"侧边模式"混合，消除硬切换的跳变
    */
   layoutCard(el, offset, duration = 0.45) {
     const absOff = Math.abs(offset);
     const side = offset > 0 ? 1 : (offset < 0 ? -1 : 0);
 
-    // 连续参数（无断点）
-    const xPercent = offset * 60;
-    const scale = Math.max(0.5, 1 - absOff * 0.22);
-    const opacity = Math.max(0.15, 1 - absOff * 0.38);
-    const rotateY = side * Math.min(35, absOff * 17);
-    const zIndex = Math.max(0, 10 - Math.round(absOff * 2));
+    // ---- 中心模式（原始 active 参数） ----
+    const activeX = offset * 55;
+    const activeScale = 1;
+    const activeOpacity = 1;
+    const activeRotateY = offset * 8;
+    const activeZIndex = 10;
 
-    // 只有接近中心的卡片可交互
+    // ---- 侧边模式（原始 else 分支参数） ----
+    const sideGap = 55 + Math.max(0, absOff - 0.5) * 8;
+    const sideX = side * sideGap;
+    let sideScale = 0.82 - absOff * 0.06;
+    if (sideScale < 0.5) sideScale = 0.5;
+    let sideOpacity = 0.55 - absOff * 0.15;
+    if (sideOpacity < 0.15) sideOpacity = 0.15;
+    const sideZIndex = Math.max(0, 5 - Math.floor(absOff));
+    const sideRotateY = side * (12 + absOff * 3);
+
+    // ---- smoothstep 混合 [0.35, 0.65] ----
+    const t = smoothstep(0.35, 0.65, absOff);
+
+    const xPercent = activeX + (sideX - activeX) * t;
+    const scale = activeScale + (sideScale - activeScale) * t;
+    const opacity = activeOpacity + (sideOpacity - activeOpacity) * t;
+    const rotateY = activeRotateY + (sideRotateY - activeRotateY) * t;
+    const zIndex = Math.round(activeZIndex + (sideZIndex - activeZIndex) * t);
+
     const isActive = absOff < 0.5;
 
     gsap.to(el, {
