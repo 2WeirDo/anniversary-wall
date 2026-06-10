@@ -30,19 +30,30 @@ function circularOffset(i, current, total) {
   return offset;
 }
 
+/**
+ * smoothstep: 在 [edge0, edge1] 范围内平滑插值
+ */
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
 export class Carousel {
   constructor(containerId, stageId, onPhotoClick) {
     this.stage = document.getElementById(stageId);
     this.container = document.getElementById(containerId);
     this.total = PHOTOS.length;
-    this.current = 0; // 浮点位置，可跨越多圈
+    this.current = 0;          // 浮点位置，持续递增（不取模）
     this.items = [];
     this.isDragging = false;
     this.startX = 0;
     this._dragStartCurrent = 0;
     this._swiped = false;
-    this._autoTween = null;
+    this._autoTick = null;     // GSAP ticker 回调引用
+    this._autoStartTime = 0;
+    this._autoStartCurrent = 0;
     this.paused = false;
+    this.SPEED = 1 / 2500;     // 每 ms 推进的 current 单位（2.5s/张）
     this.onPhotoClick = onPhotoClick || null;
 
     this.init();
@@ -87,44 +98,40 @@ export class Carousel {
     });
   }
 
+  /**
+   * 单张卡片布局 — 全部用连续公式，没有 if/else 硬切换
+   *
+   * 参数从「中心 (offset=0)」到「远侧 (offset>=2)」平滑过渡：
+   *   xPercent: offset * 60        — 线性展开
+   *   scale:     1.0 → 0.5        — 指数衰减
+   *   opacity:   1.0 → 0.15       — 指数衰减
+   *   rotateY:   offset * 18°     — 线性倾斜
+   *   zIndex:    10 → 0           — 阶梯下降
+   */
   layoutCard(el, offset, duration = 0.45) {
-    const isActive = Math.abs(offset) < 0.5;
     const absOff = Math.abs(offset);
+    const side = offset > 0 ? 1 : (offset < 0 ? -1 : 0);
 
-    let xPercent, scale, opacity, zIndex, rotateY;
+    // 连续参数（无断点）
+    const xPercent = offset * 60;
+    const scale = Math.max(0.5, 1 - absOff * 0.22);
+    const opacity = Math.max(0.15, 1 - absOff * 0.38);
+    const rotateY = side * Math.min(35, absOff * 17);
+    const zIndex = Math.max(0, 10 - Math.round(absOff * 2));
 
-    if (isActive) {
-      // 在中心附近：平缓过渡
-      const t = absOff / 0.5; // 0（完全居中）→ 1（边缘）
-      xPercent = offset * 55; // 跟随偏移微调
-      scale = 1 - t * 0.05;
-      opacity = 1 - t * 0.1;
-      zIndex = 10;
-      rotateY = offset * 8;
-    } else {
-      const side = offset > 0 ? 1 : -1;
-      const gap = 55 + (absOff - 0.5) * 8;
-      xPercent = side * gap;
-      scale = 0.82 - absOff * 0.06;
-      if (scale < 0.5) scale = 0.5;
-      opacity = 0.55 - absOff * 0.15;
-      if (opacity < 0.15) opacity = 0.15;
-      zIndex = 5 - Math.floor(absOff);
-      if (zIndex < 0) zIndex = 0;
-      rotateY = side * (12 + absOff * 3);
-    }
+    // 只有接近中心的卡片可交互
+    const isActive = absOff < 0.5;
 
-    const tl = gsap.timeline();
-    tl.to(el, {
+    gsap.to(el, {
       xPercent,
       scale,
       opacity,
-      rotateY,
       zIndex,
+      rotateY,
       duration,
       ease: 'power2.out',
       overwrite: 'auto',
-    }, 0);
+    });
 
     el.classList.toggle('active', isActive);
     el.style.pointerEvents = isActive ? 'auto' : 'none';
@@ -137,28 +144,24 @@ export class Carousel {
       if (e.key === 'ArrowRight') this.next();
     });
 
-    // 鼠标拖拽
     this.stage.addEventListener('mousedown', (e) => this.onDown(e));
     window.addEventListener('mousemove', (e) => this.onMove(e));
     window.addEventListener('mouseup', () => this.onUp());
 
-    // 触摸
     this.stage.addEventListener('touchstart', (e) => this.onDown(e), { passive: false });
     window.addEventListener('touchmove', (e) => this.onMove(e), { passive: false });
     window.addEventListener('touchend', () => this.onUp());
 
-    // 点击卡片 → 弹出详情
     this.container.addEventListener('click', (e) => {
       if (this._swiped) return;
       const card = e.target.closest('.carousel-card');
       if (!card) return;
       const idx = parseInt(card.getAttribute('data-index'));
-      if (this.onPhotoClick) {
-        this.onPhotoClick(idx);
-      }
+      if (this.onPhotoClick) this.onPhotoClick(idx);
     });
   }
 
+  /* ---------- 拖拽 ---------- */
   onDown(e) {
     this.isDragging = true;
     this._swiped = false;
@@ -178,19 +181,16 @@ export class Carousel {
     const now = Date.now();
     const dt = now - this._lastTime;
     if (dt > 0) {
-      this._velocity = (cx - this._lastX) / dt; // px/ms
+      this._velocity = (cx - this._lastX) / dt;
     }
     this._lastX = cx;
     this._lastTime = now;
 
-    // 标记滑动（移动超过5px即为滑动而非点击）
     if (Math.abs(cx - this.startX) > 5) {
       this._swiped = true;
     }
 
-    // 直接更新浮点位置：拖拽像素 / 150 → 卡片偏移量
-    const dragOffset = (cx - this.startX) / 150;
-    this.current = this._dragStartCurrent - dragOffset;
+    this.current = this._dragStartCurrent - (cx - this.startX) / 150;
     this.layoutAll(0);
   }
 
@@ -202,10 +202,10 @@ export class Carousel {
     const absVel = Math.abs(this._velocity);
 
     if (absVel > 0.15) {
-      // 有惯性：继续滑动一段后自然停下，然后接自动轮播
-      const momentum = this._velocity * 400; // 惯性距离
+      // 惯性滑动 → 动量衰减 → 自动轮播
+      const momentum = this._velocity * 400;
       const target = this.current - momentum / 150;
-      this._autoTween = gsap.to(this, {
+      const inertiaTween = gsap.to(this, {
         current: target,
         duration: 0.5,
         ease: 'power2.out',
@@ -215,8 +215,9 @@ export class Carousel {
           this.scheduleAuto();
         },
       });
+      // 暂存以便 stopAuto 能清理
+      this._inertiaTween = inertiaTween;
     } else {
-      // 无惯性：直接从当前位置开始自动轮播
       this.layoutAll(0.2);
       this.scheduleAuto();
     }
@@ -239,12 +240,10 @@ export class Carousel {
 
   goTo(index) {
     this.stopAuto();
-    // 找到离当前位置最近的该卡片实例
     const rounded = Math.round(this.current);
     let target = index;
     while (target < rounded - this.total / 2) target += this.total;
     while (target > rounded + this.total / 2) target -= this.total;
-    // 微调：让最近的整数位置指向这张卡片
     if (Math.abs(target - this.current) > this.total / 2) {
       target = target > this.current ? target - this.total : target + this.total;
     }
@@ -254,26 +253,37 @@ export class Carousel {
   }
 
   /* ---------- 自动轮播 ---------- */
+
+  /**
+   * 使用 GSAP ticker 持续推进 current
+   * 不依赖 onComplete 链式回调，不会被意外打断
+   */
   scheduleAuto() {
     this.stopAuto();
     if (this.paused) return;
-    // 从当前浮点位置平滑移动到下一整数位置
-    const next = Math.floor(this.current) + 1;
-    const remaining = next - this.current;
-    const duration = Math.max(0.8, remaining * 2.5);
-    this._autoTween = gsap.to(this, {
-      current: next,
-      duration,
-      ease: 'none',
-      onUpdate: () => this.layoutAll(0),
-      onComplete: () => this.scheduleAuto(),
-    });
+
+    this._autoStartTime = Date.now();
+    this._autoStartCurrent = this.current;
+
+    const onTick = () => {
+      if (this.paused || this.isDragging) return;
+      const elapsed = Date.now() - this._autoStartTime;
+      this.current = this._autoStartCurrent + elapsed * this.SPEED;
+      this.layoutAll(0);
+    };
+
+    gsap.ticker.add(onTick);
+    this._autoTick = onTick;
   }
 
   stopAuto() {
-    if (this._autoTween) {
-      this._autoTween.kill();
-      this._autoTween = null;
+    if (this._autoTick) {
+      gsap.ticker.remove(this._autoTick);
+      this._autoTick = null;
+    }
+    if (this._inertiaTween) {
+      this._inertiaTween.kill();
+      this._inertiaTween = null;
     }
   }
 
