@@ -561,17 +561,6 @@ function initPhotoModal(getCarousel) {
     applyTransform();
   }, { passive: false });
 
-  // 双击缩放（和翻转分开：已翻转时双击不缩放，未翻转时双击缩放）
-  modalPhoto.addEventListener('dblclick', (e) => {
-    e.stopPropagation(); // 阻止冒泡到 wrapper 的翻转
-    if (scale > 1) {
-      resetZoom();
-    } else {
-      scale = 2;
-      applyTransform();
-    }
-  });
-
   // 拖拽平移（缩放后）
   modalPhoto.addEventListener('mousedown', (e) => {
     if (scale <= 1) return;
