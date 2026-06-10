@@ -1360,24 +1360,24 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0;
+  padding: 0.25rem 0;
   color: var(--color-accent);
   position: relative;
 }
 .timeline-connector-line {
   width: 1px;
-  height: 12px;
+  height: 18px;
   background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
   opacity: 0.2;
-  margin-bottom: 0;
+  margin-bottom: 2px;
 }
 .timeline-connector-gem {
   position: relative;
   animation: gemPulse 3s ease-in-out infinite;
 }
 .timeline-connector-gem svg {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: block;
 }
 
