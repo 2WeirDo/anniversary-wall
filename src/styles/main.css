@@ -1494,7 +1494,7 @@ body::after {
 
 /* 缩放提示 */
 .photo-flip-front::after {
-  content: '🔍 滚轮缩放 · 双击还原';
+  content: '🔍 滚轮缩放 · 双击翻转';
   position: absolute;
   bottom: 10px;
   right: 12px;
