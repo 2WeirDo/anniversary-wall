@@ -45,6 +45,7 @@ export class Carousel {
     this.total = PHOTOS.length;
     this.current = 0;          // 浮点位置，持续递增（不取模）
     this.items = [];
+    this.counterEl = document.getElementById('carousel-counter');
     this.isDragging = false;
     this.startX = 0;
     this._dragStartCurrent = 0;
@@ -81,7 +82,10 @@ export class Carousel {
         <div class="photo-frame">
           <picture>
             <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="照片 ${i + 1}" draggable="false" />
+            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="照片 ${i + 1}" draggable="false"
+              onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
+              onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos/${photo}';this.onerror=null"
+            />
           </picture>
         </div>
       `;
@@ -96,6 +100,14 @@ export class Carousel {
       const offset = circularOffset(i, this.current, this.total);
       this.layoutCard(el, offset, duration);
     });
+    this.updateCounter();
+  }
+
+  /** 更新照片计数器 */
+  updateCounter() {
+    if (!this.counterEl) return;
+    const idx = ((Math.round(this.current) % this.total) + this.total) % this.total;
+    this.counterEl.textContent = `${idx + 1} / ${this.total}`;
   }
 
   /**
@@ -164,6 +176,10 @@ export class Carousel {
     this.stage.addEventListener('touchstart', (e) => this.onDown(e), { passive: false });
     window.addEventListener('touchmove', (e) => this.onMove(e), { passive: false });
     window.addEventListener('touchend', () => this.onUp());
+
+    // hover 暂停自动轮播
+    this.stage.addEventListener('mouseenter', () => this.pause());
+    this.stage.addEventListener('mouseleave', () => this.resume());
 
     this.container.addEventListener('click', (e) => {
       if (this._swiped) return;

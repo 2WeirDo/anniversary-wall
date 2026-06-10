@@ -21,18 +21,30 @@ export class Timeline {
   }
 
   render() {
-    this.container.innerHTML = TIMELINE_EVENTS.map((item, index) => {
+    const fragments = [];
+    TIMELINE_EVENTS.forEach((item, index) => {
       const photoFilename = PHOTOS[item.photoIdx];
       const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
       const side = index % 2 === 0 ? 'left' : 'right';
 
-      return `
+      // 连接线（卡片之间）
+      if (index > 0) {
+        fragments.push(`<div class="timeline-connector" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21C12 21 3 14 3 8.5C3 5.5 5.5 3.5 8 3.5C10 3.5 12 6 12 6C12 6 14 3.5 16 3.5C18.5 3.5 21 5.5 21 8.5C21 14 12 21 12 21Z" />
+          </svg>
+        </div>`);
+      }
+
+      fragments.push(`
         <div class="timeline-card" data-timeline-index="${index}">
           <div class="timeline-card-inner ${side}">
             <div class="timeline-card-image">
               <picture>
                 <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-                <img src="${import.meta.env.BASE_URL}photos/${photoFilename}" alt="${item.title}" loading="lazy" />
+                <img src="${import.meta.env.BASE_URL}photos/${photoFilename}" alt="${item.title}" loading="lazy"
+                  onerror="const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s)s.remove();}this.src='${import.meta.env.BASE_URL}photos/${photoFilename}';this.onerror=null"
+                />
               </picture>
               <div class="timeline-card-date-badge">${item.date}</div>
             </div>
@@ -43,8 +55,9 @@ export class Timeline {
             </div>
           </div>
         </div>
-      `;
-    }).join('');
+      `);
+    });
+    this.container.innerHTML = fragments.join('');
   }
 
   setupObserver() {
@@ -53,6 +66,7 @@ export class Timeline {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('revealed');
+            this.observer.unobserve(entry.target);
           }
         });
       },

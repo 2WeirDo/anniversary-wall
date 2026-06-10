@@ -17,6 +17,7 @@
   --color-text: #8B6B73;
   --color-text-dark: #5C4048;
   --color-text-light: #B09098;
+  --color-text-muted: #C0A8B0;
   --color-white: #FFFFFF;
   --color-border: #F0D4DB;
 
@@ -61,6 +62,7 @@
   --color-text: #C8B8C0;
   --color-text-dark: #E0D4D8;
   --color-text-light: #908098;
+  --color-text-muted: #706878;
   --color-white: #1E1828;
   --color-border: #3A2E40;
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -136,6 +138,10 @@
 [data-theme="dark"] .carousel-card .photo-frame {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
+[data-theme="dark"] .carousel-card .photo-frame::before {
+  background: linear-gradient(110deg, #2A2435 30%, #322C3F 50%, #2A2435 70%);
+  background-size: 200% 100%;
+}
 [data-theme="dark"] .photo-modal-content {
   background: #221C2C;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
@@ -194,6 +200,7 @@ body {
   line-height: 1.7;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.6s var(--ease-out), color 0.6s var(--ease-out);
 }
 
 /* ---- 顶部阅读进度线 ---- */
@@ -559,6 +566,51 @@ body::after {
 }
 .dot.active::after { border-color: var(--color-primary); }
 .dot:hover { opacity: 0.7; }
+.dot:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  opacity: 0.9;
+}
+
+/* ---- 回到顶部按钮 ---- */
+.back-to-top {
+  position: fixed;
+  bottom: 84px;
+  right: 28px;
+  z-index: var(--z-music);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all 0.4s var(--ease-spring);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  color: var(--color-text-light);
+}
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.back-to-top:hover {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.back-to-top:active { transform: scale(0.92); }
+.back-to-top:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
 
 /* ========================================
    Hero Section
@@ -1098,6 +1150,64 @@ body::after {
   object-fit: cover;
   pointer-events: none;
   -webkit-user-drag: none;
+  transition: opacity 0.4s var(--ease-out);
+}
+.carousel-card .photo-frame img:not(.loaded) {
+  opacity: 0;
+}
+.carousel-card .photo-frame img.loaded {
+  opacity: 1;
+}
+
+/* 照片加载骨架屏 */
+.carousel-card .photo-frame {
+  position: relative;
+}
+.carousel-card .photo-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, #F5EDF0 30%, #FDF8F9 50%, #F5EDF0 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease-out);
+}
+.carousel-card .photo-frame.loaded::before {
+  opacity: 0;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 轮播照片计数器 */
+.carousel-counter {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  z-index: 5;
+  pointer-events: none;
+  transition: color 0.4s, background 0.4s, border-color 0.4s;
+}
+[data-theme="dark"] .carousel-counter {
+  background: rgba(30, 24, 40, 0.85);
+  color: var(--color-text-light);
+  border-color: rgba(255,255,255,0.08);
 }
 
 
@@ -1246,7 +1356,7 @@ body::after {
   display: flex;
   justify-content: center;
   padding: 0.5rem 0;
-  color: var(--color-accent-light);
+  color: var(--color-accent);
   opacity: 0.6;
   animation: heartbeat 2s ease-in-out infinite;
 }

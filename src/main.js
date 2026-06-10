@@ -172,6 +172,9 @@ function initMainContent() {
   // ---- 顶部阅读进度线 ----
   initProgressBar();
 
+  // ---- 回到顶部按钮 ----
+  initBackToTop();
+
   // ---- 放飞天灯 ----
   initLanternButton();
 
@@ -434,6 +437,27 @@ function initProgressBar() {
 }
 
 /* ======== 放飞天灯 ======== */
+/* ======== 回到顶部按钮 ======== */
+function initBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        btn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.8);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
 function initLanternButton() {
   const btn = document.getElementById('lantern-btn');
   if (!btn) return;
@@ -705,14 +729,17 @@ function initPhotoModal(getCarousel) {
     if (e.key === 'ArrowRight') next();
   });
 
-  // 移动端触摸滑动关闭
-  let touchStartY = 0;
-  modal.querySelector('.photo-modal-content').addEventListener('touchstart', (e) => {
+  // 移动端触摸滑动关闭（仅在内容未滚动时生效）
+  const modalContent = modal.querySelector('.photo-modal-content');
+  let touchStartY = 0, touchStartScrollTop = 0;
+  modalContent.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
+    touchStartScrollTop = modalContent.scrollTop;
   }, { passive: true });
-  modal.querySelector('.photo-modal-content').addEventListener('touchmove', (e) => {
+  modalContent.addEventListener('touchmove', (e) => {
     const dy = e.touches[0].clientY - touchStartY;
-    if (dy > 80 && modal.querySelector('.photo-modal-content').scrollTop <= 0) {
+    // 仅当触发起始时内容在顶部 + 下滑超过阈值 → 关闭
+    if (dy > 80 && touchStartScrollTop <= 0 && modalContent.scrollTop <= 0) {
       close();
     }
   }, { passive: true });
