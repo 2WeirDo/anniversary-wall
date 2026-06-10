@@ -2,7 +2,7 @@
  * Service Worker — 离线缓存
  * 缓存关键资源，支持离线访问
  */
-const CACHE = 'love-story-v1';
+const CACHE = 'love-story-v2';
 
 const PRECACHE = [
   '/',
@@ -36,28 +36,34 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 请求：缓存优先，网络回退
+// 请求策略
 self.addEventListener('fetch', (event) => {
-  // 跳过非 GET 请求
   if (event.request.method !== 'GET') return;
 
+  // HTML / navigation 请求：网络优先（确保拿到最新部署）
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 静态资源：缓存优先，网络回退
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      // 命中缓存直接返回
       if (cached) return cached;
-
-      // 否则走网络，成功后缓存
       return fetch(event.request).then((response) => {
         if (!response || response.status !== 200) return response;
         const clone = response.clone();
-        caches.open(CACHE).then((cache) => {
-          cache.put(event.request, clone);
-        });
+        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
         return response;
-      }).catch(() => {
-        // 网络失败，离线状态下返回空（页面会正常显示已缓存内容）
-        return new Response('', { status: 503 });
-      });
+      }).catch(() => new Response('', { status: 503 }));
     })
   );
 });
