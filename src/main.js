@@ -62,7 +62,12 @@ function preloadImages() {
   }));
 }
 
-enterBtn.addEventListener('click', async () => {
+let _entered = false;
+
+async function handleEnter() {
+  if (_entered) return;
+  _entered = true;
+
   // 在用户手势内同步触发 BGM（浏览器自动播放策略要求）
   audio.play();
 
@@ -86,7 +91,31 @@ enterBtn.addEventListener('click', async () => {
       initMainContent();
     }, 500);
   }, 200);
-});
+}
+
+enterBtn.addEventListener('click', handleEnter);
+
+// 入口页滚轮向下 → 触发进入
+entryOverlay.addEventListener('wheel', (e) => {
+  if (e.deltaY > 0) {
+    e.preventDefault();
+    handleEnter();
+  }
+}, { passive: false });
+
+// 入口页触摸上滑 → 触发进入
+let _entryTouchStartY = 0;
+entryOverlay.addEventListener('touchstart', (e) => {
+  _entryTouchStartY = e.touches[0].clientY;
+}, { passive: true });
+entryOverlay.addEventListener('touchmove', (e) => {
+  if (_entered) return;
+  const dy = _entryTouchStartY - e.touches[0].clientY;
+  if (dy > 30) {
+    e.preventDefault();
+    handleEnter();
+  }
+}, { passive: false });
 
 /**
  * 初始化主体内容（入场后）
