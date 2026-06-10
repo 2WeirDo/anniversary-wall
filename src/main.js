@@ -57,7 +57,7 @@ function preloadImages() {
       const img = new Image();
       img.onload = resolve;
       img.onerror = resolve;
-      img.src = `/photos-optimized/${base}.webp`;
+      img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}.webp`;
     });
   }));
 }
@@ -512,10 +512,10 @@ function initPhotoModal(getCarousel) {
     const photoFilename = PHOTOS[index];
     const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
 
-    modalPhoto.src = `/photos-optimized/${base}.webp`;
+    modalPhoto.src = `${import.meta.env.BASE_URL}photos-optimized/${base}.webp`;
     modalPhoto.alt = `照片 ${index + 1}`;
     modalPhoto.onerror = function () {
-      this.src = `/photos/${photoFilename}`;
+      this.src = `${import.meta.env.BASE_URL}photos/${photoFilename}`;
     };
     modalDate.textContent = meta.date;
     modalStory.textContent = meta.story;
@@ -738,7 +738,7 @@ function initNavDots() {
 /* ======== Service Worker 注册（PWA） ======== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register('/anniversary-wall/sw.js').catch(() => {
       // 静默失败，不影响主功能
     });
   });

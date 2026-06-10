@@ -31,8 +31,8 @@ export class Timeline {
           <div class="timeline-card-inner ${side}">
             <div class="timeline-card-image">
               <picture>
-                <source srcset="/photos-optimized/${base}.webp" type="image/webp" />
-                <img src="/photos/${photoFilename}" alt="${item.title}" loading="lazy" />
+                <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
+                <img src="${import.meta.env.BASE_URL}photos/${photoFilename}" alt="${item.title}" loading="lazy" />
               </picture>
               <div class="timeline-card-date-badge">${item.date}</div>
             </div>

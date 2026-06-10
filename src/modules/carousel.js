@@ -57,8 +57,8 @@ export class Carousel {
       el.innerHTML = `
         <div class="photo-frame">
           <picture>
-            <source srcset="/photos-optimized/${base}.webp" type="image/webp" />
-            <img src="/photos/${photo}" alt="照片 ${i + 1}" draggable="false" />
+            <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
+            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="照片 ${i + 1}" draggable="false" />
           </picture>
         </div>
       `;
