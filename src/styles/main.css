@@ -1492,22 +1492,6 @@ body::after {
   will-change: transform;
 }
 
-/* 缩放提示 */
-.photo-flip-front::after {
-  content: '🔍 滚轮缩放 · 双击翻转';
-  position: absolute;
-  bottom: 10px;
-  right: 12px;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.5);
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.photo-flip-front:hover::after {
-  opacity: 1;
-}
 .photo-flip-back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #FEF0F3 0%, #FFF9F7 40%, #FEF5F5 100%);
