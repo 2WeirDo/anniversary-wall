@@ -99,7 +99,13 @@
   background:
     radial-gradient(ellipse 50% 40% at 50% 35%, rgba(200, 140, 160, 0.1) 0%, transparent 55%),
     radial-gradient(ellipse 70% 30% at 30% 60%, rgba(42, 34, 53, 0.4) 0%, transparent 50%),
-    linear-gradient(180deg, #1A1520 0%, #231D2A 50%, #1E1828 100%);
+    linear-gradient(180deg, #1A1520 0%, #231D2A 50%, #1F1A2A 100%);
+}
+[data-theme="dark"] .hero::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(31, 26, 42, 0.7) 100%);
+}
+[data-theme="dark"] .wishes::before {
+  background: linear-gradient(180deg, #1F1A2A 0%, transparent 100%);
 }
 [data-theme="dark"] .wishes {
   background:
@@ -700,10 +706,20 @@ body::after {
     radial-gradient(ellipse 80% 60% at 25% 20%, rgba(242, 196, 206, 0.25) 0%, transparent 50%),
     radial-gradient(ellipse 60% 70% at 75% 80%, rgba(232, 120, 144, 0.12) 0%, transparent 50%),
     radial-gradient(ellipse 50% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, var(--color-cream) 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
+    linear-gradient(180deg, var(--color-cream) 0%, var(--color-bg) 40%, #FEFBFB 100%);
   text-align: center;
   flex-direction: column;
   gap: 0;
+}
+/* 底部过渡 — 与星愿清单平滑衔接 */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 20%;
+  background: linear-gradient(180deg, transparent 0%, rgba(254, 251, 251, 0.7) 100%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .hero-bg { display: none; }
@@ -872,6 +888,20 @@ body::after {
    ======================================== */
 .wishes {
   overflow: visible; /* 允许 hover 描述卡片溢出，不裁剪 */
+  position: relative;
+}
+/* 顶部过渡 — 从 Hero 区平滑衔接 */
+.wishes::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 18%;
+  background: linear-gradient(180deg, #FEFBFB 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.wishes .wishes-container { position: relative; z-index: 2; }
+.wishes {
   background:
     /* 星座光点 */
     radial-gradient(1px 1px at 12% 18%, rgba(200, 160, 140, 0.22), transparent),
