@@ -227,6 +227,18 @@
 [data-theme="dark"] .timeline-card-date-badge {
   background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
 }
+/* 暗色模式：照片降低亮度，避免刺眼 */
+[data-theme="dark"] .carousel-card .photo-frame img,
+[data-theme="dark"] .timeline-card-image img,
+[data-theme="dark"] .photo-flip-front img {
+  filter: brightness(0.82) saturate(0.9);
+}
+[data-theme="dark"] .carousel-card.active .photo-frame img {
+  filter: brightness(0.9) saturate(0.95);
+}
+[data-theme="dark"] .carousel-card.active .photo-frame {
+  -webkit-box-reflect: below 6px linear-gradient(180deg, transparent 0%, transparent 40%, rgba(26, 21, 32, 0.35) 70%, rgba(26, 21, 32, 0.05) 100%);
+}
 [data-theme="dark"] .timeline-card::before {
   background: #2A2235;
   box-shadow:
@@ -655,6 +667,27 @@ body::after {
   border: 1.5px solid transparent;
   transition: border-color 0.4s;
 }
+/* hover 时显示板块名称标签 */
+.dot::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  white-space: nowrap;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.dot:hover::before,
+.dot.active::before {
+  opacity: 0.85;
+  transform: translateY(-50%) translateX(-4px);
+}
 .dot.active {
   opacity: 1;
   background: var(--color-accent);
@@ -725,6 +758,19 @@ body::after {
   text-align: center;
   flex-direction: column;
   gap: 0;
+  position: relative;
+}
+/* 噪点纹理叠加层 — 模拟杂志/书籍纸张质感 */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
 }
 /* 底部过渡 — 与照片墙平滑衔接 */
 .hero::after {
@@ -984,19 +1030,78 @@ body::after {
   padding-left: 0.15rem;
 }
 
-/* ---- 分隔线 ---- */
+/* ---- 分隔线（串灯效果）---- */
 .wish-divider {
   display: flex;
   justify-content: center;
   margin: 2rem 0 2.2rem;
   color: var(--color-accent);
 }
+.wish-divider-svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+}
+/* 串灯光点闪烁 */
+.fairy-light {
+  animation: fairyTwinkle 2.5s ease-in-out infinite;
+}
+.fairy-light-main {
+  animation: fairyGlow 2s ease-in-out infinite;
+}
+.fairy-glow {
+  animation: fairyGlowPulse 3s ease-in-out infinite;
+}
+@keyframes fairyTwinkle {
+  0%, 100% { opacity: 0.25; r: 2.5px; }
+  30% { opacity: 0.6; r: 3.5px; }
+  60% { opacity: 0.2; r: 2px; }
+  80% { opacity: 0.7; r: 4px; }
+}
+@keyframes fairyGlow {
+  0%, 100% { opacity: 0.35; r: 3.5px; }
+  50% { opacity: 0.75; r: 5px; }
+}
+@keyframes fairyGlowPulse {
+  0%, 100% { opacity: 0.05; r: 8px; }
+  50% { opacity: 0.15; r: 14px; }
+}
 
-/* ---- Bento Grid 卡片网格 ---- */
+/* ---- Bento Grid 卡片网格（带串灯连线纹理）---- */
 .wish-cloud {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  position: relative;
+}
+/* 卡片之间的连线纹理（横向串灯） */
+.wish-cloud::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--color-accent) 10%,
+    transparent 20%,
+    var(--color-accent) 35%,
+    transparent 50%,
+    var(--color-accent) 65%,
+    transparent 80%,
+    var(--color-accent) 90%,
+    transparent 100%
+  );
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 70%);
+}
+.wish-cloud > * {
+  position: relative;
+  z-index: 1;
 }
 @media (max-width: 768px) {
   .wish-cloud {
@@ -1213,23 +1318,30 @@ body::after {
   box-shadow: 0 20px 60px rgba(200, 120, 140, 0.2), 0 0 0 4px rgba(242, 196, 206, 0.3);
   border-color: var(--color-primary-light);
 }
-/* 倒影 — 模拟相纸光面反射 */
-.carousel-card.active::after {
-  content: '';
-  position: absolute;
-  bottom: -38px;
-  left: 5%;
-  right: 5%;
-  height: 44px;
-  background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.06) 30%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: -1;
-  border-radius: 50%;
-  filter: blur(2px);
+/* 倒影 — 使用 -webkit-box-reflect 真实镜像 */
+.carousel-card.active .photo-frame {
+  -webkit-box-reflect: below 6px linear-gradient(180deg, transparent 0%, transparent 40%, rgba(254, 252, 251, 0.35) 70%, rgba(254, 252, 251, 0.05) 100%);
+}
+/* Firefox 等不支持 -webkit-box-reflect 的浏览器的 fallback */
+@supports not (-webkit-box-reflect: below 0px) {
+  .carousel-card.active::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.05) 40%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(3px);
+    border-radius: 50%;
+    opacity: 0.5;
+  }
 }
 
 .carousel-card .photo-frame::after {
@@ -2153,6 +2265,20 @@ body::after {
   letter-spacing: 0.05em;
   opacity: 0.7;
 }
+.footer-days {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 0.3rem;
+  letter-spacing: 0.04em;
+  font-style: italic;
+  opacity: 0.55;
+}
+.footer-days span {
+  font-weight: 600;
+  color: var(--color-accent);
+  font-feature-settings: "tnum";
+}
 
 /* ---- Dark mode ---- */
 [data-theme="dark"] .site-footer {
@@ -2174,8 +2300,6 @@ body::after {
   .section { padding: 40px 16px; }
   .carousel-stage { height: 340px; }
   .carousel-card { width: 230px; height: 300px; }
-  .letter-container { max-width: 100%; }
-  .letter-card { padding: 2rem 1.5rem; }
   .entry-content { padding: 2rem 1.5rem; }
   .entry-line { height: 40px; }
   .entry-title { font-size: clamp(2.2rem, 8vw, 2.8rem); }

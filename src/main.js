@@ -142,7 +142,7 @@ entryOverlay.addEventListener('touchstart', (e) => {
 entryOverlay.addEventListener('touchmove', (e) => {
   if (_entered) return;
   const dy = _entryTouchStartY - e.touches[0].clientY;
-  if (dy > 30) {
+  if (dy > 60) {
     e.preventDefault();
     handleEnter();
   }
@@ -171,6 +171,9 @@ function initMainContent() {
   // 导航 / 滚动观察器
   initNavDots();
   initScrollReveals();
+
+  // Ending 自动仪式：滚动到结尾页时自动放天灯 + 心形
+  initEndingCeremony();
 
   // 装饰效果
   initCursorTrail();
@@ -415,6 +418,7 @@ function initCursorTrail() {
 function initDaysCounter() {
   const heroDaysEl = document.getElementById('hero-days');
   const daysCounterEl = document.getElementById('days-counter');
+  const footerDaysEl = document.getElementById('footer-days');
   const countdownEl = document.getElementById('hero-countdown');
 
   // 一周年日期
@@ -428,6 +432,7 @@ function initDaysCounter() {
 
     if (heroDaysEl) heroDaysEl.textContent = days;
     if (daysCounterEl) daysCounterEl.textContent = days;
+    if (footerDaysEl) footerDaysEl.textContent = days;
 
     // 倒计时
     if (countdownEl) {
@@ -527,6 +532,49 @@ function initBackToTop() {
   btn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+
+/* ======== Ending 自动仪式：滚动进入时放天灯 + 心形粒子 ======== */
+function initEndingCeremony() {
+  const endingSection = document.getElementById('ending');
+  if (!endingSection) return;
+
+  let triggered = false;
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !triggered) {
+          triggered = true;
+          // 延迟一小段，让用户先看到 Ending 内容
+          setTimeout(() => {
+            // 自动放 2 盏天灯
+            for (let i = 0; i < 2; i++) {
+              setTimeout(() => spawnLantern(), i * 500);
+            }
+            // 再加一波心形粒子
+            const heartsContainer = document.getElementById('ending-particles');
+            if (heartsContainer) {
+              for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                  const heart = document.createElement('span');
+                  heart.className = 'floating-heart';
+                  heart.textContent = ['♥', '♡', '❤', '💕', '💖'][Math.floor(Math.random() * 5)];
+                  heart.style.left = (10 + Math.random() * 80) + '%';
+                  heart.style.animationDuration = (3 + Math.random() * 4) + 's';
+                  heart.style.fontSize = (18 + Math.random() * 20) + 'px';
+                  heartsContainer.appendChild(heart);
+                  const dur = parseFloat(heart.style.animationDuration) * 1000;
+                  setTimeout(() => heart.remove(), dur + 200);
+                }, i * 150);
+              }
+            }
+          }, 1200);
+        }
+      });
+    },
+    { threshold: 0.4 }
+  );
+  observer.observe(endingSection);
 }
 
 function initLanternButton() {
