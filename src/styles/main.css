@@ -237,7 +237,19 @@
   filter: brightness(0.9) saturate(0.95);
 }
 [data-theme="dark"] .carousel-card.active .photo-frame {
-  -webkit-box-reflect: below 6px linear-gradient(180deg, transparent 0%, transparent 40%, rgba(26, 21, 32, 0.35) 70%, rgba(26, 21, 32, 0.05) 100%);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    0 0 0 4px rgba(232, 152, 168, 0.2),
+    0 40px 100px rgba(200, 140, 160, 0.08);
+}
+[data-theme="dark"] .carousel-card.active::after {
+  background:
+    radial-gradient(ellipse 55% 90% at 50% 0%,
+      rgba(232, 152, 168, 0.08) 0%,
+      rgba(200, 140, 160, 0.04) 30%,
+      rgba(42, 34, 53, 0.03) 55%,
+      transparent 75%
+    );
 }
 [data-theme="dark"] .timeline-card::before {
   background: #2A2235;
@@ -1318,30 +1330,33 @@ body::after {
   box-shadow: 0 20px 60px rgba(200, 120, 140, 0.2), 0 0 0 4px rgba(242, 196, 206, 0.3);
   border-color: var(--color-primary-light);
 }
-/* 倒影 — 使用 -webkit-box-reflect 真实镜像 */
+/* 倒影 — 柔和光池：模拟相纸光面在桌面上的暖调反光
+   不用 -webkit-box-reflect（太生硬），改用径向辉光 + 色散边缘 */
 .carousel-card.active .photo-frame {
-  -webkit-box-reflect: below 6px linear-gradient(180deg, transparent 0%, transparent 40%, rgba(254, 252, 251, 0.35) 70%, rgba(254, 252, 251, 0.05) 100%);
+  box-shadow:
+    0 20px 60px rgba(200, 120, 140, 0.18),
+    0 0 0 4px rgba(242, 196, 206, 0.3),
+    0 40px 100px rgba(232, 120, 144, 0.1);
 }
-/* Firefox 等不支持 -webkit-box-reflect 的浏览器的 fallback */
-@supports not (-webkit-box-reflect: below 0px) {
-  .carousel-card.active::after {
-    content: '';
-    position: absolute;
-    bottom: -30px;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(255, 255, 255, 0.05) 40%,
-      transparent 100%
+.carousel-card.active::after {
+  content: '';
+  position: absolute;
+  bottom: -55px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75%;
+  height: 80px;
+  background:
+    radial-gradient(ellipse 55% 90% at 50% 0%,
+      rgba(232, 120, 144, 0.1) 0%,
+      rgba(242, 196, 206, 0.05) 30%,
+      rgba(254, 240, 243, 0.03) 55%,
+      transparent 75%
     );
-    pointer-events: none;
-    z-index: -1;
-    filter: blur(3px);
-    border-radius: 50%;
-    opacity: 0.5;
-  }
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(10px);
+  border-radius: 50%;
 }
 
 .carousel-card .photo-frame::after {
