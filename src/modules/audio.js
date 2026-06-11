@@ -90,7 +90,11 @@ export class AudioPlayer {
         this.audio.loop = true;
         await this.audio.play();
 
-        // 平滑淡入
+        // 立即标记播放状态，不等淡入
+        this.isPlaying = true;
+        this.btn.classList.add('playing');
+
+        // 后台平滑淡入（不阻塞按钮状态）
         const targetVol = 0.14;
         const steps = 30;
         const interval = 80;
@@ -328,11 +332,7 @@ export class AudioPlayer {
       // 首次启动：优先尝试本地文件
       if (this.audio && !this.isInitialized) {
         const fileLoaded = await this.startFilePlayback();
-        if (fileLoaded) {
-          this.isPlaying = true;
-          this.btn.classList.add('playing');
-          return;
-        }
+        if (fileLoaded) return; // startFilePlayback 已设置 playing 状态
       }
 
       // 回退：Web Audio API 合成
