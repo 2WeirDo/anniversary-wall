@@ -279,8 +279,8 @@ function initScrollReveals() {
       { opacity: 0, x: fromX },
       {
         opacity: 1, x: 0,
-        duration: 0.9,
-        ease: 'power3.out',
+        duration: 0.4,
+        ease: 'power2.out',
         scrollTrigger: {
           trigger: card,
           start: 'top 88%',
