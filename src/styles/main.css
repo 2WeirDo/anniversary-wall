@@ -80,20 +80,12 @@
 [data-theme="dark"] .progress-bar-fill {
   background: linear-gradient(90deg, #C98DA0, #E898A8, #D4B896);
 }
-[data-theme="dark"] .entry-overlay::before,
-[data-theme="dark"] .entry-overlay::after {
+[data-theme="dark"] .entry-overlay {
   background:
     radial-gradient(ellipse 60% 50% at 50% 40%, rgba(42, 34, 53, 0.8) 0%, transparent 60%),
     radial-gradient(ellipse 80% 40% at 30% 70%, rgba(200, 140, 160, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse 60% 30% at 70% 20%, rgba(230, 150, 170, 0.06) 0%, transparent 50%),
     linear-gradient(180deg, #1A1520 0%, #1E1828 40%, #231D2A 100%);
-  background-size: 200% 100%;
-}
-[data-theme="dark"] .entry-overlay::before {
-  background-position: left center;
-}
-[data-theme="dark"] .entry-overlay::after {
-  background-position: right center;
 }
 [data-theme="dark"] .hero {
   background:
@@ -313,65 +305,25 @@ body::after {
 .reveal-up[data-delay="5"] { transition-delay: 0.5s; }
 
 /* ========================================
-   Entry Overlay — Editorial Cover
+   Entry Overlay — 书封翻开
    ======================================== */
 .entry-overlay {
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  /* 背景由 ::before / ::after 承载 */
-  background: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(254, 240, 243, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 30% 70%, rgba(242, 196, 206, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 30% at 70% 20%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #FEFCFB 0%, #FFF9F7 40%, #FEF5F5 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  will-change: transform;
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.2, 1);
 }
-
-/* ---- 左侧书封 ---- */
-.entry-overlay::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0;
-  width: 50.2%;  /* 微重叠防止接缝 */
-  height: 100%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(254, 240, 243, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 40% at 30% 70%, rgba(242, 196, 206, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 30% at 70% 20%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #FEFCFB 0%, #FFF9F7 40%, #FEF5F5 100%);
-  background-size: 200% 100%;          /* 拉伸到两倍宽，仅显示左半 */
-  background-position: left center;
-  transition: transform 0.75s cubic-bezier(0.6, 0, 0.2, 1);
-}
-.entry-overlay.hidden::before {
-  transform: translateX(-102%);
-}
-
-/* ---- 右侧书封 ---- */
-.entry-overlay::after {
-  content: '';
-  position: fixed;
-  top: 0; right: 0;
-  width: 50.2%;
-  height: 100%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(254, 240, 243, 0.6) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 40% at 30% 70%, rgba(242, 196, 206, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 30% at 70% 20%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #FEFCFB 0%, #FFF9F7 40%, #FEF5F5 100%);
-  background-size: 200% 100%;
-  background-position: right center;
-  transition: transform 0.75s cubic-bezier(0.6, 0, 0.2, 1);
-}
-.entry-overlay.hidden::after {
-  transform: translateX(102%);
-}
-
-/* 隐藏后遮罩不再拦截事件 */
 .entry-overlay.hidden {
+  transform: translateY(-105%);
   pointer-events: none;
 }
 
