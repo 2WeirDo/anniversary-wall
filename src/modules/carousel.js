@@ -55,6 +55,10 @@ export class Carousel {
     this._autoStartCurrent = 0;
     this.paused = false;
     this.SPEED = 1 / 2500;     // 每 ms 推进的 current 单位（2.5s/张）
+    this.SLOW_SPEED = 1 / 8000; // hover 减速（~8s/张）
+    this._currentSpeed = this.SPEED;
+    this._lastTickTime = 0;
+    this._isHovering = false;
     this.onPhotoClick = onPhotoClick || null;
 
     this.init();
@@ -177,9 +181,17 @@ export class Carousel {
     window.addEventListener('touchmove', (e) => this.onMove(e), { passive: false });
     window.addEventListener('touchend', () => this.onUp());
 
-    // hover 暂停自动轮播
-    this.stage.addEventListener('mouseenter', () => this.pause());
-    this.stage.addEventListener('mouseleave', () => this.resume());
+    // hover 减速轮播（不暂停）
+    this.stage.addEventListener('mouseenter', () => {
+      this._isHovering = true;
+      this.slowDown();
+      this.stage.style.cursor = 'grab';
+    });
+    this.stage.addEventListener('mouseleave', () => {
+      this._isHovering = false;
+      this.speedUp();
+      this.stage.style.cursor = '';
+    });
 
     this.container.addEventListener('click', (e) => {
       if (this._swiped) return;
@@ -195,12 +207,14 @@ export class Carousel {
     this.isDragging = true;
     this._swiped = false;
     this.stopAuto();
+    this._currentSpeed = this.SPEED; // 拖拽时恢复原速
     this.startX = e.touches ? e.touches[0].clientX : e.clientX;
     this._lastX = this.startX;
     this._lastTime = Date.now();
     this._velocity = 0;
     this._dragStartCurrent = this.current;
     this.stage.classList.add('dragging');
+    this.stage.style.cursor = 'grabbing';
   }
 
   onMove(e) {
@@ -227,6 +241,11 @@ export class Carousel {
     if (!this.isDragging) return;
     this.isDragging = false;
     this.stage.classList.remove('dragging');
+    this.stage.style.cursor = this._isHovering ? 'grab' : '';
+    // 松手后若仍 hover 则恢复减速
+    if (this._isHovering) {
+      this._currentSpeed = this.SLOW_SPEED;
+    }
 
     const absVel = Math.abs(this._velocity);
 
@@ -285,19 +304,20 @@ export class Carousel {
 
   /**
    * 使用 GSAP ticker 持续推进 current
-   * 不依赖 onComplete 链式回调，不会被意外打断
+   * delta-based 推进，hover 时实时减速，松手后恢复原速，无跳变
    */
   scheduleAuto() {
     this.stopAuto();
     if (this.paused) return;
 
-    this._autoStartTime = Date.now();
-    this._autoStartCurrent = this.current;
+    this._lastTickTime = Date.now();
 
     const onTick = () => {
       if (this.paused || this.isDragging) return;
-      const elapsed = Date.now() - this._autoStartTime;
-      this.current = this._autoStartCurrent + elapsed * this.SPEED;
+      const now = Date.now();
+      const dt = now - this._lastTickTime;
+      this._lastTickTime = now;
+      this.current += dt * this._currentSpeed;
       this.layoutAll(0);
     };
 
@@ -324,5 +344,16 @@ export class Carousel {
   resume() {
     this.paused = false;
     this.scheduleAuto();
+  }
+
+  /** hover 时减速轮播，不暂停 */
+  slowDown() {
+    if (this.isDragging) return;
+    this._currentSpeed = this.SLOW_SPEED;
+  }
+
+  /** 离开 hover 区域恢复原速 */
+  speedUp() {
+    this._currentSpeed = this.SPEED;
   }
 }
