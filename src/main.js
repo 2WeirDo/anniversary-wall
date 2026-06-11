@@ -86,14 +86,15 @@ async function handleEnter() {
 
   // 阶段1: 内容先淡出 (0.2s)
   entryContent.classList.add('fade-out');
-  // 阶段2: 书封裂开 (0.75s)
+  // 阶段2: 书封向上滑出 (0.7s)
   setTimeout(() => {
     entryOverlay.classList.add('hidden');
-    document.body.style.overflow = ''; // 恢复 body 滚动
     audio.initPlay();
+    // 等遮罩完全滑出后再恢复滚动 + 初始化主体
     setTimeout(() => {
+      document.body.style.overflow = '';
       initMainContent();
-    }, 500);
+    }, 700);
   }, 200);
 }
 
