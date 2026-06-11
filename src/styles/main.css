@@ -101,24 +101,39 @@
     radial-gradient(ellipse 70% 30% at 30% 60%, rgba(42, 34, 53, 0.4) 0%, transparent 50%),
     linear-gradient(180deg, #1A1520 0%, #231D2A 50%, #1E1828 100%);
 }
-[data-theme="dark"] .letter {
+[data-theme="dark"] .wishes {
   background:
     radial-gradient(ellipse 40% 50% at 20% 40%, rgba(200, 140, 160, 0.06) 0%, transparent 60%),
     radial-gradient(ellipse 35% 30% at 70% 30%, rgba(180, 120, 150, 0.04) 0%, transparent 50%),
     linear-gradient(185deg, #1F1A2A 0%, #1A1520 55%, #1D1726 100%);
 }
-[data-theme="dark"] .letter-card {
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.015) 2px, rgba(255,255,255,0.015) 3px),
-    linear-gradient(175deg, #252031 0%, #221C2C 40%, #201A2A 100%);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04);
+[data-theme="dark"] .wish-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #D0C4D8;
 }
-[data-theme="dark"] .letter-card::after {
-  border-color: transparent transparent #252031 transparent;
+[data-theme="dark"] .wish-card.completed {
+  background: rgba(200, 170, 130, 0.08);
+  border-color: rgba(200, 170, 130, 0.15);
+  color: #E0D0B8;
 }
-[data-theme="dark"] .letter-tear {
-  background: repeating-linear-gradient(90deg, transparent 0px, transparent 12px, rgba(255,255,255,0.04) 12px, rgba(255,255,255,0.04) 14px);
+[data-theme="dark"] .wish-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .wish-card-desc {
+  color: #A090A8;
+}
+[data-theme="dark"] .wish-group-head {
+  color: #E8D8E8;
+}
+[data-theme="dark"] .wish-group-sub {
+  color: #706878;
+}
+[data-theme="dark"] .wish-divider { color: #3A2E3A; }
+[data-theme="dark"] .wishes-fade {
+  background: linear-gradient(180deg, transparent 0%, #1A1520 100%);
 }
 [data-theme="dark"] .gallery {
   background:
@@ -839,284 +854,178 @@ body::after {
 .cursor-heart.visible { opacity: 0.65; }
 
 /* ========================================
-   Letter Section (情书) — 艺术化书信
+   Wishes Section — 星愿清单
    ======================================== */
-.letter {
+.wishes {
   background:
-    radial-gradient(ellipse 55% 45% at 50% 38%, rgba(254, 235, 240, 0.55) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 35% at 25% 65%, rgba(242, 196, 206, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 35% 30% at 72% 22%, rgba(232, 140, 160, 0.07) 0%, transparent 50%),
-    linear-gradient(185deg, #FDF5F6 0%, var(--color-cream) 28%, var(--color-bg) 58%, #FEF5F5 100%);
+    radial-gradient(1px 1px at 12% 18%, rgba(200, 160, 140, 0.25), transparent),
+    radial-gradient(1px 1px at 28% 32%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1.5px 1.5px at 45% 12%, rgba(200, 160, 140, 0.22), transparent),
+    radial-gradient(1px 1px at 62% 28%, rgba(200, 160, 140, 0.2), transparent),
+    radial-gradient(1.5px 1.5px at 78% 16%, rgba(200, 160, 140, 0.28), transparent),
+    radial-gradient(1px 1px at 88% 34%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1px 1px at 18% 55%, rgba(200, 160, 140, 0.15), transparent),
+    radial-gradient(1.5px 1.5px at 35% 48%, rgba(200, 160, 140, 0.2), transparent),
+    radial-gradient(1px 1px at 55% 58%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1px 1px at 72% 52%, rgba(200, 160, 140, 0.22), transparent),
+    radial-gradient(1.5px 1.5px at 85% 60%, rgba(200, 160, 140, 0.16), transparent),
+    radial-gradient(1px 1px at 8% 75%, rgba(200, 160, 140, 0.15), transparent),
+    radial-gradient(1px 1px at 42% 78%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1.5px 1.5px at 68% 82%, rgba(200, 160, 140, 0.2), transparent),
+    radial-gradient(1px 1px at 92% 76%, rgba(200, 160, 140, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 50% 35%, rgba(254, 235, 240, 0.4) 0%, transparent 60%),
+    linear-gradient(182deg, #FEFBFB 0%, var(--color-cream) 35%, var(--color-bg) 65%, #FEF5F5 100%);
   position: relative;
+  flex-direction: column;
+  gap: 0;
 }
-/* 底部过渡 — 平滑衔接到照片墙 */
-.letter::after {
-  content: '';
+
+.wishes-container {
+  max-width: 880px;
+  width: 100%;
+  padding: 0 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- 分组标题 ---- */
+.wish-group {
+  margin-bottom: 0.5rem;
+}
+
+.wish-group-head {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  color: var(--color-accent-deep);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.15rem;
+}
+.wish-group-icon {
+  font-size: 1.1em;
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
+.wish-group-sub {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.6rem;
+  padding-left: 0.15rem;
+}
+
+/* ---- 分隔线 ---- */
+.wish-divider {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0 1.8rem;
+  color: var(--color-accent);
+}
+
+/* ---- 卡片云 ---- */
+.wish-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+/* ---- 单张星愿卡片 ---- */
+.wish-card {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.55rem 1.05rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(242, 196, 206, 0.3);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  cursor: default;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  max-width: 340px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.wish-card:hover {
+  transform: translateY(-3px) scale(1.03);
+  border-color: var(--color-accent);
+  box-shadow: 0 6px 24px rgba(200, 140, 160, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 2;
+}
+
+/* 已完成 — 暖金底色 */
+.wish-card.completed {
+  background: rgba(255, 250, 245, 0.8);
+  border-color: rgba(200, 175, 140, 0.35);
+  color: #9B8A78;
+}
+.wish-card.completed:hover {
+  border-color: var(--color-gold);
+  box-shadow: 0 6px 24px rgba(200, 170, 130, 0.2);
+  background: rgba(255, 252, 248, 0.95);
+}
+
+/* ---- 卡片内图标 ---- */
+.wish-card-icon {
+  font-size: 1.1em;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* ---- 卡片主体（标题 + 描述） ---- */
+.wish-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wish-card-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: inherit;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- 描述（默认收起，hover 展开） ---- */
+.wish-card-desc {
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s ease-out,
+              margin-top 0.35s ease-out;
+  margin-top: 0;
+}
+.wish-card:hover .wish-card-desc {
+  max-height: 5em;
+  opacity: 1;
+  margin-top: 0.35rem;
+}
+
+/* ---- 底部过渡渐变 ---- */
+.wishes-fade {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 40%;
+  height: 35%;
   background: linear-gradient(180deg, transparent 0%, var(--color-bg-pink) 100%);
   pointer-events: none;
   z-index: 0;
-}
-.letter > * { position: relative; z-index: 1; }
-
-.letter-container {
-  max-width: 760px;
-  width: 100%;
-  padding: 0 24px;
-}
-
-/* ---- 信纸卡片 ---- */
-.letter-card {
-  background:
-    /* 纸纹 */
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(180, 160, 170, 0.03) 2px,
-      rgba(180, 160, 170, 0.03) 3px
-    ),
-    linear-gradient(175deg, #FFFDFB 0%, #FFFCFA 40%, #FFF9F7 100%);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: clamp(2.5rem, 6vw, 4rem);
-  position: relative;
-  box-shadow:
-    0 2px 20px rgba(180, 140, 150, 0.08),
-    0 8px 40px rgba(180, 140, 150, 0.06),
-    0 20px 60px rgba(160, 120, 130, 0.04);
-  transition: transform 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
-  overflow: visible;
-}
-.letter-card:hover {
-  box-shadow:
-    0 4px 24px rgba(180, 140, 150, 0.12),
-    0 12px 48px rgba(180, 140, 150, 0.08),
-    0 24px 64px rgba(160, 120, 130, 0.06);
-}
-
-/* ---- 顶部金线 ---- */
-.letter-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 5%; right: 5%;
-  height: 2px;
-  background: linear-gradient(90deg,
-    transparent,
-    var(--color-primary-light) 8%,
-    var(--color-gold) 25%,
-    var(--color-accent) 50%,
-    var(--color-gold) 75%,
-    var(--color-primary-light) 92%,
-    transparent
-  );
-  opacity: 0.7;
-  z-index: 3;
-}
-
-/* ---- 信封封口（撕开动画） ---- */
-.letter-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%) rotate(180deg);
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 30px 34px 30px;
-  border-color: transparent transparent #FFFDFB transparent;
-  z-index: 2;
-  transition: transform 0.7s var(--ease-spring), opacity 0.5s;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-.letter-card.revealed::after {
-  transform: translateX(-50%) rotate(0deg) translateY(-36px);
-  opacity: 0;
-}
-.letter-card.revealed {
-  animation: cardReveal 1s var(--ease-out);
-}
-
-@keyframes cardReveal {
-  from { opacity: 0; transform: translateY(60px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ---- 蜡封 ---- */
-.letter-seal {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
-  z-index: 5;
-  filter: drop-shadow(0 3px 6px rgba(180, 100, 120, 0.35));
-  transition: transform 0.6s var(--ease-spring);
-  cursor: default;
-}
-.letter-seal-svg {
-  width: 100%;
-  height: 100%;
-}
-.letter-card.revealed .letter-seal {
-  transform: translateX(-50%) translateY(-10px) scale(0.9);
-  opacity: 0.85;
-}
-.letter-card:hover .letter-seal {
-  transform: translateX(-50%) scale(1.08);
-}
-
-/* ---- 信封撕边纹理 ---- */
-.letter-tear {
-  position: absolute;
-  top: 36px; left: 0; right: 0;
-  height: 16px;
-  z-index: 2;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      transparent 0px,
-      transparent 12px,
-      rgba(220, 180, 190, 0.15) 12px,
-      rgba(220, 180, 190, 0.15) 14px
-    );
-  mask-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
-}
-
-/* ---- 装饰角标 ---- */
-.letter-decoration {
-  position: absolute;
-  opacity: 0.45;
-  transition: transform 0.5s var(--ease-spring), opacity 0.5s;
-  color: var(--color-accent);
-}
-.letter-decoration.top-left { top: 44px; left: 22px; }
-.letter-decoration.bottom-right { bottom: 18px; right: 22px; }
-.letter-card:hover .letter-decoration.top-left { transform: rotate(-8deg) scale(1.15); opacity: 0.75; }
-.letter-card:hover .letter-decoration.bottom-right { transform: rotate(8deg) scale(1.15); opacity: 0.75; }
-
-/* ---- 标题 ---- */
-.letter-title {
-  font-family: var(--font-script);
-  font-size: clamp(2.2rem, 5vw, 3rem);
-  font-weight: 400;
-  color: var(--color-accent-deep);
-  text-align: center;
-  margin: 0 0 0.3rem;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
-  position: relative;
-  z-index: 1;
-}
-
-/* ---- 装饰分隔线 ---- */
-.letter-ornament {
-  display: flex;
-  justify-content: center;
-  margin: 0.75rem 0 1.8rem;
-  color: var(--color-accent);
-  opacity: 0.6;
-}
-.letter-ornament--bottom {
-  margin: 1.8rem 0 0;
-  opacity: 0.35;
-}
-
-/* ---- 正文 ---- */
-.letter-text {
-  font-family: var(--font-body);
-  font-size: clamp(0.95rem, 2vw, 1.05rem);
-  line-height: 2.2;
-  color: var(--color-text-dark);
-  position: relative;
-  z-index: 1;
-}
-.letter-text p {
-  margin-bottom: 1.4rem;
-  opacity: 0;
-  transform: translateY(20px);
-  text-indent: 2em;
-}
-.letter-text p.revealed {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
-}
-.letter-text p.revealed:nth-child(1) { transition-delay: 0.1s; }
-.letter-text p.revealed:nth-child(2) { transition-delay: 0.25s; }
-.letter-text p.revealed:nth-child(3) { transition-delay: 0.4s; }
-.letter-text p.revealed:nth-child(4) { transition-delay: 0.55s; }
-.letter-text p.revealed:nth-child(5) { transition-delay: 0.7s; }
-
-/* 首段：Drop Cap 首字下沉 */
-.letter-text p:first-child {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-style: italic;
-  color: var(--color-accent-deep);
-  margin-bottom: 1.6rem;
-  line-height: 1.7;
-  text-indent: 0;
-  position: relative;
-  padding-left: 1.2rem;
-  border-left: 2.5px solid var(--color-primary);
-}
-.letter-text p:first-child::first-letter {
-  float: left;
-  font-family: var(--font-script);
-  font-size: 3.8rem;
-  line-height: 0.75;
-  padding-right: 8px;
-  padding-top: 6px;
-  color: var(--color-accent);
-  font-style: normal;
-}
-
-/* ---- 落款 ---- */
-.letter-sign {
-  text-align: right;
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  position: relative;
-  z-index: 1;
-}
-.sign-flourish {
-  font-size: 0.85rem;
-  color: var(--color-accent);
-  opacity: 0.5;
-  letter-spacing: 0.3em;
-  margin-bottom: 0.5rem;
-}
-.sign-name {
-  font-family: var(--font-script);
-  font-size: 2rem;
-  color: var(--color-accent);
-  line-height: 1;
-}
-.sign-date {
-  font-size: 0.82rem;
-  color: var(--color-text-light);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  position: relative;
-  padding-top: 8px;
-}
-.sign-date::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 40px;
-  height: 1px;
-  background: var(--color-primary);
-  opacity: 0.4;
 }
 
 /* ========================================

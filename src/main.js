@@ -47,8 +47,8 @@ document.body.style.overflow = 'hidden';
 // 入场后只启动动画/交互，不改变布局 → 消除跳动
 // ============================================================
 
-// 情书 + 动态文本 + 天数
-initLetterContent();
+// 星愿清单 + 动态文本 + 天数
+renderWishes();
 initDynamicText();
 initDaysCounter();
 
@@ -166,7 +166,6 @@ function initMainContent() {
 
   // 导航 / 滚动观察器
   initNavDots();
-  initLetterReveal();
   initScrollReveals();
 
   // 装饰效果
@@ -322,31 +321,6 @@ function initCursorTrail() {
   animate();
 }
 
-/* ======== 情书段落逐段淡入 ======== */
-function initLetterReveal() {
-  const letterCard = document.querySelector('.letter-card');
-  if (!letterCard) return;
-
-  const paragraphs = letterCard.querySelectorAll('.letter-text p');
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          // 卡片入场
-          letterCard.classList.add('revealed');
-          // 段落 stagger 淡入
-          paragraphs.forEach((p) => p.classList.add('revealed'));
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.2 }
-  );
-
-  observer.observe(letterCard);
-}
-
 /* ======== 天数计数器 + 一周年倒计时 ======== */
 function initDaysCounter() {
   const heroDaysEl = document.getElementById('hero-days');
@@ -383,16 +357,30 @@ function initDaysCounter() {
   setInterval(updateDays, 60000);
 }
 
-/* ======== 渲染情书内容（来自 content.json） ======== */
-function initLetterContent() {
-  const letterText = document.querySelector('.letter-text');
-  if (!letterText) return;
-  const { title, paragraphs, signature, signDate } = content.letter;
+/* ======== 渲染星愿清单 ======== */
+function renderWishes() {
+  const { wishes } = content;
 
-  letterText.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
-  document.querySelector('.letter-title').textContent = title;
-  document.querySelector('.sign-name').textContent = signature;
-  document.querySelector('.sign-date').textContent = signDate;
+  function buildCard(item, status) {
+    return `
+      <div class="wish-card ${status}">
+        <span class="wish-card-icon">${item.icon}</span>
+        <div class="wish-card-body">
+          <span class="wish-card-title">${item.title}</span>
+          <span class="wish-card-desc">${item.desc}</span>
+        </div>
+      </div>`;
+  }
+
+  const completedEl = document.getElementById('wish-completed');
+  if (completedEl && wishes.completed) {
+    completedEl.innerHTML = wishes.completed.map(w => buildCard(w, 'completed')).join('');
+  }
+
+  const pendingEl = document.getElementById('wish-pending');
+  if (pendingEl && wishes.pending) {
+    pendingEl.innerHTML = wishes.pending.map(w => buildCard(w, 'pending')).join('');
+  }
 }
 
 /* ======== 渲染动态文本（来自 content.json） ======== */
