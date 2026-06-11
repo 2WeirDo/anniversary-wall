@@ -39,6 +39,9 @@ const entryContent = entryOverlay.querySelector('.entry-content');
 const enterBtn = document.getElementById('enter-btn');
 const audio = new AudioPlayer('music-btn');
 
+// 入场前锁定 body 滚动，防止遮罩下方内容滚动
+document.body.style.overflow = 'hidden';
+
 // 预加载关键图片（前5张 + 时间线用到的照片）
 function preloadImages() {
   const toPreload = new Set();
@@ -83,9 +86,10 @@ async function handleEnter() {
 
   // 阶段1: 内容先淡出 (0.2s)
   entryContent.classList.add('fade-out');
-  // 阶段2: 门扉推开 (0.7s)
+  // 阶段2: 书封裂开 (0.75s)
   setTimeout(() => {
     entryOverlay.classList.add('hidden');
+    document.body.style.overflow = ''; // 恢复 body 滚动
     audio.initPlay();
     setTimeout(() => {
       initMainContent();
