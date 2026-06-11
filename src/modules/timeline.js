@@ -69,6 +69,8 @@ export class Timeline {
         </div>
       `);
     });
+    // 中轴线（随滚动亮起）
+    fragments.push('<div class="timeline-line" aria-hidden="true"><div class="timeline-line-glow"></div></div>');
     this.container.innerHTML = fragments.join('');
   }
 

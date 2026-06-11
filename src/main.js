@@ -185,9 +185,14 @@ function initMainContent() {
 function triggerHeroChars() {
   const title = document.getElementById('hero-title');
   if (!title) return;
-  // 延迟一小段让入场遮罩完全消失
   setTimeout(() => {
     title.classList.add('reveal-chars');
+    // 逐字动画完成后（~1.5s），触发金色微光扫过
+    setTimeout(() => {
+      title.classList.add('shimmer');
+      // 动画结束后清理
+      setTimeout(() => title.classList.remove('shimmer'), 1400);
+    }, 1500);
   }, 400);
 }
 
@@ -306,6 +311,24 @@ function initScrollReveals() {
       }
     );
   });
+
+  // ---- 时间线中轴线随滚动亮起 ----
+  const timelineLine = document.querySelector('.timeline-line-glow');
+  if (timelineLine) {
+    gsap.fromTo(timelineLine,
+      { height: '0%' },
+      {
+        height: '100%',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#timeline-container',
+          start: 'top 70%',
+          end: 'bottom 60%',
+          scrub: 0.4,
+        },
+      }
+    );
+  }
 
   // ---- Hero 蝴蝶结滚动视差 ----
   const heroBow = document.querySelector('.hero-bow-large');
@@ -508,7 +531,15 @@ function initBackToTop() {
   });
 
   btn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    btn.classList.add('fly-away');
+    // 等纸飞机飞出后再滚动
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      // 动画结束后重置
+      setTimeout(() => {
+        btn.classList.remove('fly-away');
+      }, 200);
+    }, 300);
   });
 }
 
@@ -732,6 +763,9 @@ function initPhotoModal(getCarousel) {
     applyTransform();
   });
 
+  // ---- 动态模糊：鼠标靠近弹窗内容时减少背景模糊 ----
+  let modalBlurHandler = null;
+
   function open(index) {
     const carousel = getCarousel();
     if (carousel) {
@@ -743,6 +777,20 @@ function initPhotoModal(getCarousel) {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    // 动态模糊跟随鼠标
+    modalBlurHandler = (e) => {
+      const contentRect = modalContent.getBoundingClientRect();
+      const cx = contentRect.left + contentRect.width / 2;
+      const cy = contentRect.top + contentRect.height / 2;
+      const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+      const maxDist = Math.hypot(window.innerWidth / 2, window.innerHeight / 2);
+      // 距离越近模糊越小 (3px~10px)
+      const blur = 3 + Math.min((dist / maxDist) * 9, 9);
+      overlay.style.backdropFilter = `blur(${blur.toFixed(1)}px)`;
+      overlay.style.WebkitBackdropFilter = `blur(${blur.toFixed(1)}px)`;
+    };
+    window.addEventListener('mousemove', modalBlurHandler, { passive: true });
   }
 
   function close() {
@@ -750,6 +798,12 @@ function initPhotoModal(getCarousel) {
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     resetZoom();
+    overlay.style.backdropFilter = '';
+    overlay.style.WebkitBackdropFilter = '';
+    if (modalBlurHandler) {
+      window.removeEventListener('mousemove', modalBlurHandler);
+      modalBlurHandler = null;
+    }
     const carousel = getCarousel();
     if (carousel) {
       carousel.resume();
