@@ -55,7 +55,7 @@ export class Carousel {
     this._autoStartCurrent = 0;
     this.paused = false;
     this.SPEED = 1 / 2500;     // 每 ms 推进的 current 单位（2.5s/张）
-    this.SLOW_SPEED = 1 / 8000; // hover 减速（~8s/张）
+    this.SLOW_SPEED = 1 / 5000; // hover 减速（~5s/张）
     this._currentSpeed = this.SPEED;
     this._lastTickTime = 0;
     this._isHovering = false;
