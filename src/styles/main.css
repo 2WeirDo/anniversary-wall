@@ -227,6 +227,19 @@
 [data-theme="dark"] .timeline-card-date-badge {
   background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
 }
+[data-theme="dark"] .timeline-card::before {
+  background: #2A2235;
+  box-shadow:
+    0 0 0 4px rgba(30, 24, 40, 0.7),
+    0 0 0 5px rgba(232, 152, 168, 0.25),
+    0 0 16px rgba(232, 152, 168, 0.3);
+}
+[data-theme="dark"] .timeline-card:hover::before {
+  box-shadow:
+    0 0 0 4px rgba(30, 24, 40, 0.7),
+    0 0 0 5px rgba(232, 152, 168, 0.4),
+    0 0 24px rgba(232, 152, 168, 0.45);
+}
 
 /* ---- Reset & Base ---- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1298,7 +1311,8 @@ body::after {
 
 
 /* ========================================
-   Timeline Section — 瀑布卡片流
+   Timeline Section — 中轴左右交替布局
+   中轴线居中，卡片严格左右交替，不遮挡内容
    ======================================== */
 .timeline-section {
   background:
@@ -1310,26 +1324,31 @@ body::after {
 }
 
 .timeline {
-  max-width: 900px;
+  max-width: 1000px;
   width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 1.5rem 0;
 }
 
-/* ---- 中轴线（左侧，随滚动亮起）---- */
+/* ---- 中轴线（绝对居中，卡片不会压到）---- */
 .timeline-line {
   position: absolute;
   top: 0;
-  left: 2%;
-  width: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
   height: 100%;
   background: linear-gradient(180deg,
-    rgba(232, 120, 144, 0.08) 0%,
-    rgba(232, 120, 144, 0.15) 30%,
-    rgba(232, 120, 144, 0.15) 70%,
-    rgba(232, 120, 144, 0.08) 100%
+    transparent 0%,
+    rgba(232, 120, 144, 0.08) 3%,
+    rgba(232, 120, 144, 0.18) 25%,
+    rgba(201, 168, 140, 0.22) 50%,
+    rgba(232, 120, 144, 0.18) 75%,
+    rgba(232, 120, 144, 0.08) 97%,
+    transparent 100%
   );
   z-index: 0;
   pointer-events: none;
@@ -1337,64 +1356,120 @@ body::after {
 .timeline-line-glow {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 2px;
   height: 0%;
   background: linear-gradient(180deg,
     transparent,
-    rgba(232, 120, 144, 0.5),
-    rgba(201, 168, 140, 0.6),
-    rgba(232, 120, 144, 0.5),
+    rgba(232, 120, 144, 0.45),
+    rgba(201, 168, 140, 0.55),
+    rgba(232, 120, 144, 0.45),
     transparent
   );
-  box-shadow: 0 0 12px rgba(232, 120, 144, 0.3), 0 0 24px rgba(232, 120, 144, 0.1);
+  box-shadow: 0 0 14px rgba(232, 120, 144, 0.35), 0 0 28px rgba(232, 120, 144, 0.12);
   border-radius: 1px;
-  transition: height 0.3s linear;
+  transition: height 0.35s linear;
 }
 
-@media (max-width: 768px) {
-  .timeline-line {
-    left: 4px;
-  }
-}
-
-/* ---- 单张卡片容器 ---- */
+/* ---- 单张卡片容器（承载中轴圆点）---- */
 .timeline-card {
   width: 100%;
-  margin-bottom: 0.8rem;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.6rem;
+  display: flex;
+  justify-content: center;
 }
 .timeline-card:last-child {
   margin-bottom: 0;
 }
 
-/* 错落节奏：偶数卡片微微偏左，奇数偏右 */
+/* 中轴线上的圆点标记 */
+.timeline-card::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: 2px solid var(--color-accent);
+  box-shadow:
+    0 0 0 4px var(--color-white),
+    0 0 0 5px rgba(232, 120, 144, 0.18),
+    0 0 16px rgba(232, 120, 144, 0.25);
+  z-index: 3;
+  transition: box-shadow 0.4s, border-color 0.4s;
+}
+.timeline-card:hover::before {
+  border-color: var(--color-accent-deep);
+  box-shadow:
+    0 0 0 4px var(--color-white),
+    0 0 0 5px rgba(232, 120, 144, 0.3),
+    0 0 24px rgba(232, 120, 144, 0.4);
+}
+
+/* ---- 卡片本体（严格控制宽度，不越中轴）---- */
 .timeline-card-inner {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 1.25rem;
   border-radius: var(--radius-xl);
   background: var(--color-white);
   box-shadow: 0 2px 16px rgba(232, 120, 144, 0.06), 0 0 0 1px rgba(242, 196, 206, 0.15);
   transition: box-shadow 0.5s, transform 0.4s var(--ease-spring);
-  max-width: 96%;
+  width: 44%;
+  max-width: 440px;
+  position: relative;
 }
 .timeline-card-inner.left {
   flex-direction: row;
   margin-right: auto;
+  margin-left: 2%;
 }
 .timeline-card-inner.right {
   flex-direction: row-reverse;
   margin-left: auto;
+  margin-right: 2%;
 }
 .timeline-card-inner:hover {
-  box-shadow: 0 8px 32px rgba(232, 120, 144, 0.12), 0 0 0 1px rgba(242, 196, 206, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 10px 36px rgba(232, 120, 144, 0.14), 0 0 0 1px rgba(242, 196, 206, 0.35);
+  transform: translateY(-3px);
+}
+
+/* 连接卡片到中轴的横线 */
+.timeline-card-inner::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  width: 0;
+  background: linear-gradient(90deg, transparent, rgba(232, 120, 144, 0.25));
+  transition: width 0.6s var(--ease-out);
+  pointer-events: none;
+}
+.timeline-card-inner.left::after {
+  right: 0;
+  transform: translateX(100%);
+  background: linear-gradient(90deg, rgba(232, 120, 144, 0.25), transparent);
+}
+.timeline-card-inner.right::after {
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(232, 120, 144, 0.25));
+}
+/* 卡片出现后显示横线，向中轴延伸 */
+.timeline-card.revealed .timeline-card-inner::after {
+  width: 48px;
 }
 
 /* ---- 照片区域 ---- */
 .timeline-card-image {
-  flex: 0 0 220px;
+  flex: 0 0 200px;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1403,7 +1478,7 @@ body::after {
   transition: transform 0.5s var(--ease-out);
 }
 .timeline-card-inner:hover .timeline-card-image {
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 .timeline-card-image img {
   width: 100%;
@@ -1470,20 +1545,21 @@ body::after {
   font-weight: 400;
 }
 
-/* ---- 卡片之间的连接器 ---- */
+/* ---- 卡片之间的连接器（居中，坐落在中轴上）---- */
 .timeline-connector {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 0;
+  padding: 0.35rem 0;
   color: var(--color-accent);
   position: relative;
+  z-index: 1;
 }
 .timeline-connector-line {
   width: 1px;
-  height: 18px;
+  height: 20px;
   background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
-  opacity: 0.2;
+  opacity: 0.18;
   margin-bottom: 2px;
 }
 .timeline-connector-gem {
@@ -1501,17 +1577,45 @@ body::after {
   50% { transform: scale(1.06); opacity: 0.85; }
 }
 
-/* ---- 响应式：移动端单列 ---- */
+/* ---- 响应式：移动端回退到左轴线单列 ---- */
 @media (max-width: 768px) {
   .timeline {
     max-width: 100%;
     padding: 0 1rem;
   }
+  /* 中轴移到左侧 */
+  .timeline-line {
+    left: 28px;
+    transform: none;
+  }
+  .timeline-line-glow {
+    left: 28px;
+    transform: none;
+  }
+  /* 卡片全宽，不做左右交替 */
   .timeline-card-inner,
   .timeline-card-inner.left,
   .timeline-card-inner.right {
+    width: 100%;
+    max-width: 100%;
     flex-direction: column;
     gap: 1.25rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  /* 隐藏横线 */
+  .timeline-card-inner::after {
+    display: none;
+  }
+  /* 圆点移到左侧 */
+  .timeline-card::before {
+    left: 28px;
+    width: 11px;
+    height: 11px;
+    box-shadow:
+      0 0 0 3px var(--color-bg-pink),
+      0 0 0 4px rgba(232, 120, 144, 0.15),
+      0 0 10px rgba(232, 120, 144, 0.2);
   }
   .timeline-card-image {
     flex: 0 0 auto;
@@ -2070,13 +2174,6 @@ body::after {
   .section { padding: 40px 16px; }
   .carousel-stage { height: 340px; }
   .carousel-card { width: 230px; height: 300px; }
-  .timeline { max-width: 100%; padding: 0 0.5rem; }
-  .timeline-card-inner.left,
-  .timeline-card-inner.right {
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
   .letter-container { max-width: 100%; }
   .letter-card { padding: 2rem 1.5rem; }
   .entry-content { padding: 2rem 1.5rem; }
