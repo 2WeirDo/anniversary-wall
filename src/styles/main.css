@@ -891,6 +891,7 @@ body::after {
 .wishes {
   overflow: visible; /* 允许 hover 描述卡片溢出，不裁剪 */
   position: relative;
+  padding-top: clamp(1.5rem, 3vw, 3rem);
 }
 /* 顶部过渡 — 从时间线区平滑衔接 */
 .wishes::before {
