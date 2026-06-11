@@ -187,12 +187,6 @@ function triggerHeroChars() {
   if (!title) return;
   setTimeout(() => {
     title.classList.add('reveal-chars');
-    // 逐字动画完成后（~1.5s），触发金色微光扫过
-    setTimeout(() => {
-      title.classList.add('shimmer');
-      // 动画结束后清理
-      setTimeout(() => title.classList.remove('shimmer'), 1400);
-    }, 1500);
   }, 400);
 }
 
@@ -531,15 +525,7 @@ function initBackToTop() {
   });
 
   btn.addEventListener('click', () => {
-    btn.classList.add('fly-away');
-    // 等纸飞机飞出后再滚动
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      // 动画结束后重置
-      setTimeout(() => {
-        btn.classList.remove('fly-away');
-      }, 200);
-    }, 300);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
 
