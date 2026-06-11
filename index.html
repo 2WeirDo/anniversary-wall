@@ -96,9 +96,9 @@
   <!-- 页面导航点 -->
   <nav class="nav-dots" id="nav-dots" aria-label="页面导航">
     <span class="dot active" data-section="0" aria-label="开场"></span>
-    <span class="dot" data-section="1" aria-label="星愿清单"></span>
-    <span class="dot" data-section="2" aria-label="照片墙"></span>
-    <span class="dot" data-section="3" aria-label="时间线"></span>
+    <span class="dot" data-section="1" aria-label="照片墙"></span>
+    <span class="dot" data-section="2" aria-label="时间线"></span>
+    <span class="dot" data-section="3" aria-label="星愿清单"></span>
     <span class="dot" data-section="4" aria-label="结尾"></span>
   </nav>
 
@@ -133,8 +133,34 @@
       </div>
     </section>
 
-    <!-- ====== 板块2: 星愿清单 ====== -->
-    <section id="wishes" class="section wishes" data-section="1">
+    <!-- ====== 板块2: 3D 旋转木马照片墙 ====== -->
+    <section id="gallery" class="section gallery" data-section="1">
+      <div class="gallery-header">
+        <div class="section-divider"></div>
+        <h2 class="section-title">我们的回忆</h2>
+        <p class="section-sub">左右滑动，浏览我们的每一个珍贵瞬间</p>
+      </div>
+      <div class="carousel-wrapper">
+        <div class="carousel-stage" id="carousel-stage">
+          <div class="carousel-container" id="carousel-container">
+            <!-- 照片由 JS 动态生成 -->
+          </div>
+        </div>
+        <div class="carousel-counter" id="carousel-counter">1 / 14</div>
+      </div>
+    </section>
+
+    <!-- ====== 板块3: 恋爱时间线 ====== -->
+    <section id="timeline" class="section timeline-section" data-section="2">
+      <div class="section-divider"></div>
+      <h2 class="section-title">我们的恋爱时光</h2>
+      <div class="timeline" id="timeline-container">
+        <!-- 时间线由 JS 动态生成 -->
+      </div>
+    </section>
+
+    <!-- ====== 板块4: 星愿清单 ====== -->
+    <section id="wishes" class="section wishes" data-section="3">
       <div class="wishes-container">
         <div class="wish-group">
           <h2 class="wish-group-head">
@@ -163,32 +189,6 @@
         </div>
       </div>
       <div class="wishes-fade" aria-hidden="true"></div>
-    </section>
-
-    <!-- ====== 板块3: 3D 旋转木马照片墙 ====== -->
-    <section id="gallery" class="section gallery" data-section="2">
-      <div class="gallery-header">
-        <div class="section-divider"></div>
-        <h2 class="section-title">我们的回忆</h2>
-        <p class="section-sub">左右滑动，浏览我们的每一个珍贵瞬间</p>
-      </div>
-      <div class="carousel-wrapper">
-        <div class="carousel-stage" id="carousel-stage">
-          <div class="carousel-container" id="carousel-container">
-            <!-- 照片由 JS 动态生成 -->
-          </div>
-        </div>
-        <div class="carousel-counter" id="carousel-counter">1 / 14</div>
-      </div>
-    </section>
-
-    <!-- ====== 板块4: 恋爱时间线 ====== -->
-    <section id="timeline" class="section timeline-section" data-section="3">
-      <div class="section-divider"></div>
-      <h2 class="section-title">我们的恋爱时光</h2>
-      <div class="timeline" id="timeline-container">
-        <!-- 时间线由 JS 动态生成 -->
-      </div>
     </section>
 
     <!-- ====== 板块5: 结尾 ====== -->

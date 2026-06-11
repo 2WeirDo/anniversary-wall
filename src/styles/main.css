@@ -105,14 +105,14 @@
   background: linear-gradient(180deg, transparent 0%, rgba(31, 26, 42, 0.7) 100%);
 }
 [data-theme="dark"] .wishes::before {
-  background: linear-gradient(180deg, #1F1A2A 0%, transparent 100%);
+  background: linear-gradient(180deg, #1A1520 0%, transparent 100%);
 }
 [data-theme="dark"] .wishes {
   background:
     radial-gradient(ellipse 40% 50% at 20% 40%, rgba(200, 140, 160, 0.05) 0%, transparent 60%),
     radial-gradient(ellipse 35% 30% at 70% 30%, rgba(180, 120, 150, 0.03) 0%, transparent 50%),
     radial-gradient(ellipse 50% 45% at 30% 65%, rgba(200, 140, 160, 0.04) 0%, transparent 55%),
-    linear-gradient(185deg, #1F1A2A 0%, #1A1520 55%, #1A1520 100%);
+    linear-gradient(185deg, #1A1520 0%, #1A1520 55%, #1A1520 100%);
 }
 [data-theme="dark"] .wish-card {
   background: rgba(255, 255, 255, 0.04);
@@ -157,10 +157,10 @@
 [data-theme="dark"] .gallery {
   background:
     radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200, 140, 160, 0.06) 0%, transparent 60%),
-    linear-gradient(180deg, #1A1520 0%, #231D2A 100%);
+    linear-gradient(180deg, #1F1A2A 0%, #231D2A 100%);
 }
 [data-theme="dark"] .gallery::before {
-  background: linear-gradient(180deg, #1A1520 0%, transparent 100%);
+  background: linear-gradient(180deg, #1F1A2A 0%, transparent 100%);
 }
 [data-theme="dark"] .timeline-section {
   background:
@@ -713,7 +713,7 @@ body::after {
   flex-direction: column;
   gap: 0;
 }
-/* 底部过渡 — 与星愿清单平滑衔接 */
+/* 底部过渡 — 与照片墙平滑衔接 */
 .hero::after {
   content: '';
   position: absolute;
@@ -892,13 +892,13 @@ body::after {
   overflow: visible; /* 允许 hover 描述卡片溢出，不裁剪 */
   position: relative;
 }
-/* 顶部过渡 — 从 Hero 区平滑衔接 */
+/* 顶部过渡 — 从时间线区平滑衔接 */
 .wishes::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 18%;
-  background: linear-gradient(180deg, #FEFBFB 0%, transparent 100%);
+  background: linear-gradient(180deg, #FEF5F5 0%, transparent 100%);
   pointer-events: none;
   z-index: 1;
 }
@@ -924,7 +924,7 @@ body::after {
     /* 柔光氛围 */
     radial-gradient(ellipse 60% 40% at 50% 35%, rgba(254, 235, 240, 0.35) 0%, transparent 60%),
     radial-gradient(ellipse 50% 50% at 25% 65%, rgba(255, 245, 240, 0.3) 0%, transparent 55%),
-    linear-gradient(182deg, #FEFBFB 0%, var(--color-cream) 35%, #FEF8F6 65%, #FDF4F4 100%);
+    linear-gradient(182deg, #FEF5F5 0%, var(--color-cream) 35%, #FEF8F6 65%, #FEF5F5 100%);
   position: relative;
   flex-direction: column;
   gap: 0;
@@ -1095,12 +1095,12 @@ body::after {
   border-color: rgba(200, 175, 140, 0.3);
 }
 
-/* ---- 底部过渡渐变（延伸更长以与gallery平滑衔接）---- */
+/* ---- 底部过渡渐变（与结尾页平滑衔接）---- */
 .wishes-fade {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, transparent 0%, rgba(254, 244, 244, 0.7) 40%, #FDF4F4 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(254, 245, 245, 0.7) 40%, #FEF5F5 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -1111,18 +1111,18 @@ body::after {
 .gallery {
   background:
     radial-gradient(ellipse 60% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, #FDF4F4 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
+    linear-gradient(180deg, #FEFBFB 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
   flex-direction: column;
   gap: 3rem;
   position: relative;
 }
-/* 顶部过渡 — 从星愿清单区平滑衔接 */
+/* 顶部过渡 — 从 Hero 区平滑衔接 */
 .gallery::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 30%;
-  background: linear-gradient(180deg, #FDF4F4 0%, transparent 100%);
+  background: linear-gradient(180deg, #FEFBFB 0%, transparent 100%);
   pointer-events: none;
   z-index: 0;
 }
