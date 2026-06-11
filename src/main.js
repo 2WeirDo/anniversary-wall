@@ -39,8 +39,30 @@ const entryContent = entryOverlay.querySelector('.entry-content');
 const enterBtn = document.getElementById('enter-btn');
 const audio = new AudioPlayer('music-btn');
 
-// 入场前锁定 body 滚动，防止遮罩下方内容滚动
+// 入场前锁定 body 滚动
 document.body.style.overflow = 'hidden';
+
+// ============================================================
+// 关键：所有影响页面高度的内容在遮罩背后预先渲染
+// 入场后只启动动画/交互，不改变布局 → 消除跳动
+// ============================================================
+
+// 情书 + 动态文本 + 天数
+initLetterContent();
+initDynamicText();
+initDaysCounter();
+
+// 照片弹窗（隐藏态）
+let carouselRef = null;
+const photoModal = initPhotoModal(() => carouselRef);
+
+// 照片墙（暂停自动轮播，仅渲染 DOM）
+const carousel = new Carousel('carousel-container', 'carousel-stage', (i) => photoModal.open(i));
+carousel.pause();
+carouselRef = carousel;
+
+// 恋爱时间线
+const timeline = new Timeline('timeline-container');
 
 // 预加载关键图片（前5张 + 时间线用到的照片）
 function preloadImages() {
@@ -86,11 +108,11 @@ async function handleEnter() {
 
   // 阶段1: 内容先淡出 (0.2s)
   entryContent.classList.add('fade-out');
-  // 阶段2: 书封向上滑出 (0.7s)
+  // 阶段2: 书封裂开 (0.7s)
   setTimeout(() => {
     entryOverlay.classList.add('hidden');
     audio.initPlay();
-    // 等遮罩完全滑出后再恢复滚动 + 初始化主体
+    // 等遮罩动画完成后再恢复滚动 + 初始化交互
     setTimeout(() => {
       document.body.style.overflow = '';
       initMainContent();
@@ -123,70 +145,36 @@ entryOverlay.addEventListener('touchmove', (e) => {
 }, { passive: false });
 
 /**
- * 初始化主体内容（入场后）
+ * 初始化交互与动画（入场后，不影响布局）
  */
 function initMainContent() {
-  // ---- Hero 标题逐字动画 ----
+  // 照片墙恢复自动轮播
+  carousel.resume();
+
+  // Hero 逐字动画
   triggerHeroChars();
 
-  // ---- Hero 鼠标视差 ----
+  // Hero 鼠标视差
   initHeroParallax();
 
-  // ---- 3D 旋转木马 ----
-  let carousel;
-  const photoModal = initPhotoModal(() => carousel);
-  carousel = new Carousel('carousel-container', 'carousel-stage', (photoIndex) => {
-    photoModal.open(photoIndex);
-  });
-
-  // ---- 恋爱时间线 ----
-  const timeline = new Timeline('timeline-container');
-
-  // ---- 浮动粒子（Hero 区域）----
+  // 浮动粒子
   const heroParticles = new Particles('hero-particles', {
-    count: 20,
-    types: ['dot', 'heart'],
-    minSize: 4,
-    maxSize: 14,
-    minDuration: 10,
-    maxDuration: 25,
+    count: 20, types: ['dot', 'heart'],
+    minSize: 4, maxSize: 14, minDuration: 10, maxDuration: 25,
   });
-
-  // ---- 浮动爱心（Ending 区域）----
   const endingHearts = new FloatingHearts('ending-particles');
 
-  // ---- 页面导航点 ----
+  // 导航 / 滚动观察器
   initNavDots();
-
-  // ---- 渲染内容（来自 content.json） ----
-  initLetterContent();
-  initDynamicText();
-
-  // ---- 情书卡片入场 + 段落逐段淡入 ----
   initLetterReveal();
-
-  // ---- 滚动入场动画 ----
   initScrollReveals();
 
-  // ---- 光标爱心拖尾 ----
+  // 装饰效果
   initCursorTrail();
-
-  // ---- 天数计数器 ----
-  initDaysCounter();
-
-  // ---- 顶部阅读进度线 ----
   initProgressBar();
-
-  // ---- 回到顶部按钮 ----
   initBackToTop();
-
-  // ---- 放飞天灯 ----
   initLanternButton();
-
-  // ---- 照片墙悬浮光粒子 ----
   initCarouselSparkles();
-
-  // ---- 纪念日花瓣雨 ----
   initPetalRain();
 }
 
