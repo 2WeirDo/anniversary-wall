@@ -120,8 +120,8 @@
   color: #D0C4D8;
 }
 [data-theme="dark"] .wish-card.completed {
-  background: rgba(200, 170, 130, 0.07);
-  border-color: rgba(200, 170, 130, 0.12);
+  background: rgba(200, 170, 130, 0.1);
+  border-color: rgba(200, 170, 130, 0.18);
   color: #D8C8A8;
 }
 [data-theme="dark"] .wish-card:hover {
@@ -130,8 +130,9 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 [data-theme="dark"] .wish-card.completed:hover {
-  border-color: rgba(212, 184, 150, 0.3);
-  box-shadow: 0 8px 32px rgba(200, 170, 130, 0.1);
+  background: rgba(200, 170, 130, 0.18);
+  border-color: rgba(212, 184, 150, 0.45);
+  box-shadow: 0 8px 32px rgba(200, 170, 130, 0.18), 0 2px 8px rgba(200, 170, 130, 0.08);
 }
 [data-theme="dark"] .wish-card-desc {
   color: #A090A8;
@@ -139,8 +140,9 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .wish-card.completed .wish-card-desc {
-  background: rgba(28, 22, 36, 0.97);
-  border-color: rgba(200, 170, 130, 0.15);
+  background: rgba(36, 28, 40, 0.98);
+  border-color: rgba(200, 170, 130, 0.25);
+  color: #C8B8A0;
 }
 [data-theme="dark"] .wish-group-head {
   color: #E8D8E8;
