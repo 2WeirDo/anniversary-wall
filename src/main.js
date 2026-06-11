@@ -8,6 +8,10 @@ import { Carousel, PHOTOS, PHOTO_META, PHOTO_FLIP_TEXTS } from './modules/carous
 import { Timeline } from './modules/timeline.js';
 import { AudioPlayer } from './modules/audio.js';
 import { Particles, FloatingHearts } from './modules/particles.js';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ---- 关系起始日 ----
 const LOVE_START_DATE = new Date(content.site.startDate);
@@ -244,28 +248,97 @@ function initCarouselSparkles() {
   }
 }
 
-/* ======== 滚动入场动画 ======== */
+/* ======== 滚动入场动画（GSAP ScrollTrigger 增强） ======== */
 function initScrollReveals() {
-  // 给所有 section 标题和副标题等元素加上 reveal-up
-  const targets = document.querySelectorAll('.section-title, .section-sub, .gallery-header, .timeline-section > .section-title');
-  targets.forEach((el, i) => {
-    el.classList.add('reveal-up');
-    if (i % 2 === 1) el.setAttribute('data-delay', '2');
+  // ---- 板块标题统一淡入 ----
+  const sectionTitles = document.querySelectorAll('.section-title, .section-sub, .gallery-header');
+  sectionTitles.forEach((el) => {
+    gsap.fromTo(el,
+      { opacity: 0, y: 50 },
+      {
+        opacity: 1, y: 0,
+        duration: 1,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+        },
+      }
+    );
   });
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.25, rootMargin: '0px 0px -40px 0px' }
-  );
+  // ---- 时间线卡片：交错侧边滑入 ----
+  const timelineCards = document.querySelectorAll('.timeline-card-inner');
+  timelineCards.forEach((card) => {
+    const isLeft = card.classList.contains('left');
+    const fromX = isLeft ? -60 : 60;
+    gsap.fromTo(card,
+      { opacity: 0, x: fromX },
+      {
+        opacity: 1, x: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 88%',
+          toggleActions: 'play none none none',
+        },
+      }
+    );
+  });
 
-  document.querySelectorAll('.reveal-up').forEach((el) => observer.observe(el));
+  // ---- 星愿卡片：staggered 弹入 ----
+  const wishCards = document.querySelectorAll('.wish-card');
+  wishCards.forEach((card, i) => {
+    gsap.fromTo(card,
+      { opacity: 0, y: 40, scale: 0.92 },
+      {
+        opacity: 1, y: 0, scale: 1,
+        duration: 0.6,
+        delay: i * 0.04, // staggered: 每张延迟 40ms
+        ease: 'back.out(1.4)',
+        scrollTrigger: {
+          trigger: card.closest('.wish-group'),
+          start: 'top 82%',
+          toggleActions: 'play none none none',
+        },
+      }
+    );
+  });
+
+  // ---- Hero 蝴蝶结滚动视差 ----
+  const heroBow = document.querySelector('.hero-bow-large');
+  if (heroBow) {
+    gsap.to(heroBow, {
+      y: -60,
+      scale: 0.85,
+      opacity: 0.3,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.6,
+      },
+    });
+  }
+
+  // ---- Hero 标题滚动微移 ----
+  const heroTitle = document.getElementById('hero-title');
+  if (heroTitle) {
+    gsap.to(heroTitle, {
+      y: -30,
+      opacity: 0.5,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.5,
+      },
+    });
+  }
 }
 
 /* ======== 光标爱心拖尾 ======== */

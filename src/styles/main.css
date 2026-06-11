@@ -243,7 +243,7 @@ body {
   font-family: var(--font-body);
   color: var(--color-text);
   background: var(--color-bg);
-  line-height: 1.7;
+  line-height: 1.8;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.6s var(--ease-out), color 0.6s var(--ease-out);
@@ -310,8 +310,8 @@ body::after {
   font-weight: 500;
   color: var(--color-text-dark);
   text-align: center;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
 }
 
 .section-sub {
@@ -755,8 +755,8 @@ body::after {
   font-size: clamp(3.2rem, 8vw, 5.5rem);
   font-weight: 400;
   color: var(--color-accent-deep);
-  letter-spacing: 0.03em;
-  line-height: 1.1;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
   margin-bottom: 1rem;
   position: relative;
 }
@@ -806,6 +806,7 @@ body::after {
   font-style: italic;
   letter-spacing: 0.06em;
   margin-bottom: 0.6rem;
+  font-feature-settings: "tnum";
 }
 
 .hero-countdown {
@@ -815,6 +816,7 @@ body::after {
   letter-spacing: 0.04em;
   margin-bottom: 1.8rem;
   animation: countdownPulse 3s ease-in-out infinite;
+  font-feature-settings: "tnum";
 }
 .hero-countdown span {
   font-weight: 700;
@@ -1176,10 +1178,13 @@ body::after {
   -webkit-user-select: none;
   transition: filter 0.5s var(--ease-out);
 }
-.carousel-card:not(.active):hover {
-  filter: brightness(1.08) drop-shadow(0 4px 16px rgba(232, 120, 144, 0.15));
+.carousel-card:not(.active) {
+  filter: blur(1.2px) saturate(0.75);
 }
-.carousel-card.active { cursor: default; }
+.carousel-card:not(.active):hover {
+  filter: blur(0.6px) saturate(0.9) brightness(1.08) drop-shadow(0 4px 16px rgba(232, 120, 144, 0.15));
+}
+.carousel-card.active { cursor: default; filter: none; }
 
 .carousel-card .photo-frame {
   width: 100%; height: 100%;
@@ -1194,6 +1199,24 @@ body::after {
 .carousel-card.active .photo-frame {
   box-shadow: 0 20px 60px rgba(200, 120, 140, 0.2), 0 0 0 4px rgba(242, 196, 206, 0.3);
   border-color: var(--color-primary-light);
+}
+/* 倒影 — 模拟相纸光面反射 */
+.carousel-card.active::after {
+  content: '';
+  position: absolute;
+  bottom: -38px;
+  left: 5%;
+  right: 5%;
+  height: 44px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.06) 30%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(2px);
 }
 
 .carousel-card .photo-frame::after {
@@ -1265,6 +1288,7 @@ body::after {
   z-index: 5;
   pointer-events: none;
   transition: color 0.4s, background 0.4s, border-color 0.4s;
+  font-feature-settings: "tnum";
 }
 [data-theme="dark"] .carousel-counter {
   background: rgba(30, 24, 40, 0.85);
@@ -1298,16 +1322,9 @@ body::after {
 .timeline-card {
   width: 100%;
   margin-bottom: 0.8rem;
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
 }
 .timeline-card:last-child {
   margin-bottom: 0;
-}
-.timeline-card.revealed {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* 错落节奏：偶数卡片微微偏左，奇数偏右 */
@@ -1409,7 +1426,7 @@ body::after {
 .timeline-card-story {
   font-size: 0.95rem;
   color: var(--color-text-muted);
-  line-height: 1.75;
+  line-height: 1.85;
   font-weight: 400;
 }
 
@@ -1535,6 +1552,7 @@ body::after {
   font-weight: 500;
   line-height: 1;
   margin-bottom: 0.1rem;
+  font-feature-settings: "tnum";
 }
 .ending-days-label {
   font-family: var(--font-display);
