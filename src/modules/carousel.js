@@ -130,18 +130,18 @@ export class Carousel {
     const activeRotateY = offset * 8;
     const activeZIndex = 10;
 
-    // ---- 侧边模式（原始 else 分支参数） ----
-    const sideGap = 55 + Math.max(0, absOff - 0.5) * 8;
+    // ---- 侧边模式（边缘预览：卡片更近、更大、更清晰，露出约 20%） ----
+    const sideGap = 42 + Math.max(0, absOff - 0.5) * 6;
     const sideX = side * sideGap;
-    let sideScale = 0.82 - absOff * 0.06;
-    if (sideScale < 0.5) sideScale = 0.5;
-    let sideOpacity = 0.55 - absOff * 0.15;
-    if (sideOpacity < 0.15) sideOpacity = 0.15;
+    let sideScale = 0.88 - absOff * 0.05;
+    if (sideScale < 0.45) sideScale = 0.45;
+    let sideOpacity = 0.72 - absOff * 0.12;
+    if (sideOpacity < 0.12) sideOpacity = 0.12;
     const sideZIndex = Math.max(0, 5 - Math.floor(absOff));
-    const sideRotateY = side * (12 + absOff * 3);
+    const sideRotateY = side * (10 + absOff * 2.5);
 
-    // ---- smoothstep 混合 [0.35, 0.65] ----
-    const t = smoothstep(0.35, 0.65, absOff);
+    // ---- smoothstep 混合 [0.3, 0.6]（更早进入侧边模式，减少跳变感） ----
+    const t = smoothstep(0.3, 0.6, absOff);
 
     const xPercent = activeX + (sideX - activeX) * t;
     const scale = activeScale + (sideScale - activeScale) * t;

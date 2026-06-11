@@ -174,6 +174,7 @@ function initMainContent() {
 
   // Ending 自动仪式：滚动到结尾页时自动放天灯 + 心形
   initEndingCeremony();
+  initEndingCounterRoll();
 
   // 装饰效果
   initCursorTrail();
@@ -182,6 +183,7 @@ function initMainContent() {
   initLanternButton();
   initCarouselSparkles();
   initPetalRain();
+  initBridgeSparkles();
 }
 
 /* ======== Hero 标题逐字动画 ======== */
@@ -222,6 +224,38 @@ function initHeroParallax() {
       el.style.transition = 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
       el.style.transform = 'translate(0, 0)';
     });
+  });
+}
+
+/* ======== 跨板块过渡粒子桥 ======== */
+function initBridgeSparkles() {
+  const sections = document.querySelectorAll('.section');
+  if (sections.length < 2) return;
+
+  // 在每对相邻 section 之间生成漂浮光点
+  const colors = ['var(--color-accent)', 'var(--color-gold)', 'var(--color-primary)', 'var(--color-rose)'];
+
+  sections.forEach((section, i) => {
+    if (i === sections.length - 1) return; // 最后一个 section 不需要
+
+    const count = 8;
+    for (let j = 0; j < count; j++) {
+      const sparkle = document.createElement('span');
+      sparkle.className = 'bridge-sparkle';
+      const size = 2.5 + Math.random() * 5;
+      sparkle.style.width = size + 'px';
+      sparkle.style.height = size + 'px';
+      sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      sparkle.style.boxShadow = `0 0 ${size * 2}px ${sparkle.style.background}`;
+      sparkle.style.animationDelay = (j * 0.6 + Math.random() * 2) + 's';
+      sparkle.style.animationDuration = (3 + Math.random() * 4) + 's';
+
+      // 定位在 section 底部区域
+      sparkle.style.left = (10 + Math.random() * 80) + '%';
+      sparkle.style.top = '92%';
+
+      section.appendChild(sparkle);
+    }
   });
 }
 
@@ -327,6 +361,19 @@ function initScrollReveals() {
     );
   }
 
+  // ---- 时间线钻石连接器逐个亮起 ----
+  const gems = document.querySelectorAll('.timeline-connector');
+  gems.forEach((gem) => {
+    gsap.to(gem, {
+      scrollTrigger: {
+        trigger: gem,
+        start: 'top 85%',
+        toggleActions: 'play none none none',
+        onEnter: () => gem.classList.add('gem-revealed'),
+      },
+    });
+  });
+
   // ---- Hero 蝴蝶结滚动视差 ----
   const heroBow = document.querySelector('.hero-bow-large');
   if (heroBow) {
@@ -361,20 +408,40 @@ function initScrollReveals() {
   }
 }
 
-/* ======== 光标爱心拖尾 ======== */
+/* ======== 光标渐变光点拖尾 ======== */
 function initCursorTrail() {
   // 触屏设备跳过（无光标）
   if (window.matchMedia('(pointer: coarse)').matches) return;
 
-  const TRAIL_COUNT = 5;
+  const TRAIL_COUNT = 8;
   const trails = [];
+  const colors = [
+    'rgba(232, 120, 144, 0.6)',
+    'rgba(242, 196, 206, 0.5)',
+    'rgba(201, 168, 140, 0.45)',
+    'rgba(232, 120, 144, 0.35)',
+    'rgba(242, 196, 206, 0.3)',
+    'rgba(212, 135, 154, 0.22)',
+    'rgba(201, 168, 140, 0.16)',
+    'rgba(232, 120, 144, 0.08)',
+  ];
 
-  // 创建拖尾元素
+  // 创建拖尾光点元素
   for (let i = 0; i < TRAIL_COUNT; i++) {
     const el = document.createElement('span');
-    el.className = 'cursor-heart';
-    el.textContent = i % 2 === 0 ? '♥' : '♡';
-    el.style.fontSize = `${11 + i * 2.5}px`;
+    el.className = 'cursor-trail-dot';
+    const size = 10 - i * 0.8;
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.background = colors[i];
+    el.style.boxShadow = `0 0 ${size * 2}px ${colors[i]}, 0 0 ${size * 4}px ${colors[Math.min(i + 2, colors.length - 1)]}`;
+    el.style.borderRadius = '50%';
+    el.style.position = 'fixed';
+    el.style.pointerEvents = 'none';
+    el.style.zIndex = '9998';
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.4s ease-out';
+    el.style.transform = 'translate(-50%, -50%)';
     document.body.appendChild(el);
     trails.push({ el, x: 0, y: 0 });
   }
@@ -386,20 +453,22 @@ function initCursorTrail() {
   document.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    trails.forEach((t) => t.el.classList.add('visible'));
+    trails.forEach((t) => { t.el.style.opacity = '1'; });
     clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
-      trails.forEach((t) => t.el.classList.remove('visible'));
-    }, 1200);
+      trails.forEach((t, i) => {
+        setTimeout(() => { t.el.style.opacity = '0'; }, i * 60);
+      });
+    }, 800);
   });
 
-  // rAF — 链式跟随: 每个爱心追前一个
+  // rAF — 链式跟随: 每个光点追前一个，形成拖尾
   function animate() {
     let leaderX = mouseX;
     let leaderY = mouseY;
 
-    trails.forEach((t) => {
-      const ease = 0.12 - trails.indexOf(t) * 0.015;
+    trails.forEach((t, i) => {
+      const ease = 0.18 - i * 0.018;
       t.x += (leaderX - t.x) * Math.max(ease, 0.03);
       t.y += (leaderY - t.y) * Math.max(ease, 0.03);
       t.el.style.left = t.x + 'px';
@@ -452,15 +521,49 @@ function initDaysCounter() {
   setInterval(updateDays, 60000);
 }
 
+/* ======== 星愿 SVG 图标映射（替代 emoji，统一线性风格） ======== */
+const WISH_SVG_ICONS = {
+  '🏺': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1 8a4 4 0 0 1-6 0L8 3Z"/><path d="M7 19v3h10v-3"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
+  '✉️': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>',
+  '📸': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3"/><circle cx="12" cy="13" r="3"/><circle cx="18" cy="8" r="1"/></svg>',
+  '🌇': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="20" x2="22" y2="20"/><path d="M12 4v8"/><circle cx="12" cy="8" r="4"/><path d="M6 16l2-4h8l2 4"/></svg>',
+  '💐': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18c-3-1-6-2-6-5s4-3 5-2"/><path d="M15 18c3-1 6-2 6-5s-4-3-5-2"/></svg>',
+  '💅': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3"/><path d="M8 11v6a4 4 0 0 0 8 0v-6"/><circle cx="12" cy="7" r="1.5"/></svg>',
+  '👫': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  '🌊': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/><path d="M2 17c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/><path d="M2 7c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/></svg>',
+  '🎤': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+  '🎮': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><path d="M6 9h4"/><path d="M14 15h4"/></svg>',
+  '🌿': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V10"/><path d="M12 10c-4-3-8-2-10 4"/><path d="M12 10c4-3 8-2 10 4"/><path d="M7 18c-1 3-2 4-4 4"/><path d="M17 18c1 3 2 4 4 4"/></svg>',
+  '🛕': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 22h20L12 2Z"/><line x1="12" y1="9" x2="12" y2="22"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
+  '🌌': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="6" cy="6" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="4" cy="16" r="0.8"/><circle cx="18" cy="17" r="1.2"/><circle cx="9" cy="20" r="0.8"/><path d="m16 10 3-2"/><path d="m8 4 2-2"/></svg>',
+  '🐱': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a4 4 0 0 1 4 4v2c0 4-4 8-4 8s-4-4-4-8V9a4 4 0 0 1 4-4Z"/><circle cx="10" cy="9" r="1"/><circle cx="14" cy="9" r="1"/><path d="M8 3l2 2"/><path d="M16 3l-2 2"/></svg>',
+  '🎆': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/><circle cx="12" cy="12" r="2"/></svg>',
+  '💃': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22V12l-4-2"/><path d="M14 22V12l4-2"/><path d="M10 12c1 2 3 2 4 0"/></svg>',
+  '🌅': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="20" x2="22" y2="20"/><path d="M12 12V4"/><path d="m8 8 4-4 4 4"/><path d="M4 20v-4a8 8 0 0 1 16 0v4"/></svg>',
+  '⛺': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20 12 4l10 16"/><line x1="4" y1="16" x2="20" y2="16"/></svg>',
+  '🏡': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 9-9 9 9"/><path d="M5 10v11h14V10"/><rect x="9" y="15" width="6" height="6"/></svg>',
+  '🍳': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v4"/><path d="M19 2v4"/><path d="M3 6h18v2a9 9 0 0 1-18 0V6Z"/><circle cx="12" cy="16" r="3"/></svg>',
+  '🏊': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2-2 8-2 10 0s8 2 10 0"/><path d="M2 20c2-2 8-2 10 0s8 2 10 0"/><circle cx="12" cy="6" r="2"/><path d="M12 8v4"/><path d="m9 5 2-3 2 3"/></svg>',
+  '🎵': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  '⛷️': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 3 3 3-10 18H2l5-9 5-5Z"/><line x1="2" y1="21" x2="22" y2="21"/></svg>',
+  '🎢': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/></svg>',
+  '🏀': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>',
+  '🦁': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6"/><path d="M2 18c.7-5 4.3-8 10-8s9.3 3 10 8"/><circle cx="10" cy="9" r="1"/><circle cx="14" cy="9" r="1"/><path d="M12 12v.01"/></svg>',
+  '🚲': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="4"/><circle cx="18" cy="18" r="4"/><path d="M12 6v6l4 2"/><circle cx="12" cy="4" r="2"/><line x1="10" y1="16" x2="14" y2="16"/></svg>',
+  '👻': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8v12l3-2 3 2 3-2 3 2 3-2 3 2V10a8 8 0 0 0-8-8Z"/><circle cx="9" cy="11" r="1.5"/><circle cx="15" cy="11" r="1.5"/></svg>',
+  '💪': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10V8a4 4 0 0 1 4-4h.5a2 2 0 0 1 2 2v6"/><path d="M18 10V8a4 4 0 0 0-4-4h-.5a2 2 0 0 0-2 2v6"/><path d="M6 10h12v4a6 6 0 0 1-12 0v-4Z"/><line x1="9" y1="14" x2="9" y2="20"/><line x1="15" y1="14" x2="15" y2="20"/></svg>',
+};
+
 /* ======== 渲染星愿清单 ======== */
 function renderWishes() {
   const { wishes } = content;
 
   function buildCard(item, status) {
+    const svgIcon = WISH_SVG_ICONS[item.icon] || item.icon;
     return `
       <div class="wish-card ${status}">
         <div class="wish-card-header">
-          <span class="wish-card-icon">${item.icon}</span>
+          <span class="wish-card-icon">${svgIcon}</span>
           <span class="wish-card-title">${item.title}</span>
         </div>
         <span class="wish-card-desc">${item.desc}</span>
@@ -532,6 +635,41 @@ function initBackToTop() {
   btn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+
+/* ======== Ending 数字滚动动画 ======== */
+function initEndingCounterRoll() {
+  const endingSection = document.getElementById('ending');
+  const counterEl = document.getElementById('days-counter');
+  if (!endingSection || !counterEl) return;
+
+  let rolled = false;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && !rolled) {
+        rolled = true;
+        const target = parseInt(counterEl.textContent) || 0;
+        const duration = 1500;
+        const start = performance.now();
+
+        function tick(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          // easeOutExpo
+          const eased = progress >= 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+          const current = Math.floor(eased * target);
+          counterEl.textContent = current;
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          } else {
+            counterEl.textContent = target;
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+    });
+  }, { threshold: 0.3 });
+  observer.observe(endingSection);
 }
 
 /* ======== Ending 自动仪式：滚动进入时放天灯 + 心形粒子 ======== */
