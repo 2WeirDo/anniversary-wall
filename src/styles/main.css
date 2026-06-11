@@ -103,9 +103,10 @@
 }
 [data-theme="dark"] .wishes {
   background:
-    radial-gradient(ellipse 40% 50% at 20% 40%, rgba(200, 140, 160, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 35% 30% at 70% 30%, rgba(180, 120, 150, 0.04) 0%, transparent 50%),
-    linear-gradient(185deg, #1F1A2A 0%, #1A1520 55%, #1D1726 100%);
+    radial-gradient(ellipse 40% 50% at 20% 40%, rgba(200, 140, 160, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 30% at 70% 30%, rgba(180, 120, 150, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 45% at 30% 65%, rgba(200, 140, 160, 0.04) 0%, transparent 55%),
+    linear-gradient(185deg, #1F1A2A 0%, #1A1520 55%, #1A1520 100%);
 }
 [data-theme="dark"] .wish-card {
   background: rgba(255, 255, 255, 0.04);
@@ -113,17 +114,27 @@
   color: #D0C4D8;
 }
 [data-theme="dark"] .wish-card.completed {
-  background: rgba(200, 170, 130, 0.08);
-  border-color: rgba(200, 170, 130, 0.15);
-  color: #E0D0B8;
+  background: rgba(200, 170, 130, 0.07);
+  border-color: rgba(200, 170, 130, 0.12);
+  color: #D8C8A8;
 }
 [data-theme="dark"] .wish-card:hover {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-color: rgba(232, 152, 168, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] .wish-card.completed:hover {
+  border-color: rgba(212, 184, 150, 0.3);
+  box-shadow: 0 8px 32px rgba(200, 170, 130, 0.1);
 }
 [data-theme="dark"] .wish-card-desc {
   color: #A090A8;
+  background: rgba(30, 24, 40, 0.96);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .wish-card.completed .wish-card-desc {
+  background: rgba(28, 22, 36, 0.97);
+  border-color: rgba(200, 170, 130, 0.15);
 }
 [data-theme="dark"] .wish-group-head {
   color: #E8D8E8;
@@ -133,12 +144,15 @@
 }
 [data-theme="dark"] .wish-divider { color: #3A2E3A; }
 [data-theme="dark"] .wishes-fade {
-  background: linear-gradient(180deg, transparent 0%, #1A1520 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(26, 21, 32, 0.6) 40%, #1A1520 100%);
 }
 [data-theme="dark"] .gallery {
   background:
     radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200, 140, 160, 0.06) 0%, transparent 60%),
     linear-gradient(180deg, #1A1520 0%, #231D2A 100%);
+}
+[data-theme="dark"] .gallery::before {
+  background: linear-gradient(180deg, #1A1520 0%, transparent 100%);
 }
 [data-theme="dark"] .timeline-section {
   background:
@@ -854,34 +868,38 @@ body::after {
 .cursor-heart.visible { opacity: 0.65; }
 
 /* ========================================
-   Wishes Section — 星愿清单
+   Wishes Section — 星愿清单（Bento Grid）
    ======================================== */
 .wishes {
+  overflow: visible; /* 允许 hover 描述卡片溢出，不裁剪 */
   background:
-    radial-gradient(1px 1px at 12% 18%, rgba(200, 160, 140, 0.25), transparent),
-    radial-gradient(1px 1px at 28% 32%, rgba(200, 160, 140, 0.18), transparent),
-    radial-gradient(1.5px 1.5px at 45% 12%, rgba(200, 160, 140, 0.22), transparent),
-    radial-gradient(1px 1px at 62% 28%, rgba(200, 160, 140, 0.2), transparent),
-    radial-gradient(1.5px 1.5px at 78% 16%, rgba(200, 160, 140, 0.28), transparent),
-    radial-gradient(1px 1px at 88% 34%, rgba(200, 160, 140, 0.18), transparent),
-    radial-gradient(1px 1px at 18% 55%, rgba(200, 160, 140, 0.15), transparent),
-    radial-gradient(1.5px 1.5px at 35% 48%, rgba(200, 160, 140, 0.2), transparent),
-    radial-gradient(1px 1px at 55% 58%, rgba(200, 160, 140, 0.18), transparent),
-    radial-gradient(1px 1px at 72% 52%, rgba(200, 160, 140, 0.22), transparent),
-    radial-gradient(1.5px 1.5px at 85% 60%, rgba(200, 160, 140, 0.16), transparent),
-    radial-gradient(1px 1px at 8% 75%, rgba(200, 160, 140, 0.15), transparent),
-    radial-gradient(1px 1px at 42% 78%, rgba(200, 160, 140, 0.18), transparent),
-    radial-gradient(1.5px 1.5px at 68% 82%, rgba(200, 160, 140, 0.2), transparent),
-    radial-gradient(1px 1px at 92% 76%, rgba(200, 160, 140, 0.15), transparent),
-    radial-gradient(ellipse 60% 40% at 50% 35%, rgba(254, 235, 240, 0.4) 0%, transparent 60%),
-    linear-gradient(182deg, #FEFBFB 0%, var(--color-cream) 35%, var(--color-bg) 65%, #FEF5F5 100%);
+    /* 星座光点 */
+    radial-gradient(1px 1px at 12% 18%, rgba(200, 160, 140, 0.22), transparent),
+    radial-gradient(1.2px 1.2px at 28% 32%, rgba(200, 160, 140, 0.16), transparent),
+    radial-gradient(1.4px 1.4px at 45% 10%, rgba(200, 160, 140, 0.2), transparent),
+    radial-gradient(1px 1px at 62% 25%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1.3px 1.3px at 78% 14%, rgba(200, 160, 140, 0.24), transparent),
+    radial-gradient(1px 1px at 88% 32%, rgba(200, 160, 140, 0.15), transparent),
+    radial-gradient(1.1px 1.1px at 18% 55%, rgba(200, 160, 140, 0.14), transparent),
+    radial-gradient(1.3px 1.3px at 35% 48%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1px 1px at 55% 58%, rgba(200, 160, 140, 0.16), transparent),
+    radial-gradient(1.2px 1.2px at 72% 52%, rgba(200, 160, 140, 0.2), transparent),
+    radial-gradient(1.4px 1.4px at 85% 60%, rgba(200, 160, 140, 0.14), transparent),
+    radial-gradient(1px 1px at 8% 75%, rgba(200, 160, 140, 0.13), transparent),
+    radial-gradient(1px 1px at 42% 78%, rgba(200, 160, 140, 0.16), transparent),
+    radial-gradient(1.3px 1.3px at 68% 82%, rgba(200, 160, 140, 0.18), transparent),
+    radial-gradient(1px 1px at 92% 76%, rgba(200, 160, 140, 0.14), transparent),
+    /* 柔光氛围 */
+    radial-gradient(ellipse 60% 40% at 50% 35%, rgba(254, 235, 240, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 25% 65%, rgba(255, 245, 240, 0.3) 0%, transparent 55%),
+    linear-gradient(182deg, #FEFBFB 0%, var(--color-cream) 35%, #FEF8F6 65%, #FDF4F4 100%);
   position: relative;
   flex-direction: column;
   gap: 0;
 }
 
 .wishes-container {
-  max-width: 880px;
+  max-width: 920px;
   width: 100%;
   padding: 0 28px;
   position: relative;
@@ -890,7 +908,7 @@ body::after {
 
 /* ---- 分组标题 ---- */
 .wish-group {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .wish-group-head {
@@ -902,7 +920,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
 }
 .wish-group-icon {
   font-size: 1.1em;
@@ -914,7 +932,7 @@ body::after {
   font-family: var(--font-body);
   font-size: 0.85rem;
   color: var(--color-text-muted);
-  margin-bottom: 1.6rem;
+  margin-bottom: 1.5rem;
   padding-left: 0.15rem;
 }
 
@@ -922,108 +940,135 @@ body::after {
 .wish-divider {
   display: flex;
   justify-content: center;
-  margin: 1.5rem 0 1.8rem;
+  margin: 2rem 0 2.2rem;
   color: var(--color-accent);
 }
 
-/* ---- 卡片云 ---- */
+/* ---- Bento Grid 卡片网格 ---- */
 .wish-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .wish-cloud {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+@media (max-width: 420px) {
+  .wish-cloud {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---- 单张星愿卡片 ---- */
 .wish-card {
-  display: inline-flex;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 0.45rem;
-  padding: 0.55rem 1.05rem;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(242, 196, 206, 0.3);
+  gap: 0.5rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(242, 196, 206, 0.25);
   color: var(--color-text);
   font-family: var(--font-body);
-  font-size: 0.9rem;
   cursor: default;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  max-width: 340px;
-  flex-shrink: 0;
-  overflow: hidden;
+  transition: box-shadow 0.4s var(--ease-out),
+              border-color 0.4s var(--ease-out),
+              background 0.4s var(--ease-out),
+              transform 0.35s var(--ease-out);
+  min-height: 0;
 }
 .wish-card:hover {
-  transform: translateY(-3px) scale(1.03);
-  border-color: var(--color-accent);
-  box-shadow: 0 6px 24px rgba(200, 140, 160, 0.15);
-  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(232, 120, 144, 0.35);
+  box-shadow: 0 8px 32px rgba(200, 140, 160, 0.12), 0 2px 8px rgba(200, 140, 160, 0.06);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
   z-index: 2;
 }
 
 /* 已完成 — 暖金底色 */
 .wish-card.completed {
-  background: rgba(255, 250, 245, 0.8);
-  border-color: rgba(200, 175, 140, 0.35);
-  color: #9B8A78;
+  background: rgba(255, 250, 245, 0.7);
+  border-color: rgba(200, 175, 140, 0.3);
+  color: #8B7D6E;
 }
 .wish-card.completed:hover {
-  border-color: var(--color-gold);
-  box-shadow: 0 6px 24px rgba(200, 170, 130, 0.2);
+  border-color: rgba(200, 170, 130, 0.45);
+  box-shadow: 0 8px 32px rgba(200, 170, 130, 0.15), 0 2px 8px rgba(200, 170, 130, 0.08);
   background: rgba(255, 252, 248, 0.95);
 }
 
-/* ---- 卡片内图标 ---- */
-.wish-card-icon {
-  font-size: 1.1em;
-  line-height: 1.4;
-  flex-shrink: 0;
+/* ---- 卡片内图标 + 标题行 ---- */
+.wish-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-/* ---- 卡片主体（标题 + 描述） ---- */
-.wish-card-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.wish-card-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .wish-card-title {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: inherit;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
 }
 
-/* ---- 描述（默认收起，hover 展开） ---- */
+/* ---- 描述（默认隐藏，hover 以覆盖层形式出现在卡片下方） ---- */
 .wish-card-desc {
-  font-size: 0.8rem;
-  line-height: 1.55;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(242, 196, 206, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1rem;
+  font-size: 0.82rem;
+  line-height: 1.65;
   color: var(--color-text-muted);
-  max-height: 0;
   opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.35s ease-out,
-              margin-top 0.35s ease-out;
-  margin-top: 0;
-}
-.wish-card:hover .wish-card-desc {
-  max-height: 5em;
-  opacity: 1;
-  margin-top: 0.35rem;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.3s ease-out,
+              visibility 0.3s ease-out,
+              transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 6px 24px rgba(200, 140, 160, 0.1);
 }
 
-/* ---- 底部过渡渐变 ---- */
+.wish-card:hover .wish-card-desc {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.wish-card.completed .wish-card-desc {
+  background: rgba(255, 252, 248, 0.97);
+  border-color: rgba(200, 175, 140, 0.3);
+}
+
+/* ---- 底部过渡渐变（延伸更长以与gallery平滑衔接）---- */
 .wishes-fade {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 35%;
-  background: linear-gradient(180deg, transparent 0%, var(--color-bg-pink) 100%);
+  height: 50%;
+  background: linear-gradient(180deg, transparent 0%, rgba(254, 244, 244, 0.7) 40%, #FDF4F4 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -1034,18 +1079,18 @@ body::after {
 .gallery {
   background:
     radial-gradient(ellipse 60% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
-    linear-gradient(180deg, var(--color-bg-pink) 0%, var(--color-bg) 50%, var(--color-primary-light) 100%);
+    linear-gradient(180deg, #FDF4F4 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
   flex-direction: column;
   gap: 3rem;
   position: relative;
 }
-/* 顶部过渡 — 从情书区平滑衔接 */
+/* 顶部过渡 — 从星愿清单区平滑衔接 */
 .gallery::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 25%;
-  background: linear-gradient(180deg, var(--color-bg-pink) 0%, transparent 100%);
+  height: 30%;
+  background: linear-gradient(180deg, #FDF4F4 0%, transparent 100%);
   pointer-events: none;
   z-index: 0;
 }

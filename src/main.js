@@ -364,11 +364,11 @@ function renderWishes() {
   function buildCard(item, status) {
     return `
       <div class="wish-card ${status}">
-        <span class="wish-card-icon">${item.icon}</span>
-        <div class="wish-card-body">
+        <div class="wish-card-header">
+          <span class="wish-card-icon">${item.icon}</span>
           <span class="wish-card-title">${item.title}</span>
-          <span class="wish-card-desc">${item.desc}</span>
         </div>
+        <span class="wish-card-desc">${item.desc}</span>
       </div>`;
   }
 
