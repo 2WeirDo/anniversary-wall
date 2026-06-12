@@ -8,7 +8,7 @@
  * - 无文字提示、无引导线、无 HTML 爱心覆盖层
  */
 
-/* ---- 心形参数方程（24 个采样点）---- */
+/* ---- 心形参数方程（32 个采样点）---- */
 function heartXY(t) {
   const a = t * Math.PI * 2;
   return {
@@ -16,53 +16,64 @@ function heartXY(t) {
     y: -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)),
   };
 }
-const HEART_SAMPLES = Array.from({ length: 24 }, (_, i) => heartXY(i / 24));
+const TOTAL_STARS = 32;
+const HEART_SAMPLES = Array.from({ length: TOTAL_STARS }, (_, i) => heartXY(i / TOTAL_STARS));
 
 /* ================================================================
-   星座数据 — 扩大散布，形态分明
-   狮子座：镰刀曲线 + 身体三角 + 尾星
-   天蝎座：螯钳 + 弯曲身体 + 毒刺尾钩
+   星座数据 — 狮子座 & 天蝎座（各 16 颗，共 32 颗）
+   狮子座：侧身剪影朝右 — 圆形鬃毛→身躯→四肢→尾尖毛簇
+   天蝎座：螯钳朝上张开 — 头部→身体纵轴→尾钩向左弯→毒刺
    ================================================================ */
 
-// 狮子座 — 扩大散布，镰刀形态清晰
+// 狮子座 (Leo) — 16 颗，沿侧身剪影轮廓排布（朝右）
+// 轮廓路径：鼻尖→额头→鬃毛顶→鬃毛后→背→臀→尾根→尾尖→后腿→腹→前腿→下颌
 const LEO_OFFSETS = [
-  // 镰刀 (Sickle) — 标志性反写问号
-  { x:  -7, y: -11 },   // 镰刀顶
-  { x:  -9, y:  -7 },
-  { x: -10, y:  -2 },
-  { x:  -9, y:   3 },   // γ Leo
-  { x:  -6, y:   7 },   // η Leo
-  { x:   0, y:   8 },   // α Leo (Regulus) — 狮心
-  // 身体
-  { x:   4, y:   4 },
-  { x:   7, y:  -1 },
-  { x:   9, y:  -5 },   // δ Leo
-  // 尾部三角
-  { x:  11, y:  -9 },   // β Leo (Denebola)
-  { x:   8, y: -11 },
-  { x:   4, y:  -8 },
+  // 头部/鬃毛（圆形主体）— 6 颗
+  { x:   7, y:  -5 },   // 鼻尖 →
+  { x:   4, y:  -8 },   // 额头
+  { x:   0, y: -10 },   // 鬃毛顶
+  { x:  -4, y:  -6 },   // 鬃毛后
+  { x:   5, y:  -2 },   // 下颌
+  { x:  -1, y:  -1 },   // 咽喉
+  // 身躯 — 3 颗
+  { x:  -5, y:   0 },   // 颈背
+  { x:  -7, y:   2 },   // 背
+  { x:  -8, y:   4 },   // 臀
+  // 前腿 — 2 颗
+  { x:   2, y:   2 },   // 前肩
+  { x:   4, y:   6 },   // 前爪
+  // 后腿 — 2 颗
+  { x:  -4, y:   5 },   // 后腿根
+  { x:  -5, y:   9 },   // 后爪
+  // 尾巴 — 3 颗
+  { x: -10, y:   2 },   // 尾根
+  { x: -11, y:  -2 },   // 尾弯
+  { x:  -9, y:  -5 },   // 尾尖毛簇 ↑
 ];
-
-// 天蝎座 — 扩大散布，钩尾明显
+// 天蝎座 (Scorpio) — 16 颗，螯朝上、身纵下、尾钩左弯
+// 轮廓路径：左钳→右钳→头→胸→腹→尾节→尾钩→毒囊→毒刺
 const SCORPIO_OFFSETS = [
-  // 螯钳
-  { x:  6, y: -12 },
-  { x: 10, y:  -9 },
-  { x: 11, y:  -4 },
-  // 身体纵轴
-  { x:  8, y:   1 },    // β Sco
-  { x:  5, y:   5 },    // δ Sco
-  { x:  2, y:   9 },    // α Sco (Antares) — 蝎心
-  { x: -1, y:  11 },
-  // 尾钩向左下弯曲
-  { x: -4, y:   8 },
-  { x: -7, y:   5 },
-  { x: -9, y:   7 },    // λ Sco (Shaula) — 毒刺
-  { x: -6, y:   1 },
-  { x: -2, y:  -1 },
+  // 双螯（顶部张开）— 4 颗
+  { x: -10, y: -12 },   // 左钳尖 ↙
+  { x:  -3, y:  -9 },   // 左钳根
+  { x:   3, y:  -9 },   // 右钳根
+  { x:  10, y: -12 },   // 右钳尖 ↘
+  // 头部 — 2 颗
+  { x:  -2, y:  -6 },   // 头左
+  { x:   2, y:  -6 },   // 头右
+  // 身体纵轴 — 4 颗
+  { x:   0, y:  -2 },   // 胸节
+  { x:  -1, y:   2 },   // 腹节1
+  { x:   0, y:   5 },   // 腹节2（Antares 区）
+  { x:   1, y:   8 },   // 尾根
+  // 尾钩左弯 → 毒刺 — 6 颗
+  { x:  -2, y:  11 },   // 尾节 ↙
+  { x:  -5, y:  10 },   // 弯节 ←
+  { x:  -8, y:   6 },   // 钩节 ↖
+  { x:  -9, y:   2 },   // 钩顶 ↑
+  { x:  -6, y:  -1 },   // 毒囊
+  { x:  -9, y:  -2 },   // 毒刺 ← 指向狮子
 ];
-
-
 export class StarTheater {
   constructor(containerId) {
     this.el = document.getElementById(containerId);
@@ -90,7 +101,7 @@ export class StarTheater {
     this.bgStars = [];
     this.constellationStars = [];
     this.touchedCount = 0;
-    this.totalConstellation = 24;
+    this.totalConstellation = TOTAL_STARS;
 
     // 触控
     this.pointer = { x: -200, y: -200, active: false };
@@ -133,7 +144,7 @@ export class StarTheater {
     this.w = r.width;
     this.h = r.height;
     this.cx = this.w / 2;
-    this.cy = this.h * 0.38;
+    this.cy = this.h * 0.50;
     this._scale = Math.min(this.w, this.h) * 0.018;
     this.canvas.width = this.w * this.dpr;
     this.canvas.height = this.h * this.dpr;
@@ -162,7 +173,7 @@ export class StarTheater {
     for (let i = 0; i < N_BG; i++) {
       this.bgStars.push({
         x: Math.random() * this.w,
-        y: Math.random() * this.h,
+        y: this.h * 0.2 + Math.random() * this.h * 0.8,
         r: 0.3 + Math.random() * 1.6,
         alpha: 0.08 + Math.random() * 0.35,
         twinkle: 0.4 + Math.random() * 2.5,
@@ -172,8 +183,8 @@ export class StarTheater {
     }
 
     // ---- 狮子座（左上）----
-    const leoBaseX = cx - sc * 10;
-    const leoBaseY = cy - sc * 2;
+    const leoBaseX = cx - sc * 15;
+    const leoBaseY = cy + sc * 5;
     for (const off of LEO_OFFSETS) {
       this.constellationStars.push({
         x: leoBaseX + off.x * sc,
@@ -192,8 +203,8 @@ export class StarTheater {
     }
 
     // ---- 天蝎座（右上）----
-    const scoBaseX = cx + sc * 10;
-    const scoBaseY = cy - sc * 2;
+    const scoBaseX = cx + sc * 15;
+    const scoBaseY = cy + sc * 5;
     for (const off of SCORPIO_OFFSETS) {
       this.constellationStars.push({
         x: scoBaseX + off.x * sc,
@@ -213,7 +224,7 @@ export class StarTheater {
 
     // ---- 心形目标位置 ----
     const heartScale = sc * 1.1;
-    const heartCY = cy + sc * 2;
+    const heartCY = cy + sc * 5;
     for (let i = 0; i < this.constellationStars.length; i++) {
       const hp = HEART_SAMPLES[i];
       this.constellationStars[i].targetX = cx + hp.x * heartScale;
@@ -339,8 +350,8 @@ export class StarTheater {
     const ctx = this.ctx;
     const t = ts * 0.001;
 
-    // 1. 深空背景
-    this.drawSky(ctx);
+    // 1. 清除画布
+    ctx.clearRect(0, 0, this.w, this.h);
 
     // 2. 星座星云底图
     this.drawConstellationNebula(ctx);
@@ -376,64 +387,62 @@ export class StarTheater {
     ctx.fillRect(0, 0, this.w, this.h);
   }
 
-  /* ---- 星座星云底图（狮子身体 + 天蝎身体）---- */
+  /* ---- 顶部遮罩 — 盖住早期星星，让星空晚些浮现 ---- */
+  drawTopFade(ctx) {
+    const fadeH = this.h * 0.55;
+    const g = ctx.createLinearGradient(0, 0, 0, fadeH);
+    g.addColorStop(0, '#1a1530');
+    g.addColorStop(0.18, '#1a1530');
+    g.addColorStop(0.4, 'rgba(22, 18, 44, 0.7)');
+    g.addColorStop(0.65, 'rgba(16, 12, 32, 0.22)');
+    g.addColorStop(0.85, 'rgba(8, 6, 18, 0.03)');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.w, fadeH);
+  }
+
+  /* ---- 星座星云底图 — 每颗星点叠加柔光，自然勾勒动物轮廓 ---- */
   drawConstellationNebula(ctx) {
     const sc = this._scale;
     const cx = this.cx;
     const cy = this.cy;
 
     ctx.save();
-    ctx.globalAlpha = 0.06;
+    ctx.globalAlpha = 0.05;
 
-    // === 狮子座：头部光晕 + 身体椭圆 ===
-    const leoX = cx - sc * 10;
-    const leoY = cy - sc * 2;
+    const leoBX = cx - sc * 15;
+    const leoBY = cy + sc * 5;
+    const scoBX = cx + sc * 15;
+    const scoBY = cy + sc * 5;
+    const glowR = sc * 4.5;
 
-    // 狮头/鬃毛 — 大圆
-    const maneG = ctx.createRadialGradient(leoX - sc * 4, leoY - sc * 4, 0,
-                                            leoX - sc * 4, leoY - sc * 4, sc * 7);
-    maneG.addColorStop(0, 'rgba(160,190,230,0.7)');
-    maneG.addColorStop(0.5, 'rgba(140,170,220,0.25)');
-    maneG.addColorStop(1, 'transparent');
-    ctx.fillStyle = maneG;
-    ctx.beginPath();
-    ctx.arc(leoX - sc * 4, leoY - sc * 4, sc * 7, 0, Math.PI * 2);
-    ctx.fill();
+    // 狮子座：每颗星位置一个柔光，叠加成形
+    for (const off of LEO_OFFSETS) {
+      const sx = leoBX + off.x * sc;
+      const sy = leoBY + off.y * sc;
+      const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
+      g.addColorStop(0, 'rgba(160,190,230,0.9)');
+      g.addColorStop(0.5, 'rgba(140,170,220,0.2)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // 狮身 — 椭圆
-    const bodyG = ctx.createRadialGradient(leoX + sc * 2, leoY, sc, leoX + sc * 2, leoY, sc * 8);
-    bodyG.addColorStop(0, 'rgba(160,190,230,0.5)');
-    bodyG.addColorStop(0.6, 'rgba(140,170,220,0.15)');
-    bodyG.addColorStop(1, 'transparent');
-    ctx.fillStyle = bodyG;
-    ctx.beginPath();
-    ctx.ellipse(leoX + sc * 2, leoY, sc * 8, sc * 4.5, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // === 天蝎座：身体弧线 + 螯钳 ===
-    const scoX = cx + sc * 10;
-    const scoY = cy - sc * 2;
-
-    // 身体/头部光晕
-    const scoBodyG = ctx.createRadialGradient(scoX + sc * 2, scoY, 0, scoX + sc * 2, scoY, sc * 6);
-    scoBodyG.addColorStop(0, 'rgba(220,185,210,0.6)');
-    scoBodyG.addColorStop(0.5, 'rgba(200,170,200,0.2)');
-    scoBodyG.addColorStop(1, 'transparent');
-    ctx.fillStyle = scoBodyG;
-    ctx.beginPath();
-    ctx.ellipse(scoX + sc * 2, scoY + sc, sc * 5, sc * 3.5, 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 尾钩 — 弯曲路径上的软光晕
-    const tailG = ctx.createRadialGradient(scoX - sc * 2, scoY + sc * 4, 0,
-                                            scoX - sc * 2, scoY + sc * 4, sc * 5);
-    tailG.addColorStop(0, 'rgba(220,185,210,0.5)');
-    tailG.addColorStop(0.5, 'rgba(200,170,200,0.15)');
-    tailG.addColorStop(1, 'transparent');
-    ctx.fillStyle = tailG;
-    ctx.beginPath();
-    ctx.ellipse(scoX - sc * 2, scoY + sc * 3, sc * 4, sc * 4.5, -0.5, 0, Math.PI * 2);
-    ctx.fill();
+    // 天蝎座：每颗星位置一个柔光，叠加成形
+    for (const off of SCORPIO_OFFSETS) {
+      const sx = scoBX + off.x * sc;
+      const sy = scoBY + off.y * sc;
+      const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
+      g.addColorStop(0, 'rgba(220,185,210,0.9)');
+      g.addColorStop(0.5, 'rgba(200,170,200,0.2)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }

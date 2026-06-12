@@ -151,14 +151,6 @@
   color: #706878;
 }
 [data-theme="dark"] .wish-divider { color: #3A2E3A; }
-[data-theme="dark"] .wishes-fade {
-  background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(26, 21, 32, 0.3) 15%,
-    rgba(22, 16, 32, 0.5) 40%,
-    rgba(18, 12, 28, 0.7) 65%,
-    #1a1530 100%);
-}
 [data-theme="dark"] .gallery {
   background:
     radial-gradient(ellipse 40% 40% at 50% 50%, rgba(200, 140, 160, 0.06) 0%, transparent 60%),
@@ -180,10 +172,10 @@
 [data-theme="dark"] .timeline-card-inner:hover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(232, 152, 168, 0.2);
 }
-[data-theme="dark"] .ending {
+[data-theme="dark"] .ending.ending-cosmic {
   background:
     radial-gradient(ellipse 50% 40% at 50% 60%, rgba(200, 140, 160, 0.08) 0%, transparent 60%),
-    linear-gradient(180deg, #1A1520 0%, #231D2A 100%);
+    linear-gradient(180deg, #1A1520 0%, #1C1628 30%, #1F182C 60%, #231D2A 100%);
 }
 [data-theme="dark"] .carousel-card .photo-frame {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);

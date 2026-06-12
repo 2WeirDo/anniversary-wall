@@ -186,15 +186,15 @@
   z-index: var(--z-music);
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(240, 212, 219, 0.35);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 12px rgba(200, 120, 140, 0.05);
   transition: all 0.5s var(--ease-spring);
   touch-action: manipulation;
   padding: 0;
@@ -212,8 +212,8 @@
 
 /* 暗夜模式下显示太阳图标 */
 [data-theme="dark"] .theme-toggle {
-  background: rgba(30, 25, 40, 0.8);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(30, 25, 40, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .theme-icon-moon { display: none; }
 [data-theme="dark"] .theme-icon-sun { display: block; }
@@ -471,14 +471,14 @@
   height: 42px;
   padding: 0 10px 0 14px;
   border-radius: 21px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(240, 212, 219, 0.3);
+  background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(20px) saturate(200%);
   -webkit-backdrop-filter: blur(20px) saturate(200%);
   cursor: pointer;
   box-shadow:
-    0 2px 12px rgba(80, 20, 40, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.4);
+    0 2px 12px rgba(80, 20, 40, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.25);
   transition: all 0.35s var(--ease-spring);
   touch-action: manipulation;
   font-family: var(--font-body);
@@ -500,26 +500,26 @@
 
 /* 播放态 — 粉色光晕呼吸 */
 .music-btn.playing {
-  background: rgba(255, 240, 245, 0.92);
-  border-color: rgba(232, 120, 144, 0.6);
+  background: rgba(255, 240, 245, 0.42);
+  border-color: rgba(232, 120, 144, 0.45);
   box-shadow:
-    0 0 0 3px rgba(232, 120, 144, 0.1),
-    0 4px 24px rgba(232, 120, 144, 0.22),
-    0 0 0 1px rgba(255, 255, 255, 0.4);
+    0 0 0 3px rgba(232, 120, 144, 0.06),
+    0 4px 20px rgba(232, 120, 144, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.25);
   animation: btnGlow 2.4s ease-in-out infinite;
 }
 @keyframes btnGlow {
   0%, 100% {
     box-shadow:
-      0 0 0 3px rgba(232, 120, 144, 0.1),
-      0 4px 24px rgba(232, 120, 144, 0.22),
-      0 0 0 1px rgba(255, 255, 255, 0.4);
+      0 0 0 3px rgba(232, 120, 144, 0.06),
+      0 4px 20px rgba(232, 120, 144, 0.14),
+      0 0 0 1px rgba(255, 255, 255, 0.25);
   }
   50% {
     box-shadow:
-      0 0 0 6px rgba(232, 120, 144, 0.04),
-      0 6px 32px rgba(232, 120, 144, 0.32),
-      0 0 0 1px rgba(255, 255, 255, 0.5);
+      0 0 0 6px rgba(232, 120, 144, 0.03),
+      0 6px 28px rgba(232, 120, 144, 0.22),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -631,18 +631,18 @@
 }
 [data-theme="dark"] .music-result-title { color: #D8C8D0; }
 [data-theme="dark"] .music-btn {
-  background: rgba(22, 16, 30, 0.88);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(22, 16, 30, 0.3);
+  border-color: rgba(255, 255, 255, 0.06);
   box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
+    0 2px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 [data-theme="dark"] .music-btn:hover {
-  border-color: rgba(232, 152, 168, 0.35);
+  border-color: rgba(232, 152, 168, 0.25);
 }
 [data-theme="dark"] .music-btn.playing {
-  background: rgba(40, 20, 30, 0.92);
-  border-color: rgba(232, 120, 144, 0.35);
+  background: rgba(40, 20, 30, 0.35);
+  border-color: rgba(232, 120, 144, 0.25);
 }
 [data-theme="dark"] .music-btn-label { color: #C0B4C0; }
 [data-theme="dark"] .music-btn-arrow:hover {
@@ -729,15 +729,15 @@
   z-index: var(--z-music);
   width: 44px; height: 44px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(240, 212, 219, 0.35);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 12px rgba(200, 120, 140, 0.05);
   transition: all 0.5s var(--ease-spring);
   opacity: 0;
   transform: translateY(12px);
@@ -752,7 +752,7 @@
 }
 .back-to-top:hover {
   transform: scale(1.1);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 18px rgba(200, 120, 140, 0.1);
   border-color: var(--color-gold);
 }
 .back-to-top:active { transform: scale(0.9); }
@@ -761,8 +761,8 @@
   outline-offset: 3px;
 }
 [data-theme="dark"] .back-to-top {
-  background: rgba(30, 25, 40, 0.8);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(30, 25, 40, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 
@@ -772,8 +772,7 @@
 .site-footer {
   padding: 2.5rem 1.5rem 3rem;
   text-align: center;
-  background: var(--color-bg);
-  position: relative;
+  background: #C4B2CA; /* 亮色模式：与 ending 底部薰衣草衔接 */
 }
 .footer-inner {
   display: flex;
@@ -785,61 +784,82 @@
   font-size: 1.1rem;
   opacity: 0.5;
 }
-/* 天灯小图标按钮（替换原编辑图标） */
-.footer-lantern {
-  display: inline-flex;
+/* 放飞天灯 — 左下角悬浮按钮 */
+.lantern-fab {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 500;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid rgba(200, 170, 140, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(180, 140, 100, 0.65);
+  border: 1px solid rgba(200, 170, 140, 0.18);
   border-radius: var(--radius-full);
   cursor: pointer;
-  opacity: 0.55;
-  transition: all 0.35s var(--ease-out);
+  transition: all 0.4s var(--ease-out);
+  box-shadow: 0 4px 16px rgba(180, 140, 120, 0.08);
 }
-.footer-lantern:hover {
-  opacity: 1;
-  color: #e8c878;
-  border-color: rgba(240, 200, 140, 0.5);
-  background: rgba(200, 160, 100, 0.08);
-  box-shadow: 0 0 20px rgba(200, 160, 100, 0.15);
-  transform: translateY(-1px);
+.lantern-fab:hover {
+  color: #e8b848;
+  border-color: rgba(240, 180, 100, 0.4);
+  background: rgba(255, 252, 245, 0.5);
+  box-shadow: 0 6px 24px rgba(200, 150, 80, 0.15), 0 0 36px rgba(240, 180, 100, 0.1);
+  transform: translateY(-2px);
 }
-[data-theme="dark"] .footer-lantern {
-  border-color: rgba(200, 170, 140, 0.15);
+.lantern-fab:active {
+  transform: scale(0.94);
+  transition: transform 0.15s var(--ease-out);
 }
-[data-theme="dark"] .footer-lantern:hover {
-  border-color: rgba(240, 200, 140, 0.35);
-  background: rgba(200, 160, 100, 0.1);
+[data-theme="dark"] .lantern-fab {
+  background: rgba(30, 24, 40, 0.35);
+  border-color: rgba(200, 170, 140, 0.1);
+  color: rgba(220, 190, 150, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+[data-theme="dark"] .lantern-fab:hover {
+  color: #f0c860;
+  border-color: rgba(240, 190, 120, 0.35);
+  background: rgba(40, 32, 48, 0.5);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), 0 0 36px rgba(240, 180, 100, 0.08);
 }
 .footer-text {
   font-family: var(--font-handwrite);
   font-size: 1.15rem;
-  color: var(--color-text-light);
+  color: rgba(70, 50, 65, 0.58); /* 亮色：薰衣草底深紫灰字 */
   letter-spacing: 0.05em;
-  opacity: 0.7;
 }
 .footer-days {
   font-family: var(--font-display);
   font-size: 0.85rem;
-  color: var(--color-text-muted);
+  color: rgba(70, 50, 65, 0.4);
   margin-top: 0.3rem;
   letter-spacing: 0.04em;
   font-style: italic;
-  opacity: 0.55;
 }
 .footer-days span {
   font-weight: 600;
-  color: var(--color-accent);
+  color: rgba(185, 95, 115, 0.72);
   font-feature-settings: "tnum";
 }
 
 /* ---- Dark mode ---- */
 [data-theme="dark"] .site-footer {
-  background: var(--color-bg);
+  background: #231D2A; /* 与暗色模式结尾底部一致 */
+}
+[data-theme="dark"] .footer-text {
+  color: rgba(210, 190, 180, 0.55);
+}
+[data-theme="dark"] .footer-days {
+  color: rgba(180, 160, 150, 0.4);
+}
+[data-theme="dark"] .footer-days span {
+  color: rgba(232, 152, 168, 0.65);
 }
 
