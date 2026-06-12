@@ -103,7 +103,6 @@ export function initPhotoModal(getCarousel) {
     // goTo 动画完成后（active 卡片回到屏幕中心）再定位气泡
     carousel.goTo(index, () => {
       positionBubble();
-      closeBtn.focus();
     });
   }
 
