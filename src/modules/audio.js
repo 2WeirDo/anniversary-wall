@@ -6,7 +6,6 @@
 
 const BGM_PATHS = [
   `${import.meta.env.BASE_URL}bgm/bgm.mp3`,
-  `${import.meta.env.BASE_URL}bgm/bgm.flac`,
 ];
 
 export class AudioPlayer {
@@ -324,6 +323,12 @@ export class AudioPlayer {
     this._starting = true;
 
     try {
+      // ★ 关键：在用户手势上下文中同步解锁 Audio 元素
+      //  否则后续 await 后的 play() 会被浏览器自动播放策略拦截
+      if (this.audio) {
+        this.audio.play().catch(() => {});
+      }
+
       // 已有加载好的文件：直接恢复播放
       if (this.mode === 'file' && this.audio && this.audio.src) {
         await this.audio.play();
