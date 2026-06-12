@@ -41,6 +41,7 @@ export class MusicPlayer {
     this.queue = [];
     this.queueIndex = -1;
     this.presetCache = [];     // 预设搜索结果缓存
+    this._presetsLoaded = false; // 防止重复加载
     this.searchTimer = null;
     this.audio = null;
 
@@ -160,6 +161,18 @@ export class MusicPlayer {
     }));
   }
 
+  /** 搜索并自动重试：如果第一次无结果，缩短关键词再试 */
+  async _searchWithRetry(query) {
+    let songs = await this.apiSearch(query);
+    if (songs.length > 0) return songs;
+    // 缩短关键词：去掉最后一个字再试
+    const shorter = query.replace(/\s+\S+$/, '').trim();
+    if (shorter && shorter !== query) {
+      songs = await this.apiSearch(shorter);
+    }
+    return songs;
+  }
+
   async getAudioUrl(song) {
     const params = new URLSearchParams({
       types: 'url',
@@ -190,7 +203,7 @@ export class MusicPlayer {
     if (!query.trim()) return;
     this.showStatus('搜索中...');
     try {
-      const songs = await this.apiSearch(query);
+      const songs = await this._searchWithRetry(query);
       this._lastSearchResults = songs;
       if (songs.length === 0) {
         this.showStatus('未找到歌曲，换个关键词试试');
@@ -206,29 +219,39 @@ export class MusicPlayer {
   /* ======== 预设加载 ======== */
 
   async loadPresets() {
-    // 搜索第一首预设，其他在面板打开时懒加载
+    // 后台预热第一首预设
     try {
-      const songs = await this.apiSearch(PRESET_QUERIES[0].q);
-      if (songs.length > 0) this.presetCache.push(songs[0]);
+      const songs = await this._searchWithRetry(PRESET_QUERIES[0].q);
+      if (songs.length > 0 && !this._isDup(songs[0])) {
+        this.presetCache.push(songs[0]);
+      }
     } catch (e) { /* 静默 */ }
   }
 
   async loadAllPresets() {
-    if (this.presetCache.length >= PRESET_QUERIES.length) return;
-    // 并行搜索所有未缓存的预设
-    const startIdx = this.presetCache.length;
-    const missing = PRESET_QUERIES.slice(startIdx);
+    if (this._presetsLoaded) return;
+    this._presetsLoaded = true;
+    // 并行搜索所有预设（每首自动重试）
     const results = await Promise.allSettled(
-      missing.map(p => this.apiSearch(p.q))
+      PRESET_QUERIES.map(p => this._searchWithRetry(p.q))
     );
+    this.presetCache = []; // 重置，用完整结果覆盖
     results.forEach((r, i) => {
       if (r.status === 'fulfilled' && r.value.length > 0) {
-        const target = PRESET_QUERIES[startIdx + i];
+        const target = PRESET_QUERIES[i];
         const song = r.value.find(s => s.title.includes(target.label)) || r.value[0];
-        this.presetCache.push(song);
+        this._pushIfNew(song);
       }
     });
     this.renderPresets();
+  }
+
+  _isDup(song) {
+    return this.presetCache.some(s => s.id === song.id && s.source === song.source);
+  }
+
+  _pushIfNew(song) {
+    if (!this._isDup(song)) this.presetCache.push(song);
   }
 
   /* ======== 播放控制 ======== */
