@@ -79,7 +79,7 @@ function preloadImages() {
       const img = new Image();
       img.onload = resolve;
       img.onerror = resolve;
-      img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}.webp`;
+      img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp`;
     });
   }));
 }

@@ -53,7 +53,7 @@ export class Timeline {
           <div class="timeline-card-inner ${side}">
             <div class="timeline-card-image">
               <picture>
-                <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
+                <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
                 <img src="${import.meta.env.BASE_URL}photos/${photoFilename}" alt="${item.title}" loading="lazy"
                   onerror="const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s)s.remove();}this.src='${import.meta.env.BASE_URL}photos/${photoFilename}';this.onerror=null"
                 />
