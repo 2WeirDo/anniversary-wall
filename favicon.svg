@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F2C4CE"/>
+      <stop offset="100%" style="stop-color:#E87890"/>
+    </linearGradient>
+  </defs>
+  <!-- 爱心背景 -->
+  <path d="M50 88 C50 88 12 56 12 32 C12 16 26 6 40 6 C48 6 54 10 50 18 C46 10 52 6 60 6 C74 6 88 16 88 32 C88 56 50 88 50 88Z"
+    fill="url(#g)" stroke="#D4879A" stroke-width="1.5"/>
+  <!-- 名字缩写 -->
+  <text x="38" y="50" font-family="serif" font-size="15" fill="#FFF" font-weight="bold" text-anchor="middle">拖</text>
+  <text x="62" y="50" font-family="serif" font-size="15" fill="#FFF" font-weight="bold" text-anchor="middle">多</text>
+</svg>
