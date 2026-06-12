@@ -156,7 +156,7 @@
 
 .story-bubble-date {
   font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   font-style: italic;
   color: var(--color-accent);
   margin-bottom: 8px;
@@ -165,7 +165,7 @@
 
 .story-bubble-story {
   font-family: var(--font-body);
-  font-size: 1.35rem;
+  font-size: 1.17rem;
   line-height: 1.75;
   color: var(--color-text-dark);
   margin: 0;
@@ -173,7 +173,7 @@
 
 .story-bubble-flip-text {
   font-family: var(--font-handwrite);
-  font-size: 1.65rem;
+  font-size: 1.43rem;
   color: var(--color-accent-deep);
   line-height: 1.7;
   margin: 0;
@@ -218,7 +218,7 @@
 
 .story-bubble-counter {
   font-family: var(--font-display);
-  font-size: 1.17rem;
+  font-size: 1.01rem;
   color: var(--color-text-light);
   font-style: italic;
   letter-spacing: 0.04em;
@@ -313,14 +313,14 @@
     padding: 20px 16px 8px;
   }
   .story-bubble-date {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   .story-bubble-story {
-    font-size: 1.28rem;
+    font-size: 1.1rem;
     line-height: 1.65;
   }
   .story-bubble-flip-text {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
   .story-bubble-footer {
     padding: 6px 12px 10px;
