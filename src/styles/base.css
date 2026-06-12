@@ -187,25 +187,6 @@
   background: linear-gradient(110deg, #2A2435 30%, #322C3F 50%, #2A2435 70%);
   background-size: 200% 100%;
 }
-[data-theme="dark"] .photo-modal-content {
-  background: #221C2C;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-}
-[data-theme="dark"] .photo-modal-overlay {
-  background: rgba(10, 8, 16, 0.8);
-}
-[data-theme="dark"] .photo-flip-back {
-  background: linear-gradient(135deg, #2A2235 0%, #1E1828 40%, #231D2A 100%);
-}
-[data-theme="dark"] .photo-modal-nav-btn {
-  background: #2A2235;
-  border-color: rgba(255, 255, 255, 0.06);
-  color: #C8B8C0;
-}
-[data-theme="dark"] .photo-modal-nav-btn:hover {
-  background: var(--color-accent);
-  color: #1A1520;
-}
 [data-theme="dark"] .lantern-btn {
   color: var(--color-accent);
   border-color: rgba(232, 152, 168, 0.25);
