@@ -1,0 +1,225 @@
+/* ========================================
+   Gallery / Carousel
+   ======================================== */
+.gallery {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
+    linear-gradient(180deg, #FEFBFB 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
+  flex-direction: column;
+  gap: 3rem;
+  position: relative;
+}
+/* 顶部过渡 — 从 Hero 区平滑衔接 */
+.gallery::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, #FEFBFB 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+.gallery > * { position: relative; z-index: 1; }
+
+.gallery-header { text-align: center; }
+
+.carousel-wrapper {
+  width: 100%;
+  max-width: 1150px;
+  position: relative;
+}
+
+/* 左右导航箭头 — hover 时浮现 */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 120, 144, 0.15);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s, background 0.25s, border-color 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+.carousel-wrapper:hover .carousel-nav {
+  opacity: 1;
+  pointer-events: auto;
+}
+.carousel-nav:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(232, 120, 144, 0.35);
+  transform: translateY(-50%) scale(1.08);
+}
+.carousel-nav-prev { left: -8px; }
+.carousel-nav-next { right: -8px; }
+
+.carousel-stage {
+  width: 100%;
+  height: clamp(380px, 60vw, 560px);
+  position: relative;
+  cursor: grab;
+  touch-action: pan-y;
+  overflow: visible;
+}
+.carousel-stage:active, .carousel-stage.dragging { cursor: grabbing; }
+
+/* ---- 悬浮光粒子 ---- */
+.carousel-sparkle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  animation: sparkleFloat ease-in-out infinite alternate;
+}
+@keyframes sparkleFloat {
+  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.2; }
+  50% { transform: translateY(-20px) translateX(8px) scale(1.3); opacity: 0.7; }
+  100% { transform: translateY(-35px) translateX(-6px) scale(0.9); opacity: 0.3; }
+}
+
+.carousel-container {
+  width: 100%; height: 100%;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.carousel-card {
+  position: absolute;
+  width: clamp(240px, 38vw, 360px);
+  height: clamp(300px, 48vw, 460px);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.carousel-card:not(.active) {
+  opacity: 0.72;
+}
+.carousel-card:not(.active):hover {
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 16px rgba(232, 120, 144, 0.2));
+}
+.carousel-card.active { cursor: default; }
+
+.carousel-card .photo-frame {
+  width: 100%; height: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: white;
+  border: 3px solid white;
+  position: relative;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* 倒影 — 柔和光池：模拟相纸光面在桌面上的暖调反光
+   不用 -webkit-box-reflect（太生硬），改用径向辉光 + 色散边缘 */
+.carousel-card.active .photo-frame {
+  box-shadow:
+    0 20px 60px rgba(200, 120, 140, 0.18),
+    0 0 0 4px rgba(242, 196, 206, 0.3),
+    0 40px 100px rgba(232, 120, 144, 0.1);
+}
+.carousel-card.active::after {
+  content: '';
+  position: absolute;
+  bottom: -55px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75%;
+  height: 80px;
+  background:
+    radial-gradient(ellipse 55% 90% at 50% 0%,
+      rgba(232, 120, 144, 0.1) 0%,
+      rgba(242, 196, 206, 0.05) 30%,
+      rgba(254, 240, 243, 0.03) 55%,
+      transparent 75%
+    );
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(10px);
+  border-radius: 50%;
+}
+
+.carousel-card .photo-frame::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 60%, rgba(232, 120, 144, 0.04) 100%);
+  pointer-events: none;
+}
+
+.carousel-card .photo-frame picture,
+.carousel-card .photo-frame img {
+  display: block; width: 100%; height: 100%;
+}
+.carousel-card .photo-frame img {
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  transition: opacity 0.4s var(--ease-out);
+}
+.carousel-card .photo-frame img:not(.loaded) {
+  opacity: 0;
+}
+.carousel-card .photo-frame img.loaded {
+  opacity: 1;
+}
+
+/* 照片加载骨架屏 */
+.carousel-card .photo-frame {
+  position: relative;
+}
+.carousel-card .photo-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, #F5EDF0 30%, #FDF8F9 50%, #F5EDF0 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.35s var(--ease-out);
+}
+.carousel-card .photo-frame.loaded::before {
+  opacity: 0;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 轮播照片计数器 */
+.carousel-counter {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--color-accent);
+  opacity: 0.7;
+  z-index: 5;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+[data-theme="dark"] .carousel-nav {
+  background: rgba(30, 24, 40, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-accent);
+}
+[data-theme="dark"] .carousel-nav:hover {
+  background: rgba(40, 32, 52, 0.92);
+  border-color: rgba(232, 120, 144, 0.3);
+}
+
+

@@ -1,0 +1,431 @@
+/* ========================================
+   Entry Overlay — 书封翻开
+   ======================================== */
+.entry-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: none;  /* 背景由 ::before / ::after 承载 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 左半书封 */
+.entry-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 50.2%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(254, 240, 243, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 30% 70%, rgba(242, 196, 206, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 30% at 70% 20%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #FEFCFB 0%, #FFF9F7 40%, #FEF5F5 100%);
+  background-size: 200% 100%;
+  background-position: left center;
+  will-change: transform;
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.entry-overlay.hidden::before {
+  transform: translateX(-102%);
+}
+
+/* 右半书封 */
+.entry-overlay::after {
+  content: '';
+  position: fixed;
+  top: 0; right: 0;
+  width: 50.2%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(254, 240, 243, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 40% at 30% 70%, rgba(242, 196, 206, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 30% at 70% 20%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #FEFCFB 0%, #FFF9F7 40%, #FEF5F5 100%);
+  background-size: 200% 100%;
+  background-position: right center;
+  will-change: transform;
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.entry-overlay.hidden::after {
+  transform: translateX(102%);
+}
+
+.entry-overlay.hidden {
+  pointer-events: none;
+}
+
+.entry-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  transition: opacity 0.2s ease-out;
+}
+.entry-content.fade-out {
+  opacity: 0;
+}
+
+.entry-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.entry-kicker {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+.entry-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6.5vw, 4.5rem);
+  color: var(--color-text-dark);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
+}
+
+.entry-subtitle {
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  color: var(--color-text-light);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  margin-bottom: 2rem;
+}
+
+.entry-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--color-primary);
+  margin-bottom: 2.5rem;
+  opacity: 0.6;
+}
+
+.enter-btn {
+  background: transparent;
+  color: var(--color-accent-deep);
+  border: 1px solid var(--color-border);
+  padding: 14px 40px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 400;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.06em;
+  transition: all 0.5s var(--ease-out);
+  touch-action: manipulation;
+}
+.enter-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  gap: 16px;
+}
+.enter-btn:active {
+  transform: scale(0.96);
+}
+.enter-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+.enter-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+  animation: enterPulse 0.8s ease-in-out infinite;
+}
+@keyframes enterPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+.enter-arrow {
+  transition: transform 0.5s var(--ease-out);
+}
+.enter-btn:hover .enter-arrow {
+  transform: translateX(3px);
+}
+
+.entry-hint {
+  margin-top: 2.5rem;
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  animation: entryFadeHint 3s ease-in-out infinite;
+}
+
+@keyframes entryFadeHint {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+/* ---- 暗夜模式切换按钮 ---- */
+.theme-toggle {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: var(--z-music);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all 0.5s var(--ease-spring);
+  touch-action: manipulation;
+  padding: 0;
+}
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-gold);
+}
+.theme-toggle:active { transform: scale(0.9); }
+
+/* 图标切换 */
+.theme-icon-moon { display: block; color: var(--color-gold); }
+.theme-icon-sun { display: none; color: var(--color-gold); }
+
+/* 暗夜模式下显示太阳图标 */
+[data-theme="dark"] .theme-toggle {
+  background: rgba(30, 25, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .theme-icon-moon { display: none; }
+[data-theme="dark"] .theme-icon-sun { display: block; }
+
+/* ========================================
+   Music Control
+   ======================================== */
+.music-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: var(--z-music);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all 0.5s var(--ease-spring);
+  touch-action: manipulation;
+  padding: 0;
+}
+.music-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-accent);
+}
+.music-btn:active { transform: scale(0.9); }
+.music-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+
+/* 图标切换 */
+.music-icon-play { display: block; color: var(--color-accent); }
+.music-icon-pause { display: none; color: var(--color-accent); }
+
+/* 播放状态 */
+.music-btn.playing {
+  border-color: var(--color-accent);
+}
+.music-btn.playing .music-icon-play { display: none; }
+.music-btn.playing .music-icon-pause { display: block; }
+
+/* 暗夜模式 */
+[data-theme="dark"] .music-btn {
+  background: rgba(30, 25, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ========================================
+   Nav Dots
+   ======================================== */
+.nav-dots {
+  position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+  z-index: var(--z-dots);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.35;
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out);
+  touch-action: manipulation;
+  position: relative;
+}
+/* 扩大触摸区域，保持视觉低调 */
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: -8px;  /* 8 + 8*2 = 24px touch area */
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  transition: border-color 0.4s;
+}
+/* 仅 hover 时显示板块名称标签，active 时隐藏 */
+.dot::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  white-space: nowrap;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.dot:hover::before {
+  opacity: 0.85;
+  transform: translateY(-50%) translateX(-4px);
+}
+.dot.active {
+  opacity: 1;
+  background: var(--color-accent);
+  box-shadow: 0 0 16px rgba(232, 120, 144, 0.5);
+  transform: scale(1.4);
+  animation: dotPulse 2.5s ease-in-out infinite;
+}
+.dot.active::after {
+  border-color: var(--color-primary);
+  animation: dotRipple 2.5s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(232, 120, 144, 0.4); }
+  50% { box-shadow: 0 0 22px rgba(232, 120, 144, 0.65), 0 0 36px rgba(232, 120, 144, 0.15); }
+}
+@keyframes dotRipple {
+  0%, 100% { border-color: rgba(242, 196, 206, 0.3); inset: -8px; }
+  50% { border-color: rgba(232, 120, 144, 0.15); inset: -11px; }
+}
+.dot:hover { opacity: 0.7; }
+.dot:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  opacity: 0.9;
+}
+
+/* ---- 回到顶部按钮（与主题切换按钮风格一致）---- */
+.back-to-top {
+  position: fixed;
+  bottom: 84px;
+  right: 28px;
+  z-index: var(--z-music);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all 0.5s var(--ease-spring);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  color: var(--color-gold);
+  padding: 0;
+}
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.back-to-top:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-gold);
+}
+.back-to-top:active { transform: scale(0.9); }
+.back-to-top:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+[data-theme="dark"] .back-to-top {
+  background: rgba(30, 25, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+
+/* ========================================
+   Footer — 签名落款
+   ======================================== */
+.site-footer {
+  padding: 2.5rem 1.5rem 3rem;
+  text-align: center;
+  background: var(--color-bg);
+  position: relative;
+}
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.footer-icon {
+  font-size: 1.1rem;
+  opacity: 0.5;
+}
+.footer-text {
+  font-family: var(--font-handwrite);
+  font-size: 1.15rem;
+  color: var(--color-text-light);
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+.footer-days {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 0.3rem;
+  letter-spacing: 0.04em;
+  font-style: italic;
+  opacity: 0.55;
+}
+.footer-days span {
+  font-weight: 600;
+  color: var(--color-accent);
+  font-feature-settings: "tnum";
+}
+
+/* ---- Dark mode ---- */
+[data-theme="dark"] .site-footer {
+  background: var(--color-bg);
+}
+

@@ -1,0 +1,192 @@
+/* ========================================
+   Hero Section
+   ======================================== */
+.hero {
+  background:
+    radial-gradient(ellipse 80% 60% at 25% 20%, rgba(242, 196, 206, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 70% at 75% 80%, rgba(232, 120, 144, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
+    linear-gradient(180deg, var(--color-cream) 0%, var(--color-bg) 40%, #FEFBFB 100%);
+  text-align: center;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+/* 噪点纹理叠加层 — 模拟杂志/书籍纸张质感 */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+/* 底部过渡 — 与照片墙平滑衔接 */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 20%;
+  background: linear-gradient(180deg, transparent 0%, rgba(254, 251, 251, 0.7) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+
+.hero-content {
+  position: relative; z-index: 1;
+  animation: fadeInUp 1.2s var(--ease-out);
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.hero-bow-large {
+  width: 100px; margin: 0 auto 2rem;
+  color: var(--color-accent);
+  opacity: 0.85;
+  animation: floatGentle 5s ease-in-out infinite;
+}
+.bow-svg { width: 100%; height: auto; }
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(1deg); }
+  75% { transform: translateY(3px) rotate(-1deg); }
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 8vw, 5.5rem);
+  font-weight: 400;
+  color: var(--color-accent-deep);
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.hero-title::after {
+  content: '';
+  display: block;
+  width: 80px; height: 2px;
+  background: var(--color-accent);
+  margin: 1.2rem auto 0;
+  opacity: 0.5;
+  border-radius: var(--radius-full);
+}
+
+/* Hero title char animation */
+.hero-title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px) rotateX(-40deg);
+  transition: opacity 0.5s var(--ease-spring), transform 0.5s var(--ease-spring);
+}
+.hero-title .char-space { display: inline-block; width: 0.3em; }
+.hero-title.reveal-chars .char {
+  opacity: 1;
+  transform: translateY(0) rotateX(0);
+}
+
+.hero-date {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: var(--color-text-light);
+  font-style: italic;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+  font-feature-settings: "tnum";
+}
+
+.hero-countdown {
+  font-family: var(--font-heading);
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  color: var(--color-accent);
+  letter-spacing: 0.04em;
+  margin-bottom: 1.8rem;
+  animation: countdownPulse 3s ease-in-out infinite;
+  font-feature-settings: "tnum";
+}
+.hero-countdown span {
+  font-weight: 700;
+  font-size: 1.15em;
+  color: var(--color-accent-deep);
+}
+
+@keyframes countdownPulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+.hero-sub {
+  font-family: var(--font-script);
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--color-rose);
+  margin-bottom: 4rem;
+  font-weight: 400;
+}
+
+.scroll-indicator {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  opacity: 0.6;
+}
+.scroll-indicator span {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-light);
+}
+.scroll-arrow {
+  color: var(--color-accent);
+  animation: bounceDown 2s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scroll-arrow svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* Hero Particles */
+.particle { position: absolute; border-radius: 50%; pointer-events: none; animation: particleFloat linear infinite; }
+.particle.dot { background: var(--color-primary); }
+.particle.heart { font-size: 14px; }
+
+@keyframes particleFloat {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ---- 跨板块过渡粒子（section bridge sparkles） ---- */
+.bridge-sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 50;
+  border-radius: 50%;
+  animation: bridgeFloat ease-in-out infinite alternate;
+}
+@keyframes bridgeFloat {
+  0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0.15; }
+  50% { transform: translateY(-60px) translateX(20px) scale(1.3); opacity: 0.65; }
+  100% { transform: translateY(-110px) translateX(-15px) scale(0.7); opacity: 0.2; }
+}
+
+/* ---- Cursor Trail Dots (styled inline via JS) ---- */
+

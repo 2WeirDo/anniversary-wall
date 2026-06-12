@@ -1,0 +1,106 @@
+/* ========================================
+   Responsive
+   ======================================== */
+@media (max-width: 1024px) {
+  .carousel-stage { height: clamp(350px, 55vw, 480px); }
+  .carousel-card {
+    width: clamp(220px, 34vw, 320px);
+    height: clamp(280px, 44vw, 400px);
+  }
+}
+
+@media (max-width: 768px) {
+  .section { padding: 40px 16px; }
+  .carousel-stage { height: 370px; }
+  .carousel-card { width: 250px; height: 320px; }
+  /* 移动端导航箭头始终可见 */
+  .carousel-nav {
+    opacity: 0.55;
+    pointer-events: auto;
+    width: 34px;
+    height: 34px;
+  }
+  .carousel-nav-prev { left: 0; }
+  .carousel-nav-next { right: 0; }
+  .entry-content { padding: 2rem 1.5rem; }
+  .entry-line { height: 40px; }
+  .entry-title { font-size: clamp(2.2rem, 8vw, 2.8rem); }
+  .entry-subtitle { font-size: 0.9rem; }
+  .entry-kicker { font-size: 0.7rem; letter-spacing: 0.2em; }
+  .hero-content { padding: 0 1rem; }
+  .hero-sub { margin-bottom: 2.5rem; }
+  .ending-days-counter { font-size: clamp(2.5rem, 10vw, 3.5rem); }
+  .ending-text-large { font-size: clamp(1.5rem, 5vw, 2rem); }
+    .music-btn { width: 44px; height: 44px; }
+  .theme-toggle { top: 16px; left: 16px; width: 44px; height: 44px; }
+  .nav-dots { right: 8px; gap: 12px; }
+  .dot { width: 7px; height: 7px; }
+  .enter-btn { padding: 0.55rem 1.6rem; font-size: 0.9rem; }
+  .entry-hint { font-size: 0.8rem; bottom: 2.5rem; }
+}
+
+@media (max-width: 480px) {
+  .carousel-stage { height: 330px; }
+  .carousel-card { width: 215px; height: 270px; }
+  .hero-bow-large { width: 70px; }
+  .entry-bow { font-size: 3.5rem; }
+  .entry-line { height: 32px; }
+  .entry-kicker { font-size: 0.65rem; }
+  .entry-title { font-size: 2rem; }
+  .hero-title { font-size: clamp(2.2rem, 9vw, 2.8rem); }
+  .hero-date { font-size: 0.9rem; }
+  .hero-countdown { font-size: 0.78rem; }
+  .scroll-indicator { font-size: 0.78rem; }
+  .ending-title { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+  .lantern-btn { padding: 0.55rem 1.4rem; font-size: 0.85rem; }
+}
+
+/* ========================================
+   花瓣雨彩蛋
+   ======================================== */
+.petal {
+  position: fixed;
+  top: -40px;
+  z-index: 9990;
+  pointer-events: none;
+  animation: petalFall linear forwards;
+  opacity: 0.85;
+  font-size: 24px;
+}
+@keyframes petalFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg) translateX(0px);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(105vh) rotate(720deg) translateX(120px);
+    opacity: 0;
+  }
+}
+@keyframes petalSway {
+  0%, 100% { transform: translateX(0px); }
+  25% { transform: translateX(40px); }
+  75% { transform: translateX(-30px); }
+}
+
+/* ========================================
+   Accessibility: prefers-reduced-motion
+   用户开启"减少动效"时全局禁用/减弱动画
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* 保留必要交互反馈 */
+  .dot.active { box-shadow: 0 0 8px rgba(232, 120, 144, 0.3); }
+  .hero-title .char { opacity: 1; transform: none; }
+}

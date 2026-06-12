@@ -3,6 +3,11 @@
  * GSAP 驱动 — 连续浮动位置，自由拖拽 + 松手后原地继续轮播
  * 点击照片弹出详情弹窗
  * 内容来源：src/data/content.json
+ *
+ * 性能策略：
+ * - tick 仅更新可视窗口内的卡片（|offset| ≤ 8），非全量 29 张
+ * - 节流到 ~30fps，减半 DOM 写入
+ * - 拖拽/惯性期间用 _setCard 直设，避免创建 GSAP tween
  */
 import gsap from 'gsap';
 import content from '../data/content.json';
@@ -20,7 +25,6 @@ export const PHOTO_FLIP_TEXTS = content.photos.map(p => p.flipText);
 
 /**
  * 计算卡片 i 相对于 current 的最短环绕偏移
- * 例如 total=14 时，offset 范围在 [-7, 7)
  */
 function circularOffset(i, current, total) {
   let offset = i - current;
@@ -43,21 +47,17 @@ export class Carousel {
     this.stage = document.getElementById(stageId);
     this.container = document.getElementById(containerId);
     this.total = PHOTOS.length;
-    this.current = 0;          // 浮点位置，持续递增（不取模）
+    this.current = 0;
     this.items = [];
-    this._quickSetters = [];   // 每卡片预创建的 quickSetter，避免 tick 中创建 tween
-    this.dotsEl = document.getElementById('carousel-dots');
-    this._dots = [];
+    this.dotsEl = document.getElementById('carousel-counter');
     this.isDragging = false;
     this.startX = 0;
     this._dragStartCurrent = 0;
     this._swiped = false;
-    this._autoTick = null;     // GSAP ticker 回调引用
-    this._autoStartTime = 0;
-    this._autoStartCurrent = 0;
+    this._autoTick = null;
     this.paused = false;
-    this.SPEED = 1 / 2500;     // 每 ms 推进的 current 单位（2.5s/张）
-    this.SLOW_SPEED = 1 / 5000; // hover 减速（~5s/张）
+    this.SPEED = 1 / 3500;      // ~3.5s/张
+    this.SLOW_SPEED = 1 / 6000; // hover 减速 ~6s/张
     this._currentSpeed = this.SPEED;
     this._lastTickTime = 0;
     this._isHovering = false;
@@ -79,17 +79,9 @@ export class Carousel {
     this.container.innerHTML = '';
     this.items = [];
 
-    // 渲染圆点指示器
+    // 计数器初始值
     if (this.dotsEl) {
-      this.dotsEl.innerHTML = '';
-      this._dots = [];
-      for (let i = 0; i < this.total; i++) {
-        const dot = document.createElement('span');
-        dot.className = 'carousel-dot';
-        if (i === 0) dot.classList.add('active');
-        this.dotsEl.appendChild(dot);
-        this._dots.push(dot);
-      }
+      this.dotsEl.textContent = `1 / ${this.total}`;
     }
 
     PHOTOS.forEach((photo, i) => {
@@ -101,7 +93,7 @@ export class Carousel {
         <div class="photo-frame">
           <picture>
             <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
+            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false" loading="lazy"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
               onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos/${photo}';this.onerror=null"
             />
@@ -115,7 +107,6 @@ export class Carousel {
 
   /* ---------- 布局 ---------- */
 
-  /** 计算单张卡片的视觉参数（纯计算，不操作 DOM） */
   _calcCard(offset) {
     const absOff = Math.abs(offset);
     const side = offset > 0 ? 1 : (offset < 0 ? -1 : 0);
@@ -155,34 +146,13 @@ export class Carousel {
     this.updateCounter();
   }
 
-  /** 更新圆点指示器 — 窗口限制最多 9 个，超出时隐藏边缘 */
+  /** 更新照片计数器 */
   updateCounter() {
-    if (!this._dots.length) return;
+    if (!this.dotsEl) return;
     const idx = ((Math.round(this.current) % this.total) + this.total) % this.total;
-    const MAX = 9;
-    const total = this._dots.length;
-
-    let start, end;
-    if (total <= MAX) {
-      start = 0;
-      end = total;
-    } else {
-      const half = Math.floor(MAX / 2);
-      start = Math.max(0, idx - half);
-      end = start + MAX;
-      if (end > total) { end = total; start = end - MAX; }
-    }
-
-    this._dots.forEach((dot, i) => {
-      const visible = i >= start && i < end;
-      dot.style.display = visible ? '' : 'none';
-      dot.classList.toggle('active', i === idx);
-    });
+    this.dotsEl.textContent = `${idx + 1} / ${this.total}`;
   }
 
-  /**
-   * 单张卡片布局（带动画）— 用于点击/拖拽结束等离散操作
-   */
   layoutCard(el, offset, duration = 0.45) {
     const c = this._calcCard(offset);
     gsap.to(el, {
@@ -199,9 +169,7 @@ export class Carousel {
     el.style.pointerEvents = c.isActive ? 'auto' : 'none';
   }
 
-  /**
-   * 单张卡片布局（直接设值，无 tween 开销）— 用于高频 auto-tick
-   */
+  /** 高频设值：直接操作 style，不创建 GSAP tween */
   _setCard(el, offset) {
     const c = this._calcCard(offset);
     el.style.transform = `translateX(${c.xPercent}%) scale(${c.scale}) rotateY(${c.rotateY}deg)`;
@@ -226,7 +194,6 @@ export class Carousel {
     window.addEventListener('touchmove', (e) => this.onMove(e), { passive: false });
     window.addEventListener('touchend', () => this.onUp());
 
-    // hover 减速轮播（不暂停）
     this.stage.addEventListener('mouseenter', () => {
       this._isHovering = true;
       this.slowDown();
@@ -252,7 +219,7 @@ export class Carousel {
     this.isDragging = true;
     this._swiped = false;
     this.stopAuto();
-    this._currentSpeed = this.SPEED; // 拖拽时恢复原速
+    this._currentSpeed = this.SPEED;
     this.startX = e.touches ? e.touches[0].clientX : e.clientX;
     this._lastX = this.startX;
     this._lastTime = Date.now();
@@ -279,7 +246,11 @@ export class Carousel {
     }
 
     this.current = this._dragStartCurrent - (cx - this.startX) / 150;
-    this.layoutAll(0);
+    // 直设全部卡片，避免每帧创建 29 个 GSAP tween
+    for (let i = 0; i < this.items.length; i++) {
+      const offset = circularOffset(i, this.current, this.total);
+      this._setCard(this.items[i], offset);
+    }
   }
 
   onUp() {
@@ -287,7 +258,6 @@ export class Carousel {
     this.isDragging = false;
     this.stage.classList.remove('dragging');
     this.stage.style.cursor = this._isHovering ? 'grab' : '';
-    // 松手后若仍 hover 则恢复减速
     if (this._isHovering) {
       this._currentSpeed = this.SLOW_SPEED;
     }
@@ -295,20 +265,23 @@ export class Carousel {
     const absVel = Math.abs(this._velocity);
 
     if (absVel > 0.15) {
-      // 惯性滑动 → 动量衰减 → 自动轮播
       const momentum = this._velocity * 400;
       const target = this.current - momentum / 150;
       const inertiaTween = gsap.to(this, {
         current: target,
         duration: 0.5,
         ease: 'power2.out',
-        onUpdate: () => this.layoutAll(0),
+        onUpdate: () => {
+          for (let i = 0; i < this.items.length; i++) {
+            const offset = circularOffset(i, this.current, this.total);
+            this._setCard(this.items[i], offset);
+          }
+        },
         onComplete: () => {
           this.layoutAll(0);
           this.scheduleAuto();
         },
       });
-      // 暂存以便 stopAuto 能清理
       this._inertiaTween = inertiaTween;
     } else {
       this.layoutAll(0.2);
@@ -347,10 +320,6 @@ export class Carousel {
 
   /* ---------- 自动轮播 ---------- */
 
-  /**
-   * 使用 GSAP ticker 持续推进 current
-   * delta-based 推进，hover 时实时减速，松手后恢复原速，无跳变
-   */
   scheduleAuto() {
     this.stopAuto();
     if (this.paused) return;
@@ -358,24 +327,31 @@ export class Carousel {
     this._lastTickTime = Date.now();
     this._tickFrame = 0;
 
+    const VISIBLE_HALF = 8; // tick 中只更新 ±8 范围内的卡片
+
     const onTick = () => {
       if (this.paused || this.isDragging) return;
+
+      // 节流到 30fps
+      this._tickFrame++;
+      if (this._tickFrame % 2 !== 0) return;
+
       const now = Date.now();
       const dt = now - this._lastTickTime;
       this._lastTickTime = now;
       this.current += dt * this._currentSpeed;
 
-      // 直接设值，不创建 GSAP tween（高频 tick 优化）
+      // 只更新可视窗口内的卡片
       for (let i = 0; i < this.items.length; i++) {
         const offset = circularOffset(i, this.current, this.total);
-        this._setCard(this.items[i], offset);
+        if (Math.abs(offset) <= VISIBLE_HALF) {
+          this._setCard(this.items[i], offset);
+        }
       }
 
-      // 计数器每 30 帧更新一次（减少 DOM 写入）
-      this._tickFrame++;
-      if (this._tickFrame % 30 === 0) {
-        this.updateCounter();
-      }
+      // 每处理帧都更新圆点 — 开销极小（最多 9 个可见点），
+      // 避免 _lastDotIdx 状态在多路径间不同步
+      this.updateCounter();
     };
 
     gsap.ticker.add(onTick);
@@ -403,13 +379,11 @@ export class Carousel {
     this.scheduleAuto();
   }
 
-  /** hover 时减速轮播，不暂停 */
   slowDown() {
     if (this.isDragging) return;
     this._currentSpeed = this.SLOW_SPEED;
   }
 
-  /** 离开 hover 区域恢复原速 */
   speedUp() {
     this._currentSpeed = this.SPEED;
   }
