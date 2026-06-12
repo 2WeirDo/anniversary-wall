@@ -4,12 +4,6 @@
  */
 
 /* ======== API 配置 ======== */
-// 开发环境通过 Vite proxy 转发；生产环境直连，失败时走 CORS 代理
-const API_DIRECT = import.meta.env.DEV
-  ? '/api/music/api.php'
-  : 'https://music-api.gdstudio.xyz/api.php';
-const CORS_PROXY = 'https://corsproxy.io/?';
-
 const SEARCH_SOURCE = 'netease';  // 网易云（音频直链可用）
 const AUDIO_QUALITY = '320';
 const SEARCH_COUNT = 15;
@@ -129,19 +123,16 @@ export class MusicPlayer {
 
   /* ======== API 调用 ======== */
 
-  /** 发起 API 请求：直连失败自动走 CORS 代理 */
+  /** 构建 API URL（生产环境走 CORS 代理） */
+  _apiUrl(params) {
+    const target = `https://music-api.gdstudio.xyz/api.php?${params}`;
+    if (import.meta.env.DEV) return `/api/music/api.php?${params}`;
+    return `https://corsproxy.io/?${encodeURIComponent(target)}`;
+  }
+
   async _fetchAPI(params) {
-    const url = `${API_DIRECT}?${params}`;
-    try {
-      const res = await fetch(url);
-      if (res.ok) return res;
-    } catch (e) {
-      // 直连失败（CORS/网络），走代理
-      console.warn('直连失败，切换 CORS 代理:', e.message);
-    }
-    // CORS 代理回退
-    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
+    const url = this._apiUrl(params);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`请求失败: ${res.status}`);
     return res;
   }
@@ -179,6 +170,18 @@ export class MusicPlayer {
     const res = await this._fetchAPI(params);
     const data = await res.json();
     return data.url || '';
+  }
+
+  /** 封面图 URL（统一走代理） */
+  _coverUrl(song) {
+    if (!song.picId) return '';
+    const params = new URLSearchParams({
+      types: 'pic',
+      id: song.picId,
+      source: song.source || SEARCH_SOURCE,
+      size: '120',
+    });
+    return this._apiUrl(params);
   }
 
   /* ======== 搜索 ======== */
@@ -350,7 +353,7 @@ export class MusicPlayer {
       <div class="music-result-item" data-index="${i}" data-preset="true">
         <div class="music-result-cover">
           ${song.picId
-            ? `<img src="https://music-api.gdstudio.xyz/api.php?types=pic&id=${song.picId}&source=${song.source || SEARCH_SOURCE}&size=120" alt="" loading="lazy" />`
+            ? `<img src="${this._coverUrl(song)}" alt="" loading="lazy" />`
             : '<span class="music-result-nopic">🎵</span>'}
         </div>
         <div class="music-result-info">
@@ -379,7 +382,7 @@ export class MusicPlayer {
       <div class="music-result-item" data-index="${i}">
         <div class="music-result-cover">
           ${song.picId
-            ? `<img src="https://music-api.gdstudio.xyz/api.php?types=pic&id=${song.picId}&source=${song.source || SEARCH_SOURCE}&size=120" alt="" loading="lazy" />`
+            ? `<img src="${this._coverUrl(song)}" alt="" loading="lazy" />`
             : '<span class="music-result-nopic">🎵</span>'}
         </div>
         <div class="music-result-info">
