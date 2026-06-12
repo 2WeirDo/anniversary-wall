@@ -448,6 +448,59 @@
 .music-result-item.loading .music-result-playing-indicator { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* 收藏按钮 */
+.music-result-fav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 2px;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: all 0.2s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.music-result-item:hover .music-result-fav,
+.music-result-fav.favorited {
+  opacity: 1;
+}
+.music-result-fav:hover {
+  background: rgba(232, 120, 144, 0.1);
+  color: var(--color-accent);
+  transform: scale(1.15);
+}
+.music-result-fav:active {
+  transform: scale(0.9);
+}
+.music-result-fav.favorited {
+  color: var(--color-accent);
+}
+.music-result-fav .fav-icon-filled {
+  display: none;
+}
+.music-result-fav.favorited .fav-icon-outline {
+  display: none;
+}
+.music-result-fav.favorited .fav-icon-filled {
+  display: block;
+  animation: favPop 0.35s var(--ease-spring);
+}
+@keyframes favPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* 加载中时隐藏收藏按钮 */
+.music-result-item.loading .music-result-fav {
+  display: none;
+}
+
 
 /* ---- 主控制药丸 ---- */
 .music-btn {
@@ -633,6 +686,16 @@
 [data-theme="dark"] .music-btn-label { color: #C0B4C0; }
 [data-theme="dark"] .music-btn-arrow:hover {
   background: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .music-result-fav {
+  color: #908098;
+}
+[data-theme="dark"] .music-result-fav:hover {
+  background: rgba(232, 152, 168, 0.12);
+  color: #E898A8;
+}
+[data-theme="dark"] .music-result-fav.favorited {
+  color: #E898A8;
 }
 
 /* ========================================

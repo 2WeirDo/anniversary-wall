@@ -33,6 +33,7 @@ export class MusicPlayer {
     this.searchTimer = null;
     this._searchAbort = null;
     this._autoPlayDone = false;
+    this.favorites = this._loadFavorites();
     this.audio = null;
 
     this.init();
@@ -71,9 +72,9 @@ export class MusicPlayer {
         clearTimeout(this.searchTimer);
         const q = this.searchInput.value.trim();
         if (!q) {
-          // 取消进行中的搜索
+          // 取消进行中的搜索，显示收藏列表
           if (this._searchAbort) { this._searchAbort.abort(); this._searchAbort = null; }
-          this.clearResults();
+          this._renderFavorites();
           return;
         }
         this.searchTimer = setTimeout(() => this.doSearch(q), 500);
@@ -81,7 +82,7 @@ export class MusicPlayer {
       this.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           this.searchInput.value = '';
-          this.clearResults();
+          this._renderFavorites();
           this.searchInput.blur();
         }
       });
@@ -90,6 +91,19 @@ export class MusicPlayer {
     // 结果列表点击
     if (this.resultsEl) {
       this.resultsEl.addEventListener('click', (e) => {
+        // 收藏按钮
+        const favBtn = e.target.closest('.music-result-fav');
+        if (favBtn) {
+          e.stopPropagation();
+          const favId = favBtn.dataset.songId;
+          const favSource = favBtn.dataset.songSource;
+          const song = this._lastSearchResults.find(s =>
+            String(s.id) === favId && (s.source || SEARCH_SOURCE) === favSource
+          );
+          if (song) this._toggleFavorite(song);
+          return;
+        }
+        // 歌曲播放
         const item = e.target.closest('.music-result-item');
         if (!item) return;
         const idx = Number(item.dataset.index);
@@ -351,11 +365,11 @@ export class MusicPlayer {
     this.panelOpen = true;
     this.panel.classList.add('open');
     this.btn.classList.add('open-arrow');
-    // 清空搜索框和结果，等待用户输入
+    // 清空搜索框，显示收藏列表
     if (this.searchInput) {
       this.searchInput.value = '';
     }
-    this.clearResults();
+    this._renderFavorites();
     // 聚焦搜索框
     setTimeout(() => this.searchInput?.focus(), 150);
   }
@@ -373,6 +387,7 @@ export class MusicPlayer {
     const isCurrent = this.currentSong
       && this.currentSong.id === song.id
       && this.currentSong.source === song.source;
+    const favorited = this._isFavorite(song);
     return `
       <div class="music-result-item${isCurrent && this.isPlaying ? ' playing' : ''}"
            data-index="${index}"
@@ -396,6 +411,18 @@ export class MusicPlayer {
           <span class="music-bar"></span>
           <span class="music-bar"></span>
         </div>
+        <button class="music-result-fav${favorited ? ' favorited' : ''}"
+                data-song-id="${song.id}"
+                data-song-source="${song.source || SEARCH_SOURCE}"
+                aria-label="${favorited ? '取消收藏' : '收藏歌曲'}"
+                title="${favorited ? '取消收藏' : '收藏歌曲'}">
+          <svg class="fav-icon-outline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <svg class="fav-icon-filled" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
       </div>`;
   }
 
@@ -470,6 +497,80 @@ export class MusicPlayer {
   hideStatus() {
     if (!this.statusEl) return;
     this.statusEl.style.display = 'none';
+  }
+
+  /* ======== 收藏管理 ======== */
+
+  _getFavoriteKey(song) {
+    return `${song.id}|${song.source || SEARCH_SOURCE}`;
+  }
+
+  _loadFavorites() {
+    try {
+      const raw = localStorage.getItem('music-favorites');
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  _saveFavorites() {
+    try {
+      localStorage.setItem('music-favorites', JSON.stringify(this.favorites));
+    } catch { /* 存储满时静默忽略 */ }
+  }
+
+  _isFavorite(song) {
+    const key = this._getFavoriteKey(song);
+    return this.favorites.some(f => this._getFavoriteKey(f) === key);
+  }
+
+  _toggleFavorite(song) {
+    const key = this._getFavoriteKey(song);
+    const idx = this.favorites.findIndex(f => this._getFavoriteKey(f) === key);
+    if (idx >= 0) {
+      this.favorites.splice(idx, 1);
+    } else {
+      this.favorites.push(song);
+    }
+    this._saveFavorites();
+
+    // 刷新当前列表中的收藏按钮状态
+    this._refreshFavButtons();
+
+    // 如果搜索框为空且面板打开，刷新收藏列表
+    if (this.panelOpen && !this.searchInput.value.trim()) {
+      this._renderFavorites();
+    }
+  }
+
+  /** 刷新列表中所有收藏按钮的视觉状态 */
+  _refreshFavButtons() {
+    if (!this.resultsEl) return;
+    const btns = this.resultsEl.querySelectorAll('.music-result-fav');
+    btns.forEach(btn => {
+      const id = btn.dataset.songId;
+      const source = btn.dataset.songSource;
+      const fav = this.favorites.some(f =>
+        String(f.id) === id && (f.source || SEARCH_SOURCE) === source
+      );
+      btn.classList.toggle('favorited', fav);
+    });
+  }
+
+  /** 渲染收藏列表 */
+  _renderFavorites() {
+    if (!this.resultsEl) return;
+    if (this.statusEl) this.statusEl.style.display = 'none';
+
+    if (this.favorites.length === 0) {
+      this.resultsEl.innerHTML = '';
+      return;
+    }
+
+    this._lastSearchResults = this.favorites;
+    this.resultsEl.innerHTML = this.favorites.map((song, i) =>
+      this._songRow(song, i)
+    ).join('');
+    this._staggerIn();
   }
 
   stopAll() {
