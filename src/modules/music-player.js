@@ -4,10 +4,11 @@
  */
 
 /* ======== API 配置 ======== */
-// 开发环境通过 Vite proxy 转发，生产环境直连（API 支持 CORS）
-const API_BASE = import.meta.env.DEV
+// 开发环境通过 Vite proxy 转发；生产环境直连，失败时走 CORS 代理
+const API_DIRECT = import.meta.env.DEV
   ? '/api/music/api.php'
   : 'https://music-api.gdstudio.xyz/api.php';
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 const SEARCH_SOURCE = 'netease';  // 网易云（音频直链可用）
 const AUDIO_QUALITY = '320';
@@ -128,6 +129,23 @@ export class MusicPlayer {
 
   /* ======== API 调用 ======== */
 
+  /** 发起 API 请求：直连失败自动走 CORS 代理 */
+  async _fetchAPI(params) {
+    const url = `${API_DIRECT}?${params}`;
+    try {
+      const res = await fetch(url);
+      if (res.ok) return res;
+    } catch (e) {
+      // 直连失败（CORS/网络），走代理
+      console.warn('直连失败，切换 CORS 代理:', e.message);
+    }
+    // CORS 代理回退
+    const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+    return res;
+  }
+
   async apiSearch(query, source = SEARCH_SOURCE) {
     const params = new URLSearchParams({
       types: 'search',
@@ -136,8 +154,7 @@ export class MusicPlayer {
       pages: '1',
       count: String(SEARCH_COUNT),
     });
-    const res = await fetch(`${API_BASE}?${params}`);
-    if (!res.ok) throw new Error(`搜索失败: ${res.status}`);
+    const res = await this._fetchAPI(params);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
     return data.map(song => ({
@@ -159,8 +176,7 @@ export class MusicPlayer {
       source: song.source || SEARCH_SOURCE,
       br: AUDIO_QUALITY,
     });
-    const res = await fetch(`${API_BASE}?${params}`);
-    if (!res.ok) throw new Error(`获取音频失败: ${res.status}`);
+    const res = await this._fetchAPI(params);
     const data = await res.json();
     return data.url || '';
   }
@@ -197,15 +213,15 @@ export class MusicPlayer {
   async loadAllPresets() {
     if (this.presetCache.length >= PRESET_QUERIES.length) return;
     // 并行搜索所有未缓存的预设
-    const missing = PRESET_QUERIES.slice(this.presetCache.length);
+    const startIdx = this.presetCache.length;
+    const missing = PRESET_QUERIES.slice(startIdx);
     const results = await Promise.allSettled(
       missing.map(p => this.apiSearch(p.q))
     );
     results.forEach((r, i) => {
       if (r.status === 'fulfilled' && r.value.length > 0) {
-        // 标题模糊匹配：优先选完全匹配
-        const target = PRESET_QUERIES[this.presetCache.length + i];
-        let song = r.value.find(s => s.title.includes(target.label)) || r.value[0];
+        const target = PRESET_QUERIES[startIdx + i];
+        const song = r.value.find(s => s.title.includes(target.label)) || r.value[0];
         this.presetCache.push(song);
       }
     });
