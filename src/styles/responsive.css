@@ -54,6 +54,7 @@
   .hero-title { font-size: clamp(2.2rem, 9vw, 2.8rem); }
   .hero-date { font-size: 0.9rem; }
   .hero-countdown { font-size: 0.78rem; }
+  .scroll-indicator { font-size: 0.78rem; }
   .ending-title { font-size: clamp(1.8rem, 7vw, 2.4rem); }
 }
 
