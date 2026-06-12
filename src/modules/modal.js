@@ -12,8 +12,6 @@ export function initPhotoModal(getCarousel) {
   const bubbleFlipText = document.getElementById('story-bubble-flip-text');
   const closeBtn = document.getElementById('story-bubble-close');
   const flipBtn = document.getElementById('story-bubble-flip-btn');
-  const prevBtn = document.getElementById('story-bubble-prev');
-  const nextBtn = document.getElementById('story-bubble-next');
   const flipContainer = document.getElementById('story-bubble-flip');
   const veil = document.getElementById('carousel-veil');
 
@@ -124,22 +122,6 @@ export function initPhotoModal(getCarousel) {
     }
   }
 
-  function prev() {
-    const newIndex = (currentIndex - 1 + PHOTO_META.length) % PHOTO_META.length;
-    const carousel = getCarousel();
-    if (carousel) carousel.goTo(newIndex);
-    updateBubble(newIndex);
-    requestAnimationFrame(() => positionBubble());
-  }
-
-  function next() {
-    const newIndex = (currentIndex + 1) % PHOTO_META.length;
-    const carousel = getCarousel();
-    if (carousel) carousel.goTo(newIndex);
-    updateBubble(newIndex);
-    requestAnimationFrame(() => positionBubble());
-  }
-
   /* ---------- 事件绑定 ---------- */
   closeBtn.addEventListener('click', close);
   veil.addEventListener('click', close);
@@ -148,15 +130,6 @@ export function initPhotoModal(getCarousel) {
     if (e.key === 'Escape' && bubble.classList.contains('open')) {
       close();
     }
-  });
-
-  prevBtn.addEventListener('click', prev);
-  nextBtn.addEventListener('click', next);
-
-  document.addEventListener('keydown', (e) => {
-    if (!bubble.classList.contains('open')) return;
-    if (e.key === 'ArrowLeft') prev();
-    if (e.key === 'ArrowRight') next();
   });
 
   // 窗口 resize / scroll 时重新定位（气泡位置基于 stage，stage 可能因滚动而移动）
