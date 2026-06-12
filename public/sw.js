@@ -47,12 +47,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // 图片 / 照片：不拦截，让浏览器 HTTP 缓存 + CDN 原生处理
-  // SW 缓存图片是冗余的 — 每个请求多两次 IndexedDB 磁盘 I/O，硬刷新时极慢
+  // 图片 / 照片 / 音频：不拦截，让浏览器 HTTP 缓存 + CDN 原生处理
+  // SW 缓存大文件到 IndexedDB 极慢且浪费存储配额
   const url = new URL(event.request.url);
-  if (/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i.test(url.pathname) ||
+  if (/\.(png|jpg|jpeg|webp|gif|svg|ico|flac|mp3|wav|ogg|aac|m4a)$/i.test(url.pathname) ||
       url.pathname.includes('/photos-optimized/') ||
-      url.pathname.includes('/photos/')) {
+      url.pathname.includes('/photos/') ||
+      url.pathname.includes('/bgm/')) {
     return; // 浏览器原生处理，无 SW 开销
   }
 

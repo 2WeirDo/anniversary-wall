@@ -5,8 +5,8 @@
  */
 
 const BGM_PATHS = [
-  `${import.meta.env.BASE_URL}bgm/bgm.flac`,
   `${import.meta.env.BASE_URL}bgm/bgm.mp3`,
+  `${import.meta.env.BASE_URL}bgm/bgm.flac`,
 ];
 
 export class AudioPlayer {
