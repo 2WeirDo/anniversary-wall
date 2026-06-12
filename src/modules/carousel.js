@@ -45,6 +45,7 @@ export class Carousel {
     this.total = PHOTOS.length;
     this.current = 0;          // 浮点位置，持续递增（不取模）
     this.items = [];
+    this._quickSetters = [];   // 每卡片预创建的 quickSetter，避免 tick 中创建 tween
     this.counterEl = document.getElementById('carousel-counter');
     this.isDragging = false;
     this.startX = 0;
@@ -86,7 +87,7 @@ export class Carousel {
         <div class="photo-frame">
           <picture>
             <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="照片 ${i + 1}" draggable="false"
+            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
               onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos/${photo}';this.onerror=null"
             />
@@ -99,6 +100,39 @@ export class Carousel {
   }
 
   /* ---------- 布局 ---------- */
+
+  /** 计算单张卡片的视觉参数（纯计算，不操作 DOM） */
+  _calcCard(offset) {
+    const absOff = Math.abs(offset);
+    const side = offset > 0 ? 1 : (offset < 0 ? -1 : 0);
+
+    const activeX = offset * 55;
+    const activeScale = 1;
+    const activeOpacity = 1;
+    const activeRotateY = offset * 8;
+    const activeZIndex = 10;
+
+    const sideGap = 42 + Math.max(0, absOff - 0.5) * 6;
+    const sideX = side * sideGap;
+    let sideScale = 0.90 - absOff * 0.04;
+    if (sideScale < 0.55) sideScale = 0.55;
+    let sideOpacity = 0.76 - absOff * 0.10;
+    if (sideOpacity < 0.22) sideOpacity = 0.22;
+    const sideZIndex = Math.max(0, 5 - Math.floor(absOff));
+    const sideRotateY = side * (10 + absOff * 2.5);
+
+    const t = smoothstep(0.3, 0.6, absOff);
+
+    return {
+      xPercent: activeX + (sideX - activeX) * t,
+      scale: activeScale + (sideScale - activeScale) * t,
+      opacity: activeOpacity + (sideOpacity - activeOpacity) * t,
+      rotateY: activeRotateY + (sideRotateY - activeRotateY) * t,
+      zIndex: Math.round(activeZIndex + (sideZIndex - activeZIndex) * t),
+      isActive: absOff < 0.5,
+    };
+  }
+
   layoutAll(duration = 0.45) {
     this.items.forEach((el, i) => {
       const offset = circularOffset(i, this.current, this.total);
@@ -115,55 +149,34 @@ export class Carousel {
   }
 
   /**
-   * 单张卡片布局
-   * 保留原始视觉参数，在 [0.35, 0.65] 区间用 smoothstep
-   * 把"中心模式"和"侧边模式"混合，消除硬切换的跳变
+   * 单张卡片布局（带动画）— 用于点击/拖拽结束等离散操作
    */
   layoutCard(el, offset, duration = 0.45) {
-    const absOff = Math.abs(offset);
-    const side = offset > 0 ? 1 : (offset < 0 ? -1 : 0);
-
-    // ---- 中心模式（原始 active 参数） ----
-    const activeX = offset * 55;
-    const activeScale = 1;
-    const activeOpacity = 1;
-    const activeRotateY = offset * 8;
-    const activeZIndex = 10;
-
-    // ---- 侧边模式（边缘预览：卡片更近、更大、更清晰，露出约 20%） ----
-    const sideGap = 42 + Math.max(0, absOff - 0.5) * 6;
-    const sideX = side * sideGap;
-    let sideScale = 0.88 - absOff * 0.05;
-    if (sideScale < 0.45) sideScale = 0.45;
-    let sideOpacity = 0.72 - absOff * 0.12;
-    if (sideOpacity < 0.12) sideOpacity = 0.12;
-    const sideZIndex = Math.max(0, 5 - Math.floor(absOff));
-    const sideRotateY = side * (10 + absOff * 2.5);
-
-    // ---- smoothstep 混合 [0.3, 0.6]（更早进入侧边模式，减少跳变感） ----
-    const t = smoothstep(0.3, 0.6, absOff);
-
-    const xPercent = activeX + (sideX - activeX) * t;
-    const scale = activeScale + (sideScale - activeScale) * t;
-    const opacity = activeOpacity + (sideOpacity - activeOpacity) * t;
-    const rotateY = activeRotateY + (sideRotateY - activeRotateY) * t;
-    const zIndex = Math.round(activeZIndex + (sideZIndex - activeZIndex) * t);
-
-    const isActive = absOff < 0.5;
-
+    const c = this._calcCard(offset);
     gsap.to(el, {
-      xPercent,
-      scale,
-      opacity,
-      zIndex,
-      rotateY,
+      xPercent: c.xPercent,
+      scale: c.scale,
+      opacity: c.opacity,
+      zIndex: c.zIndex,
+      rotateY: c.rotateY,
       duration,
       ease: 'power2.out',
       overwrite: 'auto',
     });
+    el.classList.toggle('active', c.isActive);
+    el.style.pointerEvents = c.isActive ? 'auto' : 'none';
+  }
 
-    el.classList.toggle('active', isActive);
-    el.style.pointerEvents = isActive ? 'auto' : 'none';
+  /**
+   * 单张卡片布局（直接设值，无 tween 开销）— 用于高频 auto-tick
+   */
+  _setCard(el, offset) {
+    const c = this._calcCard(offset);
+    el.style.transform = `translateX(${c.xPercent}%) scale(${c.scale}) rotateY(${c.rotateY}deg)`;
+    el.style.opacity = c.opacity;
+    el.style.zIndex = c.zIndex;
+    el.classList.toggle('active', c.isActive);
+    el.style.pointerEvents = c.isActive ? 'auto' : 'none';
   }
 
   /* ---------- 事件绑定 ---------- */
@@ -311,6 +324,7 @@ export class Carousel {
     if (this.paused) return;
 
     this._lastTickTime = Date.now();
+    this._tickFrame = 0;
 
     const onTick = () => {
       if (this.paused || this.isDragging) return;
@@ -318,7 +332,18 @@ export class Carousel {
       const dt = now - this._lastTickTime;
       this._lastTickTime = now;
       this.current += dt * this._currentSpeed;
-      this.layoutAll(0);
+
+      // 直接设值，不创建 GSAP tween（高频 tick 优化）
+      for (let i = 0; i < this.items.length; i++) {
+        const offset = circularOffset(i, this.current, this.total);
+        this._setCard(this.items[i], offset);
+      }
+
+      // 计数器每 30 帧更新一次（减少 DOM 写入）
+      this._tickFrame++;
+      if (this._tickFrame % 30 === 0) {
+        this.updateCounter();
+      }
     };
 
     gsap.ticker.add(onTick);

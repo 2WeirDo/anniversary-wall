@@ -4,6 +4,7 @@
  * 可编辑内容集中管理：src/data/content.json
  */
 import content from './data/content.json';
+import { WISH_SVG_ICONS } from './data/wish-icons.js';
 import { Carousel, PHOTOS, PHOTO_META, PHOTO_FLIP_TEXTS } from './modules/carousel.js';
 import { Timeline } from './modules/timeline.js';
 import { AudioPlayer } from './modules/audio.js';
@@ -15,39 +16,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ---- 关系起始日 ----
 const LOVE_START_DATE = new Date(content.site.startDate);
-
-/* ======== 星愿 SVG 图标映射（替代 emoji，统一线性风格） ======== */
-const WISH_SVG_ICONS = {
-  '\u{1F3FA}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1 8a4 4 0 0 1-6 0L8 3Z"/><path d="M7 19v3h10v-3"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
-  '✉️': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>',
-  '\u{1F4F8}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3"/><circle cx="12" cy="13" r="3"/><circle cx="18" cy="8" r="1"/></svg>',
-  '\u{1F307}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="20" x2="22" y2="20"/><path d="M12 4v8"/><circle cx="12" cy="8" r="4"/><path d="M6 16l2-4h8l2 4"/></svg>',
-  '\u{1F490}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18c-3-1-6-2-6-5s4-3 5-2"/><path d="M15 18c3-1 6-2 6-5s-4-3-5-2"/></svg>',
-  '\u{1F485}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3"/><path d="M8 11v6a4 4 0 0 0 8 0v-6"/><circle cx="12" cy="7" r="1.5"/></svg>',
-  '\u{1F46B}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  '\u{1F30A}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/><path d="M2 17c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/><path d="M2 7c2-2 6-2 8 0s6 2 8 0 6-2 4-4"/></svg>',
-  '\u{1F3A4}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
-  '\u{1F3AE}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><circle cx="8" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/><path d="M6 9h4"/><path d="M14 15h4"/></svg>',
-  '\u{1F33F}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V10"/><path d="M12 10c-4-3-8-2-10 4"/><path d="M12 10c4-3 8-2 10 4"/><path d="M7 18c-1 3-2 4-4 4"/><path d="M17 18c1 3 2 4 4 4"/></svg>',
-  '\u{1F6D5}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 22h20L12 2Z"/><line x1="12" y1="9" x2="12" y2="22"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
-  '\u{1F30C}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5"/><circle cx="6" cy="6" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="4" cy="16" r="0.8"/><circle cx="18" cy="17" r="1.2"/><circle cx="9" cy="20" r="0.8"/><path d="m16 10 3-2"/><path d="m8 4 2-2"/></svg>',
-  '\u{1F431}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a4 4 0 0 1 4 4v2c0 4-4 8-4 8s-4-4-4-8V9a4 4 0 0 1 4-4Z"/><circle cx="10" cy="9" r="1"/><circle cx="14" cy="9" r="1"/><path d="M8 3l2 2"/><path d="M16 3l-2 2"/></svg>',
-  '\u{1F386}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/><circle cx="12" cy="12" r="2"/></svg>',
-  '\u{1F483}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22V12l-4-2"/><path d="M14 22V12l4-2"/><path d="M10 12c1 2 3 2 4 0"/></svg>',
-  '\u{1F305}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="20" x2="22" y2="20"/><path d="M12 12V4"/><path d="m8 8 4-4 4 4"/><path d="M4 20v-4a8 8 0 0 1 16 0v4"/></svg>',
-  '⛺': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20 12 4l10 16"/><line x1="4" y1="16" x2="20" y2="16"/></svg>',
-  '\u{1F3E1}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 9-9 9 9"/><path d="M5 10v11h14V10"/><rect x="9" y="15" width="6" height="6"/></svg>',
-  '\u{1F373}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2v4"/><path d="M19 2v4"/><path d="M3 6h18v2a9 9 0 0 1-18 0V6Z"/><circle cx="12" cy="16" r="3"/></svg>',
-  '\u{1F3CA}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2-2 8-2 10 0s8 2 10 0"/><path d="M2 20c2-2 8-2 10 0s8 2 10 0"/><circle cx="12" cy="6" r="2"/><path d="M12 8v4"/><path d="m9 5 2-3 2 3"/></svg>',
-  '\u{1F3B5}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-  '⛷️': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 3 3 3-10 18H2l5-9 5-5Z"/><line x1="2" y1="21" x2="22" y2="21"/></svg>',
-  '\u{1F3A2}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/></svg>',
-  '\u{1F3C0}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg>',
-  '\u{1F981}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6"/><path d="M2 18c.7-5 4.3-8 10-8s9.3 3 10 8"/><circle cx="10" cy="9" r="1"/><circle cx="14" cy="9" r="1"/><path d="M12 12v.01"/></svg>',
-  '\u{1F6B2}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="4"/><circle cx="18" cy="18" r="4"/><path d="M12 6v6l4 2"/><circle cx="12" cy="4" r="2"/><line x1="10" y1="16" x2="14" y2="16"/></svg>',
-  '\u{1F47B}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8v12l3-2 3 2 3-2 3 2 3-2 3 2V10a8 8 0 0 0-8-8Z"/><circle cx="9" cy="11" r="1.5"/><circle cx="15" cy="11" r="1.5"/></svg>',
-  '\u{1F4AA}': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10V8a4 4 0 0 1 4-4h.5a2 2 0 0 1 2 2v6"/><path d="M18 10V8a4 4 0 0 0-4-4h-.5a2 2 0 0 0-2 2v6"/><path d="M6 10h12v4a6 6 0 0 1-12 0v-4Z"/><line x1="9" y1="14" x2="9" y2="20"/><line x1="15" y1="14" x2="15" y2="20"/></svg>',
-};
 
 // ---- 暗夜模式切换 ----
 initThemeToggle();
@@ -97,6 +65,10 @@ const photoModal = initPhotoModal(() => carouselRef);
 const carousel = new Carousel('carousel-container', 'carousel-stage', (i) => photoModal.open(i));
 carousel.pause();
 carouselRef = carousel;
+
+// 轮播导航箭头
+document.getElementById('carousel-prev')?.addEventListener('click', () => carousel.prev());
+document.getElementById('carousel-next')?.addEventListener('click', () => carousel.next());
 
 // 恋爱时间线
 const timeline = new Timeline('timeline-container');
@@ -199,7 +171,21 @@ function initMainContent() {
     count: 20, types: ['dot', 'heart'],
     minSize: 4, maxSize: 14, minDuration: 10, maxDuration: 25,
   });
-  const endingHearts = new FloatingHearts('ending-particles');
+  // FloatingHearts 按需启停：进入结尾区才创建，离开即销毁
+  let endingHearts = null;
+  const endingSection = document.getElementById('ending');
+  if (endingSection) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !endingHearts) {
+          endingHearts = new FloatingHearts('ending-particles');
+        } else if (!entry.isIntersecting && endingHearts) {
+          endingHearts.destroy();
+          endingHearts = null;
+        }
+      });
+    }, { threshold: 0.1 }).observe(endingSection);
+  }
 
   // 导航 / 滚动观察器
   initNavDots();
@@ -224,6 +210,10 @@ function triggerHeroChars() {
   const title = document.getElementById('hero-title');
   if (!title) return;
   setTimeout(() => {
+    const chars = title.querySelectorAll('.char');
+    chars.forEach((char, i) => {
+      char.style.transitionDelay = `${i * 0.06}s`;
+    });
     title.classList.add('reveal-chars');
   }, 400);
 }
@@ -247,7 +237,6 @@ function initHeroParallax() {
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     els.forEach(({ el, depth }) => {
-      el.style.transition = 'none';
       el.style.transform = `translate(${x * depth}px, ${y * Math.abs(depth) * 0.6}px)`;
     });
   });
@@ -297,22 +286,19 @@ function initCarouselSparkles() {
   const stage = document.getElementById('carousel-stage');
   if (!stage) return;
 
-  const count = 35;
+  const count = 18;
   const colors = ['var(--color-gold)', 'var(--color-accent)', 'var(--color-primary)'];
   for (let i = 0; i < count; i++) {
     const sparkle = document.createElement('span');
     sparkle.className = 'carousel-sparkle';
-    // 范围扩展到 stage 外
     sparkle.style.left = (-5 + Math.random() * 110) + '%';
     sparkle.style.top = (-10 + Math.random() * 120) + '%';
-    const size = (3 + Math.random() * 7);
+    const size = (2.5 + Math.random() * 5);
     sparkle.style.width = sparkle.style.height = size + 'px';
-    sparkle.style.animationDelay = Math.random() * 5 + 's';
-    sparkle.style.animationDuration = (3.5 + Math.random() * 5) + 's';
-    sparkle.style.opacity = (0.25 + Math.random() * 0.5);
-    // 混色：金/粉/玫瑰
+    sparkle.style.animationDelay = Math.random() * 6 + 's';
+    sparkle.style.animationDuration = (4 + Math.random() * 6) + 's';
+    sparkle.style.opacity = (0.2 + Math.random() * 0.4);
     sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
-    sparkle.style.boxShadow = `0 0 ${size * 2}px ${sparkle.style.background}`;
     stage.appendChild(sparkle);
   }
 }
@@ -496,6 +482,9 @@ function initCursorTrail() {
   });
 
   // rAF — 链式跟随: 每个光点追前一个，形成拖尾
+  let rafId = null;
+  let idleTimer = null;
+
   function animate() {
     let leaderX = mouseX;
     let leaderY = mouseY;
@@ -510,10 +499,26 @@ function initCursorTrail() {
       leaderY = t.y;
     });
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
   }
 
-  animate();
+  function startTrail() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(animate);
+  }
+
+  function stopTrail() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  // 鼠标移动时重启动画，静止 2s 后暂停
+  document.addEventListener('mousemove', () => {
+    clearTimeout(idleTimer);
+    startTrail();
+    idleTimer = setTimeout(stopTrail, 2000);
+  }, { passive: true });
+
+  startTrail();
 }
 
 /* ======== 天数计数器 + 一周年倒计时 ======== */
@@ -740,28 +745,14 @@ function spawnLantern() {
   lantern.style.setProperty('--drift', drift + 'px');
   lantern.style.animationDuration = (7 + Math.random() * 5) + 's'; // 7-12s
 
-  // 加入随机水平飘移
-  const keyframes = `
-    @keyframes lanternDrift${Date.now()} {
-      0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
-      10% { opacity: 1; transform: translateY(-10vh) scale(1); }
-      50% { transform: translateY(-50vh) translateX(${drift}px) scale(0.9); }
-      80% { opacity: 0.6; transform: translateY(-85vh) translateX(${-drift * 0.5}px) scale(0.7); }
-      100% { opacity: 0; transform: translateY(-110vh) translateX(${drift * 0.3}px) scale(0.4); }
-    }
-  `;
-
-  const styleEl = document.createElement('style');
-  styleEl.textContent = keyframes;
-  document.head.appendChild(styleEl);
+  // 使用预定义的 @keyframes（CSS 中定义了 lanternDrift1/2/3）
+  const animIdx = Math.floor(Math.random() * 3) + 1;
+  lantern.style.animationName = `lanternDrift${animIdx}`;
 
   lantern.innerHTML = `
     <div class="lantern-glow"></div>
     <div class="lantern-body"></div>
   `;
-
-  const animName = `lanternDrift${Date.now()}`;
-  lantern.style.animationName = animName;
 
   document.body.appendChild(lantern);
 
@@ -769,7 +760,6 @@ function spawnLantern() {
   const duration = parseFloat(lantern.style.animationDuration) * 1000;
   setTimeout(() => {
     lantern.remove();
-    styleEl.remove();
   }, duration + 200);
 }
 
@@ -825,7 +815,7 @@ function initPhotoModal(getCarousel) {
     const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
 
     modalPhoto.src = `${import.meta.env.BASE_URL}photos-optimized/${base}.webp`;
-    modalPhoto.alt = `照片 ${index + 1}`;
+    modalPhoto.alt = meta.story || `照片 ${index + 1}`;
     modalPhoto.onerror = function () {
       this.src = `${import.meta.env.BASE_URL}photos/${photoFilename}`;
     };
@@ -951,20 +941,6 @@ function initPhotoModal(getCarousel) {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-
-    // 动态模糊跟随鼠标
-    modalBlurHandler = (e) => {
-      const contentRect = modalContent.getBoundingClientRect();
-      const cx = contentRect.left + contentRect.width / 2;
-      const cy = contentRect.top + contentRect.height / 2;
-      const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
-      const maxDist = Math.hypot(window.innerWidth / 2, window.innerHeight / 2);
-      // 距离越近模糊越小 (3px~10px)
-      const blur = 3 + Math.min((dist / maxDist) * 9, 9);
-      overlay.style.backdropFilter = `blur(${blur.toFixed(1)}px)`;
-      overlay.style.WebkitBackdropFilter = `blur(${blur.toFixed(1)}px)`;
-    };
-    window.addEventListener('mousemove', modalBlurHandler, { passive: true });
   }
 
   function close() {
@@ -974,10 +950,6 @@ function initPhotoModal(getCarousel) {
     resetZoom();
     overlay.style.backdropFilter = '';
     overlay.style.WebkitBackdropFilter = '';
-    if (modalBlurHandler) {
-      window.removeEventListener('mousemove', modalBlurHandler);
-      modalBlurHandler = null;
-    }
     const carousel = getCarousel();
     if (carousel) {
       carousel.resume();
@@ -1052,11 +1024,18 @@ function initNavDots() {
   sections.forEach((section) => observer.observe(section));
 
   dots.forEach((dot) => {
-    dot.addEventListener('click', () => {
+    const navigate = () => {
       const sectionIndex = parseInt(dot.getAttribute('data-section'));
       const target = document.querySelector(`[data-section="${sectionIndex}"]`);
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+    dot.addEventListener('click', navigate);
+    dot.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate();
       }
     });
   });

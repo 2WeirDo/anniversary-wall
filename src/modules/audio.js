@@ -3,11 +3,11 @@
  * 优先加载本地 FLAC/MP3 文件，文件不存在时自动回退到 Web Audio API 合成
  * 策略：首次用户点击后播放（符合浏览器自动播放策略）
  */
+import gsap from 'gsap';
 
 const BGM_PATHS = [
   `${import.meta.env.BASE_URL}bgm/bgm.flac`,
   `${import.meta.env.BASE_URL}bgm/bgm.mp3`,
-  `${import.meta.env.BASE_URL}bgm/bgm.wav`,
 ];
 
 export class AudioPlayer {
@@ -94,14 +94,9 @@ export class AudioPlayer {
         this.isPlaying = true;
         this.btn.classList.add('playing');
 
-        // 后台平滑淡入（不阻塞按钮状态）
+        // GSAP 平滑淡入
         const targetVol = 0.14;
-        const steps = 30;
-        const interval = 80;
-        for (let i = 0; i <= steps; i++) {
-          this.audio.volume = targetVol * (i / steps);
-          await new Promise((r) => setTimeout(r, interval));
-        }
+        gsap.to(this.audio, { volume: targetVol, duration: 2.4, ease: 'power2.out' });
 
         return true;
       }
