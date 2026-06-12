@@ -47,6 +47,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // 图片 / 照片：不拦截，让浏览器 HTTP 缓存 + CDN 原生处理
+  // SW 缓存图片是冗余的 — 每个请求多两次 IndexedDB 磁盘 I/O，硬刷新时极慢
+  const url = new URL(event.request.url);
+  if (/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i.test(url.pathname) ||
+      url.pathname.includes('/photos-optimized/') ||
+      url.pathname.includes('/photos/')) {
+    return; // 浏览器原生处理，无 SW 开销
+  }
+
   // HTML / navigation 请求：网络优先（确保拿到最新部署）
   if (event.request.mode === 'navigate') {
     event.respondWith(

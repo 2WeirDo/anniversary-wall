@@ -30,6 +30,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Great+Vibes&display=swap" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet" />
+
+  <!-- 预加载前5张轮播缩略图：浏览器预加载扫描器在 HTML 解析阶段就开始下载
+       绕过 SW 的 IndexedDB 开销，硬刷新时图片立即可见 -->
+  <link rel="preload" as="image" href="/anniversary-wall/photos-optimized/photo1-small.webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="/anniversary-wall/photos-optimized/photo2-small.webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="/anniversary-wall/photos-optimized/photo3-small.webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="/anniversary-wall/photos-optimized/photo4-small.webp" fetchpriority="high" />
+  <link rel="preload" as="image" href="/anniversary-wall/photos-optimized/photo5-small.webp" fetchpriority="high" />
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>

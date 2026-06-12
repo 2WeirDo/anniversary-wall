@@ -109,12 +109,19 @@ export class Carousel {
       const el = document.createElement('div');
       el.className = 'carousel-card';
       el.setAttribute('data-index', i);
-      // data-src 延迟加载：离屏卡片不立即加载图片，减少首次渲染时的并发请求和解码压力
+
+      // 首屏可见卡片（偏移 ≤2）直接用 src/srcset，让浏览器预加载扫描器尽早开始下载
+      // 其余卡片仍用 data-src 延迟加载，避免 29 张同时请求造成拥塞
+      const initOffset = circularOffset(i, 0, this.total);
+      const eager = Math.abs(initOffset) <= 2;
+      const srcKey = eager ? 'src' : 'data-src';
+      const srcsetKey = eager ? 'srcset' : 'data-srcset';
+
       el.innerHTML = `
         <div class="photo-frame">
           <picture>
-            <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
-            <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp"
+            <source ${srcsetKey}="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
+            <img ${srcKey}="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp"
               alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
               onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos-optimized/${base}.webp';this.onerror=null"
@@ -122,6 +129,9 @@ export class Carousel {
           </picture>
         </div>
       `;
+      // 标记 eagerly-loaded 卡片，避免 _loadVisibleImages 重复处理
+      if (eager) el._imageLoaded = true;
+
       this.container.appendChild(el);
       this.items.push(el);
     });
