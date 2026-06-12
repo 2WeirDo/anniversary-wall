@@ -213,12 +213,7 @@ function initMainContent() {
 /* ======== 天数计数器 + 一周年倒计时 ======== */
 function initDaysCounter() {
   const heroDaysEl = document.getElementById('hero-days');
-  const daysCounterEl = document.getElementById('days-counter');
   const footerDaysEl = document.getElementById('footer-days');
-  const countdownEl = document.getElementById('hero-countdown');
-
-  const ANNIVERSARY = new Date(LOVE_START_DATE);
-  ANNIVERSARY.setFullYear(ANNIVERSARY.getFullYear() + 1);
 
   function updateDays() {
     const now = new Date();
@@ -226,19 +221,7 @@ function initDaysCounter() {
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (heroDaysEl) heroDaysEl.textContent = days;
-    if (daysCounterEl) daysCounterEl.textContent = days;
     if (footerDaysEl) footerDaysEl.textContent = days;
-
-    if (countdownEl) {
-      const remaining = Math.ceil((ANNIVERSARY - now) / (1000 * 60 * 60 * 24));
-      if (remaining > 0) {
-        countdownEl.textContent = remaining;
-      } else if (remaining === 0) {
-        countdownEl.textContent = '🎉 就是今天！';
-      } else {
-        countdownEl.textContent = '已过 ' + Math.abs(remaining);
-      }
-    }
   }
 
   updateDays();
@@ -275,14 +258,7 @@ function renderWishes() {
 
 /* ======== 渲染动态文本（来自 content.json） ======== */
 function initDynamicText() {
-  const heroSub = document.getElementById('hero-sub');
-  if (heroSub) heroSub.textContent = content.hero.subtitle;
-  const endingTitle = document.getElementById('ending-title');
-  if (endingTitle) endingTitle.textContent = content.ending.title;
-  const endingText = document.getElementById('ending-text');
-  if (endingText) endingText.textContent = content.ending.text;
-  const endingTextLarge = document.getElementById('ending-text-large');
-  if (endingTextLarge) endingTextLarge.textContent = content.ending.textLarge;
+  // hero-sub / ending 文本已移除
 }
 
 /* ======== Service Worker 注册（PWA） ======== */
