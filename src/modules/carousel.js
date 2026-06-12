@@ -315,6 +315,7 @@ export class Carousel {
 
   /* ---------- 拖拽 ---------- */
   onDown(e) {
+    if (this.paused) return;
     this.isDragging = true;
     this._swiped = false;
     this.stopAuto();
