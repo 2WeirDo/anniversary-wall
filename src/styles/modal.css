@@ -26,7 +26,7 @@
 .story-bubble {
   position: fixed;
   z-index: 100;
-  width: 280px;
+  width: 380px;
   max-width: calc(100vw - 32px);
   /* 固定高度 — 避免内容长度变化导致气泡大小跳动 */
   max-height: calc(100vh - 32px);
@@ -306,7 +306,7 @@
    ======================================== */
 @media (max-width: 768px) {
   .story-bubble {
-    width: 250px;
+    width: 320px;
     border-radius: 16px;
   }
   .story-bubble-body {
