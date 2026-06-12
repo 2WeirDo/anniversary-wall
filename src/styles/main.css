@@ -1651,7 +1651,7 @@ body::after {
 
 /* ---- 照片区域 ---- */
 .timeline-card-image {
-  flex: 0 0 200px;
+  flex: 0 0 300px;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1836,7 +1836,7 @@ body::after {
   .timeline-card-image {
     flex: 0 0 auto;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 3 / 4;
   }
   .timeline-card-title {
     font-size: 1.3rem;
