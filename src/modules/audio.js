@@ -265,6 +265,11 @@ export class AudioPlayer {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.ctx = ctx;
 
+    // 现代浏览器 AudioContext 创建后可能处于 suspended，需显式 resume
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
     this.masterGain = ctx.createGain();
     this.masterGain.gain.value = 0;
 
@@ -338,8 +343,9 @@ export class AudioPlayer {
     this._nextScheduleTime = ctx.currentTime + 0.1;
     scheduleLoop();
 
+    // 快速淡入，避免听起来像延迟
     this.masterGain.gain.setValueAtTime(0, ctx.currentTime);
-    this.masterGain.gain.linearRampToValueAtTime(preset.masterVol, ctx.currentTime + 2.5);
+    this.masterGain.gain.linearRampToValueAtTime(preset.masterVol, ctx.currentTime + 0.5);
   }
 
   stopSynth() {
