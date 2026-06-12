@@ -11,8 +11,8 @@
  * - 离屏图片用 data-src 延迟加载
  */
 
-/** 可视窗口半宽 — 图片加载的可见范围 */
-const VISIBLE_HALF = 8;
+/** 可视窗口半宽 — 图片加载的可见范围（屏幕上实际可见约 ±3，留余量到 ±5） */
+const VISIBLE_HALF = 5;
 import gsap from 'gsap';
 import content from '../data/content.json';
 
@@ -110,10 +110,9 @@ export class Carousel {
       el.className = 'carousel-card';
       el.setAttribute('data-index', i);
 
-      // 首屏可见卡片（偏移 ≤2）直接用 src/srcset，让浏览器预加载扫描器尽早开始下载
-      // 其余卡片仍用 data-src 延迟加载，避免 29 张同时请求造成拥塞
+      // 首屏可见卡片（偏移 ≤1）直接用 src/srcset，其余用 data-src 延迟加载
       const initOffset = circularOffset(i, 0, this.total);
-      const eager = Math.abs(initOffset) <= 2;
+      const eager = Math.abs(initOffset) <= 1;
       const srcKey = eager ? 'src' : 'data-src';
       const srcsetKey = eager ? 'srcset' : 'data-srcset';
 
@@ -157,10 +156,9 @@ export class Carousel {
 
   /**
    * 渐进式加载可视窗口图片
-   * 避免硬刷新时 17 个并发请求瞬间拥塞 SW + 网络
-   * 阶段1（0ms）:   当前 ±2   — 立即可见
-   * 阶段2（120ms）: 当前 ±5   — 即将可见
-   * 阶段3（300ms）: 当前 ±8   — 边缘可见
+   * 阶段1（0ms）:   当前 ±1   — 屏幕中央可见（3张）
+   * 阶段2（150ms）: 当前 ±3   — 余光可见（7张）
+   * 阶段3（400ms）: 当前 ±5   — 窗口边缘（11张）
    */
   _loadVisibleImages() {
     const loadSlab = (maxOffset) => {
@@ -171,9 +169,9 @@ export class Carousel {
         }
       });
     };
-    loadSlab(2);                                    // 立即：5张
-    setTimeout(() => loadSlab(5), 120);             // 120ms：11张
-    setTimeout(() => loadSlab(VISIBLE_HALF), 300);  // 300ms：17张
+    loadSlab(1);                                    // 立即：3张
+    setTimeout(() => loadSlab(3), 150);             // 150ms：7张
+    setTimeout(() => loadSlab(VISIBLE_HALF), 400);  // 400ms：11张
   }
 
   /* ---------- 布局 ---------- */

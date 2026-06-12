@@ -53,9 +53,9 @@ export class Timeline {
           <div class="timeline-card-inner ${side}">
             <div class="timeline-card-image">
               <picture>
-                <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
-                <img src="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" alt="${item.title}" loading="lazy"
-                  onerror="const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s)s.remove();}this.src='${import.meta.env.BASE_URL}photos-optimized/${base}.webp';this.onerror=null"
+                <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
+                <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" alt="${item.title}"
+                  onerror="const f=this.closest('.timeline-card-image');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s)s.remove();}this.src='${import.meta.env.BASE_URL}photos-optimized/${base}.webp';this.onerror=null"
                 />
               </picture>
               <div class="timeline-card-date-badge">${item.date}</div>
@@ -80,13 +80,24 @@ export class Timeline {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('revealed');
+            // 懒加载图片：data-src → src
+            const source = entry.target.querySelector('source');
+            const img = entry.target.querySelector('img');
+            if (source && source.dataset.srcset) {
+              source.srcset = source.dataset.srcset;
+              source.removeAttribute('data-srcset');
+            }
+            if (img && img.dataset.src) {
+              img.src = img.dataset.src;
+              img.removeAttribute('data-src');
+            }
             this.observer.unobserve(entry.target);
           }
         });
       },
       {
         threshold: 0.15,
-        rootMargin: '0px 0px -60px 0px',
+        rootMargin: '200px 0px 0px 0px', // 提前 200px 触发，滚动到时图片已加载
       }
     );
 

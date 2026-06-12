@@ -60,6 +60,9 @@ document.getElementById('carousel-next')?.addEventListener('click', () => carous
 // 恋爱时间线
 const timeline = new Timeline('timeline-container');
 
+// 入场遮罩期间后台预加载全部 29 张缩略图 — 利用女友阅读文字的 2-5 秒窗口静默缓存
+const _bgPreload = backgroundPreloadAll();
+
 // 预加载关键图片（前5张 + 时间线用到的照片 — 使用 -small 缩略图）
 function preloadImages() {
   const toPreload = new Set();
@@ -81,6 +84,34 @@ function preloadImages() {
   }));
 }
 
+/**
+ * 后台全量预加载 — 在入场遮罩期间静默缓存全部 29 张缩略图
+ * 分批次加载避免瞬间拥塞，利用女友阅读遮罩文字的 2-5 秒时间窗口
+ */
+function backgroundPreloadAll() {
+  const BATCH = 4;       // 每批并发数
+  const DELAY = 80;      // 批次间隔 ms
+  const bases = PHOTOS.map((f) => f.replace(/\.(jpg|jpeg|png)$/i, ''));
+  const results = [];
+
+  for (let i = 0; i < bases.length; i += BATCH) {
+    const batch = bases.slice(i, i + BATCH);
+    const delay = (i / BATCH) * DELAY;
+    const batchPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        Promise.all(batch.map((base) => new Promise((r) => {
+          const img = new Image();
+          img.onload = r;
+          img.onerror = r;
+          img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp`;
+        }))).then(resolve);
+      }, delay);
+    });
+    results.push(batchPromise);
+  }
+  return Promise.all(results);
+}
+
 let _entered = false;
 
 async function handleEnter() {
@@ -94,10 +125,10 @@ async function handleEnter() {
   enterBtn.classList.add('loading');
   enterBtn.querySelector('span').textContent = '加载中...';
 
-  // 预加载关键图片
+  // 等待后台预加载赶上进度（最多 2.5 秒，平衡加载速度和入场体验）
   await Promise.race([
-    preloadImages(),
-    new Promise((r) => setTimeout(r, 1000)),
+    _bgPreload,
+    new Promise((r) => setTimeout(r, 2500)),
   ]);
 
   // 阶段1: 内容先淡出 (0.2s)
