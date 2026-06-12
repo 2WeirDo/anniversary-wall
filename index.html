@@ -156,7 +156,7 @@
         <h2 class="section-title">我们的回忆</h2>
         <p class="section-sub">左右滑动，浏览我们的每一个珍贵瞬间</p>
       </div>
-      <div class="carousel-wrapper">
+      <div class="carousel-wrapper" id="carousel-wrapper">
         <button class="carousel-nav carousel-nav-prev" id="carousel-prev" aria-label="上一张">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -164,11 +164,64 @@
           <div class="carousel-container" id="carousel-container">
             <!-- 照片由 JS 动态生成 -->
           </div>
+          <!-- 故事气泡弹窗 -->
+          <div class="story-bubble" id="story-bubble" aria-hidden="true" role="dialog" aria-modal="true" aria-label="照片故事">
+            <div class="story-bubble-arrow"></div>
+            <button class="story-bubble-close" id="story-bubble-close" aria-label="关闭">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+            <div class="story-bubble-body">
+              <div class="story-bubble-flip" id="story-bubble-flip">
+                <div class="story-bubble-front">
+                  <p class="story-bubble-date" id="story-bubble-date"></p>
+                  <p class="story-bubble-story" id="story-bubble-story"></p>
+                </div>
+                <div class="story-bubble-back">
+                  <p class="story-bubble-flip-text" id="story-bubble-flip-text"></p>
+                </div>
+              </div>
+            </div>
+            <div class="story-bubble-footer">
+              <button class="story-bubble-flip-btn" id="story-bubble-flip-btn" aria-label="翻转查看情话">
+                <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="30" cy="32" rx="22" ry="19" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
+                  <ellipse cx="14" cy="18" rx="7" ry="9" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
+                  <ellipse cx="14" cy="19" rx="4" ry="5.5" fill="#FFD0DD"/>
+                  <ellipse cx="46" cy="18" rx="7" ry="9" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
+                  <ellipse cx="46" cy="19" rx="4" ry="5.5" fill="#FFD0DD"/>
+                  <circle cx="30" cy="12" r="4" fill="#F08090"/>
+                  <ellipse cx="24" cy="11" rx="5" ry="3.5" fill="#F08090" transform="rotate(-20 24 11)"/>
+                  <ellipse cx="36" cy="11" rx="5" ry="3.5" fill="#F08090" transform="rotate(20 36 11)"/>
+                  <circle cx="29" cy="11" r="1.5" fill="#F8C0C8"/>
+                  <ellipse cx="22" cy="30" rx="2.2" ry="2.8" fill="#333"/>
+                  <circle cx="22.6" cy="29" r="0.7" fill="#fff"/>
+                  <ellipse cx="38" cy="30" rx="2.2" ry="2.8" fill="#333"/>
+                  <circle cx="38.6" cy="29" r="0.7" fill="#fff"/>
+                  <ellipse cx="30" cy="36" rx="1.8" ry="1.3" fill="#F8C0C8"/>
+                  <line x1="12" y1="33" x2="24" y2="35" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                  <line x1="12" y1="37" x2="24" y2="37" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                  <line x1="12" y1="41" x2="24" y2="39" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                  <line x1="48" y1="33" x2="36" y2="35" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                  <line x1="48" y1="37" x2="36" y2="37" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                  <line x1="48" y1="41" x2="36" y2="39" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+              <span class="story-bubble-counter" id="story-bubble-counter"></span>
+              <div class="story-bubble-nav">
+                <button id="story-bubble-prev" aria-label="上一张">‹</button>
+                <button id="story-bubble-next" aria-label="下一张">›</button>
+              </div>
+            </div>
+          </div>
         </div>
         <button class="carousel-nav carousel-nav-next" id="carousel-next" aria-label="下一张">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
         <div class="carousel-counter" id="carousel-counter">1 / 29</div>
+        <!-- 轮播蒙层（气泡打开时不遮 active 卡片） -->
+        <div class="carousel-veil" id="carousel-veil"></div>
       </div>
     </section>
 
@@ -271,76 +324,6 @@
     </div>
   </footer>
 
-  <!-- 照片故事弹窗（纯文字，轮播中已显示照片） -->
-  <div id="photo-modal" class="photo-modal" aria-hidden="true">
-    <div class="photo-modal-overlay"></div>
-    <div class="photo-modal-content" role="dialog" aria-modal="true" aria-label="照片故事">
-      <button class="photo-modal-close" id="modal-close" aria-label="关闭">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" opacity="0.25" />
-          <line x1="8" y1="8" x2="16" y2="16" />
-          <line x1="16" y1="8" x2="8" y2="16" />
-        </svg>
-      </button>
-      <!-- 3D 翻转卡片 -->
-      <div class="photo-flip-container" id="photo-flip-container">
-        <div class="photo-flip-front">
-          <div class="photo-flip-front-content">
-            <div class="photo-modal-date" id="modal-date"></div>
-            <div class="photo-modal-story" id="modal-story"></div>
-          </div>
-        </div>
-        <div class="photo-flip-back">
-          <div class="photo-flip-back-deco">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M12 21C12 21 3 14 3 8.5C3 5.5 5.5 3.5 8 3.5C10 3.5 12 6 12 6C12 6 14 3.5 16 3.5C18.5 3.5 21 5.5 21 8.5C21 14 12 21 12 21Z" /></svg>
-          </div>
-          <p class="photo-flip-back-text" id="modal-flip-text"></p>
-          <div class="photo-flip-back-deco bottom">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M12 21C12 21 3 14 3 8.5C3 5.5 5.5 3.5 8 3.5C10 3.5 12 6 12 6C12 6 14 3.5 16 3.5C18.5 3.5 21 5.5 21 8.5C21 14 12 21 12 21Z" /></svg>
-          </div>
-        </div>
-      </div>
-      <!-- HelloKitty 翻转按钮 -->
-      <button class="photo-modal-flip-btn" id="modal-flip-btn" aria-label="翻转查看情话">
-        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- 脸 -->
-          <ellipse cx="30" cy="32" rx="22" ry="19" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
-          <!-- 左耳 -->
-          <ellipse cx="14" cy="18" rx="7" ry="9" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
-          <ellipse cx="14" cy="19" rx="4" ry="5.5" fill="#FFD0DD"/>
-          <!-- 右耳 -->
-          <ellipse cx="46" cy="18" rx="7" ry="9" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>
-          <ellipse cx="46" cy="19" rx="4" ry="5.5" fill="#FFD0DD"/>
-          <!-- 蝴蝶结 -->
-          <circle cx="30" cy="12" r="4" fill="#F08090"/>
-          <ellipse cx="24" cy="11" rx="5" ry="3.5" fill="#F08090" transform="rotate(-20 24 11)"/>
-          <ellipse cx="36" cy="11" rx="5" ry="3.5" fill="#F08090" transform="rotate(20 36 11)"/>
-          <circle cx="29" cy="11" r="1.5" fill="#F8C0C8"/>
-          <!-- 左眼 -->
-          <ellipse cx="22" cy="30" rx="2.2" ry="2.8" fill="#333"/>
-          <circle cx="22.6" cy="29" r="0.7" fill="#fff"/>
-          <!-- 右眼 -->
-          <ellipse cx="38" cy="30" rx="2.2" ry="2.8" fill="#333"/>
-          <circle cx="38.6" cy="29" r="0.7" fill="#fff"/>
-          <!-- 鼻子 -->
-          <ellipse cx="30" cy="36" rx="1.8" ry="1.3" fill="#F8C0C8"/>
-          <!-- 左须 -->
-          <line x1="12" y1="33" x2="24" y2="35" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-          <line x1="12" y1="37" x2="24" y2="37" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-          <line x1="12" y1="41" x2="24" y2="39" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-          <!-- 右须 -->
-          <line x1="48" y1="33" x2="36" y2="35" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-          <line x1="48" y1="37" x2="36" y2="37" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-          <line x1="48" y1="41" x2="36" y2="39" stroke="#F0A0B8" stroke-width="0.8" stroke-linecap="round"/>
-        </svg>
-      </button>
-      <div class="photo-modal-counter" id="modal-counter"></div>
-      <div class="photo-modal-nav">
-        <button class="photo-modal-nav-btn" id="modal-prev" aria-label="上一张">‹ 上一张</button>
-        <button class="photo-modal-nav-btn" id="modal-next" aria-label="下一张">下一张 ›</button>
-      </div>
-    </div>
-  </div>
 
   <!-- 音频元素 -->
   <audio id="bgm-audio" loop preload="auto" style="display:none"></audio>

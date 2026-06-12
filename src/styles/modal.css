@@ -1,308 +1,281 @@
 /* ========================================
-   Photo Story Modal — 纯文字卡片 + 3D 翻转
+   Story Bubble — 卡片旁气泡弹窗
+   玻璃质感 + 箭头指示 + 3D 翻转
    ======================================== */
-.photo-modal {
+
+/* ---- 轮播蒙层 ---- */
+.carousel-veil {
   position: fixed;
   inset: 0;
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 90;
+  background: rgba(60, 30, 40, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.4s var(--ease-out), visibility 0.4s;
+  transition: opacity 0.45s var(--ease-out);
 }
-.photo-modal.open {
+.carousel-veil.active {
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
 }
 
-.photo-modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(60, 30, 40, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.photo-modal-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 480px;
-  width: calc(100% - 40px);
-  max-height: 90vh;
-  max-height: 90dvh;
-  overflow-y: auto;
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--color-border);
-  transform: translateY(20px) scale(0.95);
-  transition: transform 0.5s var(--ease-spring);
-  overscroll-behavior: contain;
-  padding: 40px 32px 0;
-}
-.photo-modal.open .photo-modal-content {
-  transform: translateY(0) scale(1);
-}
-
 /* ========================================
-   Close Button — 圆环 ×，干净优雅
+   Bubble Container
    ======================================== */
-.photo-modal-close {
+.story-bubble {
+  position: fixed;
+  z-index: 100;
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(80, 20, 40, 0.12),
+    0 2px 8px rgba(80, 20, 40, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-out), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.story-bubble.open {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* ---- 小三角箭头 ---- */
+.story-bubble-arrow {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 3;
-  width: 34px;
-  height: 34px;
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  transform: rotate(45deg);
+  border-radius: 3px;
+  z-index: -1;
+}
+
+/* ---- 关闭按钮 ---- */
+.story-bubble-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   border: none;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.04);
   color: var(--color-text-light);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: 50%;
-  transition: all 0.35s var(--ease-out);
-  touch-action: manipulation;
+  transition: all 0.25s var(--ease-out);
 }
-.photo-modal-close svg {
-  display: block;
-  width: 18px;
-  height: 18px;
-}
-.photo-modal-close:hover {
+.story-bubble-close:hover {
+  background: rgba(232, 120, 144, 0.12);
   color: var(--color-accent-deep);
-  background: rgba(232, 120, 144, 0.08);
-  transform: scale(1.1);
 }
-.photo-modal-close:active {
-  transform: scale(0.9);
-}
-.photo-modal-close:focus-visible {
+.story-bubble-close:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
 /* ========================================
-   HelloKitty Flip Button — 左上角
+   Bubble Body — 3D Flip
    ======================================== */
-.photo-modal-flip-btn {
+.story-bubble-body {
+  padding: 24px 20px 12px;
+  min-height: 100px;
+  perspective: 600px;
+}
+
+.story-bubble-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 80px;
+}
+.story-bubble-flip.flipped {
+  transform: rotateY(180deg);
+}
+
+.story-bubble-front,
+.story-bubble-back {
+  backface-visibility: hidden;
+  text-align: center;
+}
+
+.story-bubble-front {
+  display: block;
+}
+
+.story-bubble-back {
   position: absolute;
-  top: 12px;
-  left: 16px;
-  z-index: 3;
-  width: 34px;
-  height: 34px;
+  inset: 0;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FEF0F3, #FFF9F7, #FEF5F5);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.story-bubble-date {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.story-bubble-story {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+.story-bubble-flip-text {
+  font-family: var(--font-handwrite);
+  font-size: 1.1rem;
+  color: var(--color-accent-deep);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ========================================
+   Bubble Footer
+   ======================================== */
+.story-bubble-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.story-bubble-flip-btn {
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
   cursor: pointer;
   padding: 0;
   border-radius: 50%;
-  transition: transform 0.35s var(--ease-spring);
-  touch-action: manipulation;
+  transition: transform 0.3s var(--ease-spring);
+  flex-shrink: 0;
 }
-.photo-modal-flip-btn:hover {
-  transform: scale(1.2);
-  background: rgba(232, 120, 144, 0.06);
+.story-bubble-flip-btn:hover {
+  transform: scale(1.18);
 }
-.photo-modal-flip-btn:active {
+.story-bubble-flip-btn:active {
   transform: scale(0.9);
 }
-.photo-modal-flip-btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-.photo-modal-flip-btn svg {
+.story-bubble-flip-btn svg {
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0 2px 4px rgba(240, 128, 144, 0.35));
+  filter: drop-shadow(0 1px 2px rgba(240, 128, 144, 0.3));
 }
 
-/* ========================================
-   3D Flip Container
-   ======================================== */
-.photo-flip-container {
-  width: 100%;
-  min-height: 200px;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.photo-flip-container.flipped {
-  transform: rotateY(180deg);
-}
-
-.photo-flip-front,
-.photo-flip-back {
-  width: 100%;
-  backface-visibility: hidden;
-  border-radius: var(--radius-md);
-}
-
-.photo-flip-front {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.photo-flip-front-content {
-  text-align: center;
-  width: 100%;
-}
-
-.photo-flip-back {
-  position: absolute;
-  inset: 0;
-  transform: rotateY(180deg);
-  background: linear-gradient(135deg, #FEF0F3 0%, #FFF9F7 40%, #FEF5F5 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.photo-flip-back-text {
-  font-family: var(--font-handwrite);
-  font-size: 1.35rem;
-  color: var(--color-accent-deep);
-  line-height: 1.8;
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-
-.photo-flip-back-deco {
-  position: absolute;
-  top: 12px; left: 16px;
-  opacity: 0.3;
-  color: var(--color-accent);
-}
-.photo-flip-back-deco.bottom {
-  top: auto;
-  bottom: 12px; left: auto;
-  right: 16px;
-}
-
-/* ========================================
-   Date / Story / Counter
-   ======================================== */
-.photo-modal-date {
+.story-bubble-counter {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-style: italic;
-  color: var(--color-accent);
-  margin-bottom: 16px;
-  letter-spacing: 0.04em;
-  position: relative;
-  display: inline-block;
-}
-.photo-modal-date::after {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 1px;
-  background: var(--color-text-light);
-  opacity: 0.3;
-  margin: 10px auto 0;
-  border-radius: var(--radius-full);
-}
-
-.photo-modal-story {
-  font-family: var(--font-body);
-  font-size: 1rem;
-  line-height: 1.9;
-  color: var(--color-text-dark);
-  padding: 0;
-  text-align: center;
-}
-
-.photo-modal-counter {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--color-text-light);
-  margin-top: 24px;
-  margin-bottom: 4px;
   font-style: italic;
   letter-spacing: 0.04em;
+  min-width: 48px;
+  text-align: center;
 }
 
-/* ========================================
-   Nav Buttons
-   ======================================== */
-.photo-modal-nav {
+.story-bubble-nav {
   display: flex;
-  gap: 20px;
-  padding: 12px 0 28px;
-  width: 100%;
-  justify-content: center;
+  gap: 4px;
 }
-
-.photo-modal-nav-btn {
+.story-bubble-nav button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
   background: transparent;
-  border: 1.5px solid var(--color-border);
   color: var(--color-text-dark);
+  font-size: 1rem;
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  padding: 10px 24px;
-  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.3s var(--ease-spring);
-  touch-action: manipulation;
-  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.25s var(--ease-out);
 }
-.photo-modal-nav-btn:hover {
+.story-bubble-nav button:hover {
   background: var(--color-accent);
   color: white;
   border-color: var(--color-accent);
-  box-shadow: 0 4px 16px rgba(232, 120, 144, 0.3);
-}
-.photo-modal-nav-btn:active {
-  transform: scale(0.94);
-}
-.photo-modal-nav-btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
 }
 
 /* ========================================
    Dark Mode
    ======================================== */
-[data-theme="dark"] .photo-modal-content {
-  background: #221C2C;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px #3A2E40;
+[data-theme="dark"] .carousel-veil {
+  background: rgba(6, 4, 12, 0.7);
 }
-[data-theme="dark"] .photo-modal-overlay {
-  background: rgba(10, 8, 16, 0.82);
+
+[data-theme="dark"] .story-bubble {
+  background: rgba(30, 24, 40, 0.9);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
 }
-[data-theme="dark"] .photo-modal-close {
+
+[data-theme="dark"] .story-bubble-arrow {
+  background: rgba(30, 24, 40, 0.9);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .story-bubble-close {
+  background: rgba(255, 255, 255, 0.04);
   color: #908098;
 }
-[data-theme="dark"] .photo-modal-close:hover {
+[data-theme="dark"] .story-bubble-close:hover {
+  background: rgba(232, 152, 168, 0.15);
   color: #E0B8C8;
-  background: rgba(232, 152, 168, 0.1);
 }
-[data-theme="dark"] .photo-modal-flip-btn:hover {
-  background: rgba(232, 152, 168, 0.08);
+
+[data-theme="dark"] .story-bubble-back {
+  background: linear-gradient(135deg, #2A2235, #1E1828, #231D2A);
 }
-[data-theme="dark"] .photo-flip-back {
-  background: linear-gradient(135deg, #2A2235 0%, #1E1828 40%, #231D2A 100%);
+
+[data-theme="dark"] .story-bubble-footer {
+  border-top-color: rgba(255, 255, 255, 0.04);
 }
-[data-theme="dark"] .photo-modal-nav-btn {
-  background: #2A2235;
+
+[data-theme="dark"] .story-bubble-nav button {
   border-color: rgba(255, 255, 255, 0.06);
   color: #C8B8C0;
 }
-[data-theme="dark"] .photo-modal-nav-btn:hover {
+[data-theme="dark"] .story-bubble-nav button:hover {
   background: var(--color-accent);
   color: #1A1520;
 }
@@ -311,43 +284,25 @@
    Responsive
    ======================================== */
 @media (max-width: 768px) {
-  .photo-modal-content {
-    max-width: calc(100% - 24px);
-    border-radius: var(--radius-lg);
-    padding: 36px 20px 0;
+  .story-bubble {
+    width: 250px;
+    border-radius: 16px;
   }
-  .photo-modal-date {
-    font-size: 1.25rem;
+  .story-bubble-body {
+    padding: 20px 16px 8px;
   }
-  .photo-modal-story {
-    font-size: 0.92rem;
-    line-height: 1.8;
+  .story-bubble-date {
+    font-size: 1rem;
   }
-  .photo-modal-nav {
-    padding: 8px 0 20px;
-    gap: 12px;
+  .story-bubble-story {
+    font-size: 0.85rem;
+    line-height: 1.65;
   }
-  .photo-modal-nav-btn {
-    padding: 8px 18px;
-    font-size: 0.82rem;
+  .story-bubble-flip-text {
+    font-size: 1rem;
   }
-  .photo-modal-close {
-    top: 12px;
-    right: 12px;
-    width: 30px;
-    height: 30px;
-  }
-  .photo-modal-close svg {
-    width: 16px;
-    height: 16px;
-  }
-  .photo-modal-flip-btn {
-    top: 8px;
-    left: 12px;
-    width: 30px;
-    height: 30px;
-  }
-  .photo-flip-back-text {
-    font-size: 1.2rem;
+  .story-bubble-footer {
+    padding: 6px 12px 10px;
+    gap: 6px;
   }
 }
