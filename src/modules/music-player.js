@@ -167,7 +167,7 @@ export class MusicPlayer {
     return this._apiUrl(params);
   }
 
-  /* ======== 搜索（模糊匹配 + 歌手搜索） ======== */
+  /* ======== 搜索（模糊匹配 + 歌手搜索 + 双源） ======== */
 
   async doSearch(query) {
     if (!query.trim()) return;
@@ -175,16 +175,20 @@ export class MusicPlayer {
     try {
       // 拆分关键词：完整查询 + 每个独立关键词分别搜索
       const keywords = query.trim().split(/\s+/).filter(k => k.length >= 2);
-      // 去重关键词（避免 "周杰伦 周杰伦" 重复搜）
-      const uniqueKw = [...new Set(keywords)];
-      // 完整查询 + 各关键词并行搜索
-      const queries = [...new Set([query.trim(), ...uniqueKw])];
+      const uniqueKw = [...new Set([query.trim(), ...keywords])];
 
-      const results = await Promise.allSettled(
-        queries.map(q => this.apiSearch(q))
-      );
+      // 每个关键词 × 两个源（netease 歌手匹配好，kuwo 歌名匹配好）
+      const sources = ['netease', 'kuwo'];
+      const tasks = [];
+      for (const kw of uniqueKw) {
+        for (const src of sources) {
+          tasks.push(this.apiSearch(kw, src));
+        }
+      }
 
-      // 合并去重（按 id+source 唯一键）
+      const results = await Promise.allSettled(tasks);
+
+      // 合并去重（按 id+source 唯一键），netease 优先（音频可用）
       const seen = new Set();
       const merged = [];
       for (const r of results) {
