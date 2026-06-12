@@ -4,11 +4,15 @@
  * 点击照片弹出详情弹窗
  * 内容来源：src/data/content.json
  *
- * 性能策略：
- * - tick 仅更新可视窗口内的卡片（|offset| ≤ 8），非全量 29 张
- * - 节流到 ~30fps，减半 DOM 写入
- * - 拖拽/惯性期间用 _setCard 直设，避免创建 GSAP tween
+ * 架构（v3 — 消除 GSAP-vs-直写冲突）：
+ * - GSAP 只动画 this.current（一个数字），不直接管理任何卡片的 transform
+ * - 所有卡片定位统一走 _setCard（直写 style.transform）
+ * - tick / 拖拽 / layoutAll onUpdate 全部用同一路径，无矩阵分解偏差
+ * - 离屏图片用 data-src 延迟加载
  */
+
+/** 可视窗口半宽 — 图片加载的可见范围 */
+const VISIBLE_HALF = 8;
 import gsap from 'gsap';
 import content from '../data/content.json';
 
@@ -62,16 +66,30 @@ export class Carousel {
     this._lastTickTime = 0;
     this._isHovering = false;
     this.onPhotoClick = onPhotoClick || null;
+    // 布局动画期间阻止 tick 更新
+    this._animating = false;
+    this._animTL = null;
 
     this.init();
   }
 
   init() {
     this.render();
+    this._loadVisibleImages();
     this.bindEvents();
-    this.layoutAll(0);
+    // 初始布局用 _setCard 直设，避免 layoutAll 对 29 张卡同时创建 GSAP tween
+    this._positionAll();
     this.scheduleAuto();
-    window.addEventListener('resize', () => this.layoutAll(0));
+    window.addEventListener('resize', () => this._positionAll());
+  }
+
+  /** 初始化/resize 时直设所有卡片位置（无 GSAP 开销） */
+  _positionAll() {
+    this.items.forEach((el, i) => {
+      const offset = circularOffset(i, this.current, this.total);
+      this._setCard(el, offset);
+    });
+    this.updateCounter();
   }
 
   /* ---------- 渲染 ---------- */
@@ -89,11 +107,13 @@ export class Carousel {
       const el = document.createElement('div');
       el.className = 'carousel-card';
       el.setAttribute('data-index', i);
+      // data-src 延迟加载：离屏卡片不立即加载图片，减少首次渲染时的并发请求和解码压力
       el.innerHTML = `
         <div class="photo-frame">
           <picture>
-            <source srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-            <img src="${import.meta.env.BASE_URL}photos/${photo}" alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false" loading="lazy"
+            <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
+            <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}.webp"
+              alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
               onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos/${photo}';this.onerror=null"
             />
@@ -102,6 +122,34 @@ export class Carousel {
       `;
       this.container.appendChild(el);
       this.items.push(el);
+    });
+  }
+
+  /** 触发单张卡片的图片加载（data-src → 真实 src） */
+  _loadCardImage(el) {
+    if (el._imageLoaded) return;
+    el._imageLoaded = true;
+
+    const source = el.querySelector('source');
+    const img = el.querySelector('img');
+
+    if (source && source.dataset.srcset) {
+      source.srcset = source.dataset.srcset;
+      source.removeAttribute('data-srcset');
+    }
+    if (img && img.dataset.src) {
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    }
+  }
+
+  /** 加载可视窗口内所有卡片的图片 */
+  _loadVisibleImages() {
+    this.items.forEach((el, i) => {
+      const offset = circularOffset(i, this.current, this.total);
+      if (Math.abs(offset) <= VISIBLE_HALF) {
+        this._loadCardImage(el);
+      }
     });
   }
 
@@ -138,12 +186,53 @@ export class Carousel {
     };
   }
 
-  layoutAll(duration = 0.45) {
-    this.items.forEach((el, i) => {
-      const offset = circularOffset(i, this.current, this.total);
-      this.layoutCard(el, offset, duration);
+  /**
+   * 布局动画。GSAP 只驱动 this.current（数字），_setCard 负责所有卡片定位。
+   * 这消除了 GSAP 管理卡片 transform 与 _setCard 直写之间的矩阵分解偏差。
+   * @param {number} duration 动画时长（秒），0 = 瞬间定位
+   * @param {number} [fromCurrent] 动画起始 current 值，不传则从当前视觉状态开始
+   */
+  layoutAll(duration = 0.45, fromCurrent) {
+    // 停掉上一轮动画
+    if (this._animTL) { this._animTL.kill(); this._animTL = null; }
+
+    const toCurrent = this.current;
+
+    if (duration <= 0 || fromCurrent === undefined) {
+      // 无动画：直接定位
+      for (let i = 0; i < this.items.length; i++) {
+        const offset = circularOffset(i, toCurrent, this.total);
+        this._setCard(this.items[i], offset);
+      }
+      this.updateCounter();
+      return;
+    }
+
+    // 有动画：GSAP 驱动 this.current，onUpdate 调 _setCard 更新全部卡片
+    this._animating = true;
+    this.current = fromCurrent;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        this._animating = false;
+        this._animTL = null;
+        this._lastTickTime = Date.now();
+      },
     });
-    this.updateCounter();
+    this._animTL = tl;
+
+    tl.to(this, {
+      current: toCurrent,
+      duration,
+      ease: 'power2.out',
+      onUpdate: () => {
+        for (let i = 0; i < this.items.length; i++) {
+          const offset = circularOffset(i, this.current, this.total);
+          this._setCard(this.items[i], offset);
+        }
+        this.updateCounter();
+      },
+    });
   }
 
   /** 更新照片计数器 */
@@ -153,30 +242,19 @@ export class Carousel {
     this.dotsEl.textContent = `${idx + 1} / ${this.total}`;
   }
 
-  layoutCard(el, offset, duration = 0.45) {
-    const c = this._calcCard(offset);
-    gsap.to(el, {
-      xPercent: c.xPercent,
-      scale: c.scale,
-      opacity: c.opacity,
-      zIndex: c.zIndex,
-      rotateY: c.rotateY,
-      duration,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
-    el.classList.toggle('active', c.isActive);
-    el.style.pointerEvents = c.isActive ? 'auto' : 'none';
-  }
-
   /** 高频设值：直接操作 style，不创建 GSAP tween */
   _setCard(el, offset) {
     const c = this._calcCard(offset);
-    el.style.transform = `translateX(${c.xPercent}%) scale(${c.scale}) rotateY(${c.rotateY}deg)`;
+    const inWindow = Math.abs(offset) <= VISIBLE_HALF;
+    el.style.transform = `translateX(${c.xPercent}%) rotateY(${c.rotateY}deg) scale(${c.scale})`;
     el.style.opacity = c.opacity;
     el.style.zIndex = c.zIndex;
     el.classList.toggle('active', c.isActive);
     el.style.pointerEvents = c.isActive ? 'auto' : 'none';
+    // 进入可视窗口时触发图片加载
+    if (inWindow && !el._imageLoaded) {
+      this._loadCardImage(el);
+    }
   }
 
   /* ---------- 事件绑定 ---------- */
@@ -291,30 +369,33 @@ export class Carousel {
 
   /* ---------- 导航 ---------- */
   prev() {
+    const fromCurrent = this.current;
     this.stopAuto();
-    this.current = Math.round(this.current) - 1;
-    this.layoutAll(0.45);
+    this.current = Math.round(fromCurrent) - 1;
+    this.layoutAll(0.45, fromCurrent);
     this.scheduleAuto();
   }
 
   next() {
+    const fromCurrent = this.current;
     this.stopAuto();
-    this.current = Math.round(this.current) + 1;
-    this.layoutAll(0.45);
+    this.current = Math.round(fromCurrent) + 1;
+    this.layoutAll(0.45, fromCurrent);
     this.scheduleAuto();
   }
 
   goTo(index) {
+    const fromCurrent = this.current;
     this.stopAuto();
-    const rounded = Math.round(this.current);
+    const rounded = Math.round(fromCurrent);
     let target = index;
     while (target < rounded - this.total / 2) target += this.total;
     while (target > rounded + this.total / 2) target -= this.total;
-    if (Math.abs(target - this.current) > this.total / 2) {
-      target = target > this.current ? target - this.total : target + this.total;
+    if (Math.abs(target - fromCurrent) > this.total / 2) {
+      target = target > fromCurrent ? target - this.total : target + this.total;
     }
     this.current = target;
-    this.layoutAll(0.35);
+    this.layoutAll(0.35, fromCurrent);
     this.scheduleAuto();
   }
 
@@ -327,10 +408,8 @@ export class Carousel {
     this._lastTickTime = Date.now();
     this._tickFrame = 0;
 
-    const VISIBLE_HALF = 8; // tick 中只更新 ±8 范围内的卡片
-
     const onTick = () => {
-      if (this.paused || this.isDragging) return;
+      if (this.paused || this.isDragging || this._animating) return;
 
       // 节流到 30fps
       this._tickFrame++;
@@ -341,16 +420,12 @@ export class Carousel {
       this._lastTickTime = now;
       this.current += dt * this._currentSpeed;
 
-      // 只更新可视窗口内的卡片
+      // 更新全部卡片位置（_animating 锁保证此时无 GSAP 动画冲突）
       for (let i = 0; i < this.items.length; i++) {
         const offset = circularOffset(i, this.current, this.total);
-        if (Math.abs(offset) <= VISIBLE_HALF) {
-          this._setCard(this.items[i], offset);
-        }
+        this._setCard(this.items[i], offset);
       }
 
-      // 每处理帧都更新圆点 — 开销极小（最多 9 个可见点），
-      // 避免 _lastDotIdx 状态在多路径间不同步
       this.updateCounter();
     };
 
