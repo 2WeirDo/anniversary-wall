@@ -75,45 +75,41 @@
     </svg>
   </button>
 
-  <!-- 音乐控制 — 可视化切换器 -->
+  <!-- 音乐播放器 — 在线搜歌 + 播放 -->
   <div class="music-player" id="music-player">
-    <!-- 选曲面板（展开时显示） -->
+    <!-- 搜索面板 -->
     <div class="music-panel" id="music-panel">
-      <div class="music-panel-title">选择氛围音乐</div>
-      <div class="music-presets" id="music-presets">
-        <button class="music-preset active" data-preset="moonlight">
-          <span class="music-preset-icon">🌙</span>
-          <span class="music-preset-name">温柔月光</span>
-          <span class="music-preset-desc">柔和钢琴</span>
-        </button>
-        <button class="music-preset" data-preset="sweet">
-          <span class="music-preset-icon">🍬</span>
-          <span class="music-preset-name">甜蜜时光</span>
-          <span class="music-preset-desc">轻快明亮</span>
-        </button>
-        <button class="music-preset" data-preset="starry">
-          <span class="music-preset-icon">✨</span>
-          <span class="music-preset-name">静谧星空</span>
-          <span class="music-preset-desc">空灵氛围</span>
-        </button>
-        <button class="music-preset" data-preset="breeze">
-          <span class="music-preset-icon">🌸</span>
-          <span class="music-preset-name">春日微风</span>
-          <span class="music-preset-desc">温暖琶音</span>
-        </button>
+      <div class="music-search-wrap">
+        <svg class="music-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" class="music-search-input" placeholder="搜索歌曲..." autocomplete="off" />
+      </div>
+      <div class="music-panel-body">
+        <div class="music-presets" id="music-presets">
+          <!-- 推荐情歌由 JS 渲染 -->
+        </div>
+        <div class="music-results" id="music-results">
+          <!-- 搜索结果由 JS 渲染 -->
+        </div>
+        <div class="music-status" id="music-status" style="display:none"></div>
       </div>
     </div>
-    <!-- 主控制药丸 -->
-    <button id="music-btn" class="music-btn" aria-label="播放/暂停音乐">
-      <svg class="music-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 控制药丸 -->
+    <button id="music-btn" class="music-btn" aria-label="打开音乐面板">
+      <span class="music-btn-spinner">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="32"><animate attributeName="stroke-dashoffset" values="32;0" dur="1.2s" repeatCount="indefinite" /></circle>
+        </svg>
+      </span>
+      <svg class="music-icon-play" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="5 3 19 12 5 21 5 3" />
       </svg>
-      <svg class="music-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="4" width="4" height="16" />
-        <rect x="14" y="4" width="4" height="16" />
+      <svg class="music-icon-pause" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />
       </svg>
-      <span class="music-btn-label" id="music-btn-label">温柔月光</span>
-      <span class="music-btn-arrow" id="music-btn-arrow" aria-label="切换曲风">
+      <span class="music-btn-label" id="music-btn-label">发现音乐</span>
+      <span class="music-btn-arrow" id="music-btn-arrow" aria-label="展开搜索">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <polyline points="6 9 12 15 18 9" />
         </svg>

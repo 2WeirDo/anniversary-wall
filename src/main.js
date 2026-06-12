@@ -7,7 +7,7 @@ import content from './data/content.json';
 import { WISH_SVG_ICONS } from './data/wish-icons.js';
 import { Carousel, PHOTOS, PHOTO_META, PHOTO_FLIP_TEXTS } from './modules/carousel.js';
 import { Timeline } from './modules/timeline.js';
-import { AudioPlayer } from './modules/audio.js';
+import { MusicPlayer } from './modules/music-player.js';
 import { Particles, FloatingHearts } from './modules/particles.js';
 import { initThemeToggle } from './modules/theme.js';
 import { triggerHeroChars, initHeroParallax } from './modules/hero.js';
@@ -29,7 +29,7 @@ initThemeToggle();
 const entryOverlay = document.getElementById('entry-overlay');
 const entryContent = entryOverlay.querySelector('.entry-content');
 const enterBtn = document.getElementById('enter-btn');
-const audio = new AudioPlayer('music-btn');
+const music = new MusicPlayer('music-player');
 
 // 入场前锁定 body 滚动
 document.body.style.overflow = 'hidden';
@@ -98,8 +98,10 @@ async function handleEnter() {
   if (_entered) return;
   _entered = true;
 
-  // 在用户手势内同步触发 BGM（浏览器自动播放策略要求）
-  audio.play();
+  // 自动播放第一首推荐情歌（如果已缓存）
+  if (music.presetCache.length > 0) {
+    music.playSong(music.presetCache[0]);
+  }
 
   // 显示加载状态
   enterBtn.classList.add('loading');

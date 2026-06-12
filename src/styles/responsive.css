@@ -33,7 +33,7 @@
   .ending-text-large { font-size: clamp(1.5rem, 5vw, 2rem); }
     .music-btn { height: 38px; }
     .music-btn-label { display: none; }
-    .music-panel { width: 200px; }
+    .music-panel { width: 260px; }
   .theme-toggle { top: 16px; left: 16px; width: 44px; height: 44px; }
   .nav-dots { right: 8px; gap: 12px; }
   .dot { width: 7px; height: 7px; }
