@@ -462,18 +462,6 @@
 .music-result-item.loading .music-result-playing-indicator { display: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 推荐标签 */
-.music-result-badge {
-  flex-shrink: 0;
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--color-accent);
-  background: rgba(232, 120, 144, 0.07);
-  padding: 3px 10px;
-  border-radius: 100px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
 
 /* ---- 主控制药丸 ---- */
 .music-btn {
@@ -510,13 +498,29 @@
   outline-offset: 4px;
 }
 
-/* 播放态光晕 */
+/* 播放态 — 粉色光晕呼吸 */
 .music-btn.playing {
-  border-color: rgba(232, 120, 144, 0.5);
+  background: rgba(255, 240, 245, 0.92);
+  border-color: rgba(232, 120, 144, 0.6);
   box-shadow:
-    0 0 0 2px rgba(232, 120, 144, 0.08),
-    0 4px 20px rgba(232, 120, 144, 0.1),
+    0 0 0 3px rgba(232, 120, 144, 0.1),
+    0 4px 24px rgba(232, 120, 144, 0.22),
     0 0 0 1px rgba(255, 255, 255, 0.4);
+  animation: btnGlow 2.4s ease-in-out infinite;
+}
+@keyframes btnGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 3px rgba(232, 120, 144, 0.1),
+      0 4px 24px rgba(232, 120, 144, 0.22),
+      0 0 0 1px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(232, 120, 144, 0.04),
+      0 6px 32px rgba(232, 120, 144, 0.32),
+      0 0 0 1px rgba(255, 255, 255, 0.5);
+  }
 }
 
 /* 加载状态 */
@@ -535,14 +539,24 @@
   display: block;
   color: var(--color-accent);
   flex-shrink: 0;
+  transition: transform 0.25s var(--ease-out);
 }
 .music-icon-pause {
   display: none;
   color: var(--color-accent);
   flex-shrink: 0;
 }
-.music-btn.playing .music-icon-play { display: none; }
-.music-btn.playing .music-icon-pause { display: block; }
+.music-btn.playing .music-icon-play {
+  display: none;
+}
+.music-btn.playing .music-icon-pause {
+  display: block;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
 
 /* 歌名标签 */
 .music-btn-label {
@@ -616,9 +630,6 @@
   color: #D4B8C4;
 }
 [data-theme="dark"] .music-result-title { color: #D8C8D0; }
-[data-theme="dark"] .music-result-badge {
-  background: rgba(232, 152, 168, 0.1);
-}
 [data-theme="dark"] .music-btn {
   background: rgba(22, 16, 30, 0.88);
   border-color: rgba(255, 255, 255, 0.08);
@@ -628,6 +639,10 @@
 }
 [data-theme="dark"] .music-btn:hover {
   border-color: rgba(232, 152, 168, 0.35);
+}
+[data-theme="dark"] .music-btn.playing {
+  background: rgba(40, 20, 30, 0.92);
+  border-color: rgba(232, 120, 144, 0.35);
 }
 [data-theme="dark"] .music-btn-label { color: #C0B4C0; }
 [data-theme="dark"] .music-btn-arrow:hover {

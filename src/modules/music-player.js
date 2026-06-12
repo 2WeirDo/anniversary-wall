@@ -8,16 +8,6 @@ const SEARCH_SOURCE = 'netease';  // 网易云（音频直链可用）
 const AUDIO_QUALITY = '320';
 const SEARCH_COUNT = 15;
 
-/* ======== 推荐情歌预设 ======== */
-const PRESET_QUERIES = [
-  { q: '周杰伦 简单爱 原唱', label: '简单爱', artist: '周杰伦' },
-  { q: '告白气球 周杰伦', label: '告白气球', artist: '周杰伦' },
-  { q: '林俊杰 修炼爱情', label: '修炼爱情', artist: '林俊杰' },
-  { q: '光年之外 G.E.M.', label: '光年之外', artist: 'G.E.M. 邓紫棋' },
-  { q: '依然爱你 王力宏', label: '依然爱你', artist: '王力宏' },
-  { q: '陶喆 爱很简单', label: '爱很简单', artist: '陶喆' },
-];
-
 export class MusicPlayer {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
@@ -30,7 +20,6 @@ export class MusicPlayer {
     this.arrowEl = this.container.querySelector('.music-btn-arrow');
     this.searchInput = this.container.querySelector('.music-search-input');
     this.resultsEl = this.container.querySelector('.music-results');
-    this.presetsEl = this.resultsEl;  // 预设和搜索结果共用同一容器
     this.statusEl = this.container.querySelector('.music-status');
 
     // 状态
@@ -40,8 +29,7 @@ export class MusicPlayer {
     this.currentSong = null;
     this.queue = [];
     this.queueIndex = -1;
-    this.presetCache = [];     // 预设搜索结果缓存
-    this._presetsLoaded = false; // 防止重复加载
+    this._lastSearchResults = [];
     this.searchTimer = null;
     this.audio = null;
 
@@ -82,7 +70,7 @@ export class MusicPlayer {
         clearTimeout(this.searchTimer);
         const q = this.searchInput.value.trim();
         if (!q) {
-          this.showPresets();
+          this.clearResults();
           return;
         }
         this.searchTimer = setTimeout(() => this.doSearch(q), 350);
@@ -90,7 +78,7 @@ export class MusicPlayer {
       this.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           this.searchInput.value = '';
-          this.showPresets();
+          this.clearResults();
           this.searchInput.blur();
         }
       });
@@ -102,11 +90,8 @@ export class MusicPlayer {
         const item = e.target.closest('.music-result-item');
         if (!item) return;
         const idx = Number(item.dataset.index);
-        const songList = this.panelOpen && this.searchInput.value.trim()
-          ? this._lastSearchResults
-          : this.presetCache;
-        if (songList && songList[idx]) {
-          this.playSong(songList[idx]);
+        if (this._lastSearchResults && this._lastSearchResults[idx]) {
+          this.playSong(this._lastSearchResults[idx]);
         }
       });
     }
@@ -117,9 +102,6 @@ export class MusicPlayer {
         this.closePanel();
       }
     });
-
-    // 预设加载
-    this.loadPresets();
   }
 
   /* ======== API 调用 ======== */
@@ -161,18 +143,6 @@ export class MusicPlayer {
     }));
   }
 
-  /** 搜索并自动重试：如果第一次无结果，缩短关键词再试 */
-  async _searchWithRetry(query) {
-    let songs = await this.apiSearch(query);
-    if (songs.length > 0) return songs;
-    // 缩短关键词：去掉最后一个字再试
-    const shorter = query.replace(/\s+\S+$/, '').trim();
-    if (shorter && shorter !== query) {
-      songs = await this.apiSearch(shorter);
-    }
-    return songs;
-  }
-
   async getAudioUrl(song) {
     const params = new URLSearchParams({
       types: 'url',
@@ -197,61 +167,47 @@ export class MusicPlayer {
     return this._apiUrl(params);
   }
 
-  /* ======== 搜索 ======== */
+  /* ======== 搜索（模糊匹配 + 歌手搜索） ======== */
 
   async doSearch(query) {
     if (!query.trim()) return;
     this.showStatus('搜索中...');
     try {
-      const songs = await this._searchWithRetry(query);
-      this._lastSearchResults = songs;
-      if (songs.length === 0) {
+      // 拆分关键词：完整查询 + 每个独立关键词分别搜索
+      const keywords = query.trim().split(/\s+/).filter(k => k.length >= 2);
+      // 去重关键词（避免 "周杰伦 周杰伦" 重复搜）
+      const uniqueKw = [...new Set(keywords)];
+      // 完整查询 + 各关键词并行搜索
+      const queries = [...new Set([query.trim(), ...uniqueKw])];
+
+      const results = await Promise.allSettled(
+        queries.map(q => this.apiSearch(q))
+      );
+
+      // 合并去重（按 id+source 唯一键）
+      const seen = new Set();
+      const merged = [];
+      for (const r of results) {
+        if (r.status !== 'fulfilled' || !Array.isArray(r.value)) continue;
+        for (const song of r.value) {
+          const key = `${song.id}|${song.source}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            merged.push(song);
+          }
+        }
+      }
+
+      this._lastSearchResults = merged;
+      if (merged.length === 0) {
         this.showStatus('未找到歌曲，换个关键词试试');
       } else {
-        this.renderResults(songs);
+        this.renderResults(merged);
       }
     } catch (err) {
       console.warn('搜索出错:', err);
       this.showStatus('搜索失败，请稍后重试');
     }
-  }
-
-  /* ======== 预设加载 ======== */
-
-  async loadPresets() {
-    // 后台预热第一首预设
-    try {
-      const songs = await this._searchWithRetry(PRESET_QUERIES[0].q);
-      if (songs.length > 0 && !this._isDup(songs[0])) {
-        this.presetCache.push(songs[0]);
-      }
-    } catch (e) { /* 静默 */ }
-  }
-
-  async loadAllPresets() {
-    if (this._presetsLoaded) return;
-    this._presetsLoaded = true;
-    // 并行搜索所有预设（每首自动重试）
-    const results = await Promise.allSettled(
-      PRESET_QUERIES.map(p => this._searchWithRetry(p.q))
-    );
-    this.presetCache = []; // 重置，用完整结果覆盖
-    results.forEach((r, i) => {
-      if (r.status === 'fulfilled' && r.value.length > 0) {
-        const target = PRESET_QUERIES[i];
-        const song = r.value.find(s => s.title.includes(target.label)) || r.value[0];
-        this._pushIfNew(song);
-      }
-    });
-    this.renderPresets();
-  }
-
-  _isDup(song) {
-    return this.presetCache.some(s => s.id === song.id && s.source === song.source);
-  }
-
-  _pushIfNew(song) {
-    if (!this._isDup(song)) this.presetCache.push(song);
   }
 
   /* ======== 播放控制 ======== */
@@ -355,9 +311,11 @@ export class MusicPlayer {
     this.panelOpen = true;
     this.panel.classList.add('open');
     this.btn.classList.add('open-arrow');
-    this.showPresets();
-    // 懒加载所有预设
-    this.loadAllPresets();
+    // 清空搜索框和结果，等待用户输入
+    if (this.searchInput) {
+      this.searchInput.value = '';
+    }
+    this.clearResults();
     // 聚焦搜索框
     setTimeout(() => this.searchInput?.focus(), 150);
   }
@@ -371,7 +329,7 @@ export class MusicPlayer {
   /* ======== UI 渲染 ======== */
 
   /** 歌曲行模板 — 纯排版，无图片 */
-  _songRow(song, index, showBadge = false) {
+  _songRow(song, index) {
     const isCurrent = this.currentSong
       && this.currentSong.id === song.id
       && this.currentSong.source === song.source;
@@ -398,21 +356,7 @@ export class MusicPlayer {
           <span class="music-bar"></span>
           <span class="music-bar"></span>
         </div>
-        ${showBadge ? '<span class="music-result-badge">精选</span>' : ''}
       </div>`;
-  }
-
-  /** 渲染预设列表 */
-  renderPresets() {
-    if (!this.resultsEl) return;
-    if (this.presetCache.length === 0) {
-      this.resultsEl.innerHTML = '';
-      return;
-    }
-    this.resultsEl.innerHTML = this.presetCache.map((song, i) =>
-      this._songRow(song, i, true)
-    ).join('');
-    this._staggerIn();
   }
 
   /** 渲染搜索结果 */
@@ -423,6 +367,14 @@ export class MusicPlayer {
       this._songRow(song, i)
     ).join('');
     this._staggerIn();
+  }
+
+  /** 清空结果区 */
+  clearResults() {
+    this._lastSearchResults = [];
+    if (!this.resultsEl) return;
+    this.resultsEl.innerHTML = '';
+    if (this.statusEl) this.statusEl.style.display = 'none';
   }
 
   /** 列表项入场 stagger 动画 */
@@ -466,12 +418,6 @@ export class MusicPlayer {
     } else {
       item.classList.remove('loading');
     }
-  }
-
-  showPresets() {
-    this._lastSearchResults = null;
-    if (this.statusEl) this.statusEl.style.display = 'none';
-    this.renderPresets();
   }
 
   showStatus(msg) {

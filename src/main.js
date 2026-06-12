@@ -98,11 +98,6 @@ async function handleEnter() {
   if (_entered) return;
   _entered = true;
 
-  // 自动播放第一首推荐情歌（如果已缓存）
-  if (music.presetCache.length > 0) {
-    music.playSong(music.presetCache[0]);
-  }
-
   // 显示加载状态
   enterBtn.classList.add('loading');
   enterBtn.querySelector('span').textContent = '加载中...';
