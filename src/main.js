@@ -11,11 +11,8 @@ import { AudioPlayer } from './modules/audio.js';
 import { Particles, FloatingHearts } from './modules/particles.js';
 import { initThemeToggle } from './modules/theme.js';
 import { triggerHeroChars, initHeroParallax } from './modules/hero.js';
-import { initBridgeSparkles, initCarouselSparkles, initPetalRain } from './modules/effects.js';
 import { initScrollReveals } from './modules/scroll-reveals.js';
-import { initCursorTrail } from './modules/cursor-trail.js';
 import { initProgressBar, initBackToTop, initNavDots } from './modules/navigation.js';
-import { initEndingCeremony, initEndingCounterRoll, initLanternButton } from './modules/ending.js';
 import { initPhotoModal } from './modules/modal.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -63,7 +60,7 @@ document.getElementById('carousel-next')?.addEventListener('click', () => carous
 // 恋爱时间线
 const timeline = new Timeline('timeline-container');
 
-// 预加载关键图片（前5张 + 时间线用到的照片）
+// 预加载关键图片（前5张 + 时间线用到的照片 — 使用 -small 缩略图）
 function preloadImages() {
   const toPreload = new Set();
   for (let i = 0; i < Math.min(5, PHOTOS.length); i++) {
@@ -140,6 +137,7 @@ entryOverlay.addEventListener('touchmove', (e) => {
 
 /**
  * 初始化交互与动画（入场后，不影响布局）
+ * 非关键模块使用动态 import() 延迟加载，减少首屏 JS 解析时间
  */
 function initMainContent() {
   carousel.resume();
@@ -147,7 +145,7 @@ function initMainContent() {
   triggerHeroChars();
   initHeroParallax();
 
-  // 浮动粒子
+  // 浮动粒子（首屏关键，静态导入）
   const heroParticles = new Particles('hero-particles', {
     count: 20, types: ['dot', 'heart'],
     minSize: 4, maxSize: 14, minDuration: 10, maxDuration: 25,
@@ -169,22 +167,36 @@ function initMainContent() {
     }, { threshold: 0.1 }).observe(endingSection);
   }
 
-  // 导航 / 滚动
+  // 导航 / 滚动（首屏关键，静态导入）
   initNavDots();
   initScrollReveals();
-
-  // Ending
-  initEndingCeremony();
-  initEndingCounterRoll();
-
-  // 装饰效果
-  initCursorTrail();
   initProgressBar();
   initBackToTop();
-  initLanternButton();
-  initCarouselSparkles();
-  initPetalRain();
-  initBridgeSparkles();
+
+  // 装饰效果 + Ending 模块：懒加载（入场后异步加载，不阻塞交互）
+  Promise.all([
+    import('./modules/effects.js'),
+    import('./modules/ending.js'),
+  ]).then(([effects, ending]) => {
+    effects.initCarouselSparkles();
+    effects.initPetalRain();
+    effects.initBridgeSparkles();
+    ending.initEndingCeremony();
+    ending.initEndingCounterRoll();
+    ending.initLanternButton();
+  });
+
+  // 光标拖尾：首次鼠标移动时才加载（触摸设备跳过）
+  let cursorTrailLoaded = false;
+  document.addEventListener('mousemove', () => {
+    if (!cursorTrailLoaded) {
+      cursorTrailLoaded = true;
+      import('./modules/cursor-trail.js').then(m => m.initCursorTrail());
+    }
+  }, { once: true });
+  document.addEventListener('touchstart', () => {
+    cursorTrailLoaded = true; // 触摸设备跳过
+  }, { once: true });
 }
 
 /* ======== 天数计数器 + 一周年倒计时 ======== */

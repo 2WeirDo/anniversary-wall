@@ -204,7 +204,7 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Caveat', cursive;
+  font-family: var(--font-handwrite);
   font-size: 1.1rem;
   color: var(--color-accent);
   opacity: 0.7;

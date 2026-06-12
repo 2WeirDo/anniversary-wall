@@ -2,14 +2,14 @@
   "name": "Our Love Story — 拖拖 & 多多",
   "short_name": "Love Story",
   "description": "翻开属于我们的故事，每一页都是关于你。",
-  "start_url": "/",
+  "start_url": "/anniversary-wall/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#FEFCFB",
   "theme_color": "#FEFCFB",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/anniversary-wall/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

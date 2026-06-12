@@ -24,8 +24,8 @@
   --font-display: 'Playfair Display', 'Georgia', serif;
   --font-heading: 'Fredoka', 'Nunito', sans-serif;
   --font-body: 'Nunito', sans-serif;
-  --font-script: 'Great Vibes', 'Caveat', cursive;
-  --font-handwrite: 'Caveat', 'Great Vibes', cursive;
+  --font-script: 'Great Vibes', cursive;
+  --font-handwrite: 'Great Vibes', cursive;
 
   --radius-sm: 6px;
   --radius-md: 14px;

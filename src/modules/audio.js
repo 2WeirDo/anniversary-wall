@@ -3,7 +3,6 @@
  * 优先加载本地 FLAC/MP3 文件，文件不存在时自动回退到 Web Audio API 合成
  * 策略：首次用户点击后播放（符合浏览器自动播放策略）
  */
-import gsap from 'gsap';
 
 const BGM_PATHS = [
   `${import.meta.env.BASE_URL}bgm/bgm.flac`,
@@ -94,9 +93,18 @@ export class AudioPlayer {
         this.isPlaying = true;
         this.btn.classList.add('playing');
 
-        // GSAP 平滑淡入
+        // 原生 RAF 平滑淡入（替代 GSAP，减少依赖）
         const targetVol = 0.14;
-        gsap.to(this.audio, { volume: targetVol, duration: 2.4, ease: 'power2.out' });
+        const startVol = this.audio.volume;
+        const fadeStart = performance.now();
+        const fadeDuration = 2400; // ms
+        const fadeStep = (now) => {
+          const t = Math.min((now - fadeStart) / fadeDuration, 1);
+          // ease-out (power2 近似): 1 - (1-t)²
+          this.audio.volume = startVol + (targetVol - startVol) * (1 - (1 - t) * (1 - t));
+          if (t < 1) requestAnimationFrame(fadeStep);
+        };
+        requestAnimationFrame(fadeStep);
 
         return true;
       }
