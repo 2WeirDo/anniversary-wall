@@ -133,12 +133,13 @@ export class MusicPlayer {
     if (this._autoPlayDone || this.currentSong) return;
     this._autoPlayDone = true;
     try {
-      const results = await this.apiSearch('用背脊唱情歌 canon in d');
+      const results = await this.apiSearch('用背脊唱情歌 (canon in d version)');
       if (results.length > 0) {
         await this.playSong(results[0]);
       }
     } catch (e) {
       // 自动播放被浏览器阻止或搜索失败，用户可手动播放
+      console.log(1111)
     }
   }
 
