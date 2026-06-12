@@ -1,6 +1,6 @@
 /* ========================================
-   Ending — 星图 × 剪影小剧场 v2
-   「暮光到星夜」— 暖白沉入深蓝宇宙
+   Ending — 指尖星图 v3
+   「星座拼图」— 狮子座 × 天蝎座 → 汇聚成心
    ======================================== */
 
 /* ---- 区段容器 ---- */
@@ -19,129 +19,164 @@
 }
 
 /* ================================================================
-   剪影舞台
+   星座收集进度指示器
    ================================================================ */
-.silhouette-stage {
-  position: absolute; inset: 0;
-  z-index: 2;
+.star-progress {
+  position: absolute;
+  bottom: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   pointer-events: none;
 }
 
-/* ---- 剪影通用 ---- */
-.silhouette {
-  position: absolute;
-  bottom: 18%;
-  opacity: 0;
-  filter: drop-shadow(0 0 18px rgba(160,140,200,0.15));
-  will-change: transform, opacity;
-  transition: opacity 1.2s ease;
+/* 进度轨道 */
+.star-progress-track {
+  width: 180px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
 }
 
-/* ---- 她 — 左侧 ---- */
-.silhouette-her {
-  left: 50%;
-  transform: translateX(calc(-50% - 130px));
-}
-.silhouette-stage.active .silhouette-her.enter {
-  animation: herEntrance 2.8s cubic-bezier(0.34, 0.6, 0.4, 1) forwards;
-}
-@keyframes herEntrance {
-  0%   { opacity: 0; transform: translateX(calc(-50% - 200px)) scale(0.85); }
-  12%  { opacity: 0.9; transform: translateX(calc(-50% - 130px)) scale(1); }
-  100% { opacity: 0.95; transform: translateX(calc(-50% - 54px)) scale(1); }
+.star-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,
+    rgba(210,180,150,0.6),
+    rgba(248,210,150,0.9),
+    rgba(248,200,140,0.7));
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 8px rgba(248,200,140,0.4);
 }
 
-/* ---- 他 — 右侧 ---- */
-.silhouette-him {
-  left: 50%;
-  transform: translateX(calc(-50% + 70px));
-}
-.silhouette-stage.active .silhouette-him.enter {
-  animation: himEntrance 2.8s cubic-bezier(0.34, 0.6, 0.4, 1) 0.5s forwards;
-}
-@keyframes himEntrance {
-  0%   { opacity: 0; transform: translateX(calc(-50% + 180px)) scale(0.85); }
-  12%  { opacity: 0.9; transform: translateX(calc(-50% + 70px)) scale(1); }
-  100% { opacity: 0.95; transform: translateX(calc(-50% + 26px)) scale(1); }
-}
-
-/* ---- 相遇：微调姿态 ---- */
-.silhouette-stage.meeting .silhouette-her {
-  animation: herMeet 1s ease-out forwards;
-}
-@keyframes herMeet {
-  to { transform: translateX(calc(-50% - 36px)) translateY(-4px); }
-}
-.silhouette-stage.meeting .silhouette-him {
-  animation: himMeet 1s ease-out forwards;
-}
-@keyframes himMeet {
-  to { transform: translateX(calc(-50% + 16px)) translateY(-3px); }
+/* 进度文字 */
+.star-progress-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: rgba(210, 195, 225, 0.65);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  transition: color 0.5s ease;
 }
 
-/* ---- 伸手：他伸手，她微倾 ---- */
-.silhouette-stage.reaching .silhouette-her {
-  animation: herReach 1s ease-out forwards;
-}
-@keyframes herReach {
-  to { transform: translateX(calc(-50% - 28px)) translateY(-5px) rotate(-2deg); }
-}
-.silhouette-stage.reaching .silhouette-him {
-  animation: himReach 1s ease-out forwards;
-}
-@keyframes himReach {
-  to { transform: translateX(calc(-50% + 12px)) translateY(-4px) rotate(2deg); }
-}
-
-/* ---- 拥抱：靠近 + 微光增强 ---- */
-.silhouette-stage.embracing .silhouette-her {
-  animation: herEmbrace 1s ease-out forwards;
-}
-@keyframes herEmbrace {
-  to {
-    transform: translateX(calc(-50% - 12px)) translateY(-6px) rotate(-1deg);
-    filter: drop-shadow(0 0 32px rgba(240,180,200,0.35));
-  }
-}
-.silhouette-stage.embracing .silhouette-him {
-  animation: himEmbrace 1s ease-out forwards;
-}
-@keyframes himEmbrace {
-  to {
-    transform: translateX(calc(-50% + 6px)) translateY(-5px) rotate(1deg);
-    filter: drop-shadow(0 0 28px rgba(180,200,240,0.3));
-  }
-}
-
-/* ---- 融合：心形亮起 ---- */
-.silhouette-stage.merged .silhouette {
-  filter: drop-shadow(0 0 40px rgba(248,200,140,0.45));
-  transition: filter 1.5s ease;
+.star-progress-label svg {
+  flex-shrink: 0;
+  color: rgba(210, 180, 150, 0.5);
+  transition: color 0.5s ease;
 }
 
 /* ================================================================
-   心形光点（拥抱后出现）
+   爱心揭示层（全部点亮后）
    ================================================================ */
-.constellation-heart {
+.heart-reveal {
   position: absolute;
-  bottom: 26%;
+  bottom: 24%;
   left: 50%;
-  transform: translate(-50%, 0) scale(0.6);
+  transform: translate(-50%, 0) scale(0.5);
   z-index: 3;
   opacity: 0;
-  transition: opacity 1.5s ease, transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  transition: opacity 1.2s ease, transform 1.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.silhouette-stage.merged .constellation-heart {
+
+.heart-reveal.visible {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
-  animation: heartBeatSlow 3s ease-in-out infinite;
+  animation: heartBeat 3s ease-in-out infinite;
 }
-@keyframes heartBeatSlow {
+
+@keyframes heartBeat {
   0%, 100% { transform: translate(-50%, 0) scale(1); }
-  15% { transform: translate(-50%, 0) scale(1.2); }
-  30% { transform: translate(-50%, 0) scale(1); }
-  45% { transform: translate(-50%, 0) scale(1.08); }
-  60% { transform: translate(-50%, 0) scale(1); }
+  14% { transform: translate(-50%, 0) scale(1.15); }
+  28% { transform: translate(-50%, 0) scale(1); }
+  42% { transform: translate(-50%, 0) scale(1.06); }
+  56% { transform: translate(-50%, 0) scale(1); }
+}
+
+/* 爱心外发光 */
+.heart-reveal-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(ellipse,
+    rgba(248,200,140,0.2) 0%,
+    rgba(240,180,140,0.08) 40%,
+    transparent 70%);
+  border-radius: 50%;
+  animation: heartGlowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes heartGlowPulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* 爱心 SVG */
+.heart-reveal-svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 28px rgba(248,200,140,0.35));
+}
+
+/* 外轮廓 — 呼吸光晕 */
+.heart-outer {
+  opacity: 0;
+  transition: opacity 0.8s ease 0.5s;
+}
+.heart-reveal.visible .heart-outer {
+  opacity: 1;
+  animation: outerPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes outerPulse {
+  0%, 100% {
+    stroke: rgba(248,200,140,0.25);
+    stroke-width: 2.5;
+  }
+  50% {
+    stroke: rgba(248,200,140,0.5);
+    stroke-width: 3.5;
+  }
+}
+
+/* 实心填充 — 延迟出现 */
+.heart-fill {
+  opacity: 0;
+  transition: opacity 1.2s ease 0.8s;
+}
+.heart-reveal.visible .heart-fill {
+  opacity: 1;
+}
+
+/* 高光点 — 依次闪烁 */
+.heart-spark {
+  transition: opacity 0.6s ease;
+}
+.heart-reveal.visible .heart-spark.s1 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 0.9s infinite; }
+.heart-reveal.visible .heart-spark.s2 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.2s infinite; }
+.heart-reveal.visible .heart-spark.s3 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.0s infinite; }
+.heart-reveal.visible .heart-spark.s4 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.4s infinite; }
+.heart-reveal.visible .heart-spark.s5 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.1s infinite; }
+.heart-reveal.visible .heart-spark.s6 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.3s infinite; }
+.heart-reveal.visible .heart-spark.s7 { opacity: 0; animation: sparkFlicker 2.8s ease-in-out 1.5s infinite; }
+
+@keyframes sparkFlicker {
+  0%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
+  60% { opacity: 0.3; }
+  85% { opacity: 0.9; }
 }
 
 /* ================================================================
@@ -153,9 +188,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 58vh;
+  padding-top: 62vh;
   animation: contentIn 1.5s var(--ease-out);
 }
+
 @keyframes contentIn {
   0% { opacity: 0; transform: translateY(30px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -182,6 +218,7 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
+
 .lantern-cosmic::before {
   content: '';
   position: absolute;
@@ -191,10 +228,12 @@
   animation: ringPulse 2.8s ease-in-out infinite;
   pointer-events: none;
 }
+
 @keyframes ringPulse {
   0%, 100% { inset: -6px; opacity: 0.3; border-color: rgba(210, 180, 150, 0.12); }
   50% { inset: -15px; opacity: 0; border-color: rgba(210, 180, 150, 0.03); }
 }
+
 .lantern-cosmic::after {
   content: '';
   position: absolute;
@@ -204,6 +243,7 @@
   animation: ringPulse 2.8s ease-in-out 1s infinite;
   pointer-events: none;
 }
+
 .lantern-cosmic:hover {
   background: rgba(30, 18, 52, 0.72);
   border-color: rgba(248, 210, 150, 0.45);
@@ -211,10 +251,12 @@
   box-shadow: 0 0 48px rgba(200, 160, 100, 0.18);
   transform: translateY(-2px);
 }
+
 .lantern-cosmic:hover::before {
   animation-duration: 1.4s;
   border-color: rgba(248, 210, 150, 0.3);
 }
+
 .lantern-btn-icon {
   display: inline-flex;
   align-items: center;
@@ -231,6 +273,7 @@
   pointer-events: none;
   animation: lanternRise 8s ease-out forwards;
 }
+
 .lantern-body {
   width: 40px; height: 56px;
   background: radial-gradient(ellipse at 50% 30%, rgba(255,210,140,0.9), rgba(255,160,80,0.7) 60%, rgba(220,120,60,0.5) 100%);
@@ -238,18 +281,21 @@
   box-shadow: 0 0 30px rgba(255,180,100,0.5), 0 0 60px rgba(255,150,80,0.25), inset 0 -8px 16px rgba(200,100,40,0.3);
   position: relative; margin: 0 auto;
 }
+
 .lantern-body::before {
   content: ''; position: absolute;
   top: -6px; left: 50%; transform: translateX(-50%);
   width: 16px; height: 6px;
   background: rgba(180,120,60,0.7); border-radius: 4px 4px 0 0;
 }
+
 .lantern-body::after {
   content: ''; position: absolute;
   bottom: -4px; left: 50%; transform: translateX(-50%);
   width: 14px; height: 4px;
   background: rgba(180,120,60,0.5); border-radius: 0 0 4px 4px;
 }
+
 .lantern-glow {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
   width: 80px; height: 100px;
@@ -257,16 +303,19 @@
   border-radius: 50%;
   animation: lanternGlow 2s ease-in-out infinite;
 }
+
 @keyframes lanternRise {
   0% { transform: translateY(0) scale(0.6); opacity: 0; }
   10% { opacity: 1; transform: translateY(-10vh) scale(1); }
   80% { opacity: 0.8; }
   100% { transform: translateY(-110vh) scale(0.5); opacity: 0; }
 }
+
 @keyframes lanternGlow {
   0%,100% { opacity: 0.5; transform: translate(-50%,-50%) scale(0.9); }
   50% { opacity: 1; transform: translate(-50%,-50%) scale(1.15); }
 }
+
 @keyframes lanternDrift1 {
   0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
   10% { opacity: 1; transform: translateY(-10vh) scale(1); }
@@ -274,6 +323,7 @@
   80% { opacity: 0.6; transform: translateY(-85vh) translateX(-15px) scale(0.7); }
   100% { opacity: 0; transform: translateY(-110vh) translateX(10px) scale(0.4); }
 }
+
 @keyframes lanternDrift2 {
   0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
   10% { opacity: 1; transform: translateY(-10vh) scale(1); }
@@ -281,6 +331,7 @@
   80% { opacity: 0.6; transform: translateY(-85vh) translateX(12px) scale(0.7); }
   100% { opacity: 0; transform: translateY(-110vh) translateX(-8px) scale(0.4); }
 }
+
 @keyframes lanternDrift3 {
   0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
   10% { opacity: 1; transform: translateY(-10vh) scale(1); }
@@ -295,18 +346,21 @@
 .ending-particles {
   position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 3;
 }
+
 .floating-heart {
   position: absolute; pointer-events: none;
   animation: floatUp linear forwards;
   font-size: 22px;
   filter: drop-shadow(0 2px 6px rgba(240,200,150,0.25));
 }
+
 @keyframes floatUp {
   0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
   8% { opacity: 0.8; }
   70% { opacity: 0.6; }
   100% { transform: translateY(-500px) scale(1.3) rotate(30deg); opacity: 0; }
 }
+
 @keyframes heartbeat {
   0%,100% { transform: scale(1); }
   14% { transform: scale(1.18); }
@@ -319,21 +373,18 @@
    响应式
    ================================================================ */
 @media (max-width: 768px) {
-  .silhouette { width: 48px; height: 96px; bottom: 22%; }
-  @keyframes herEntrance {
-    0%   { opacity: 0; transform: translateX(calc(-50% - 160px)) scale(0.85); }
-    15%  { opacity: 0.85; transform: translateX(calc(-50% - 100px)) scale(1); }
-    100% { opacity: 0.9; transform: translateX(calc(-50% - 42px)) scale(1); }
-  }
-  @keyframes himEntrance {
-    0%   { opacity: 0; transform: translateX(calc(-50% + 140px)) scale(0.85); }
-    15%  { opacity: 0.85; transform: translateX(calc(-50% + 50px)) scale(1); }
-    100% { opacity: 0.9; transform: translateX(calc(-50% + 18px)) scale(1); }
-  }
-  .ending-content { padding-top: 48vh; }
+  .star-progress { bottom: 30%; }
+  .star-progress-track { width: 140px; }
+  .star-progress-label { font-size: 0.72rem; }
+  .heart-reveal { bottom: 20%; }
+  .heart-reveal-svg { width: 130px; height: 117px; }
+  .ending-content { padding-top: 50vh; }
 }
 
 @media (max-width: 480px) {
-  .silhouette { width: 38px; height: 76px; bottom: 24%; }
-  .ending-content { padding-top: 44vh; }
+  .star-progress { bottom: 28%; }
+  .star-progress-track { width: 120px; }
+  .star-progress-label { font-size: 0.68rem; }
+  .heart-reveal-svg { width: 110px; height: 99px; }
+  .ending-content { padding-top: 46vh; }
 }

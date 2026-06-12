@@ -290,62 +290,56 @@
       <div class="wishes-fade" aria-hidden="true"></div>
     </section>
 
-    <!-- ====== 板块5: 结尾 — 星图 × 剪影小剧场 ====== -->
+    <!-- ====== 板块5: 结尾 — 指尖星图 × 星座收集 ====== -->
     <section id="ending" class="section ending ending-cosmic" data-section="4">
       <!-- 星空画布 -->
       <canvas class="star-canvas" aria-hidden="true"></canvas>
 
-      <!-- 剪影舞台 -->
-      <div class="silhouette-stage" id="silhouette-stage" aria-hidden="true">
-        <!-- 她的剪影（左侧入场）— 长发 + 裙摆 -->
-        <svg class="silhouette silhouette-her" viewBox="0 0 72 140" width="72" height="140" aria-hidden="true">
-          <defs>
-            <filter id="sil-glow-her">
-              <feGaussianBlur stdDeviation="2.5" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <g filter="url(#sil-glow-her)" fill="#0a0818">
-            <!-- 长发 -->
-            <path d="M22 8 Q18 4 30 2 Q42 0 48 10 L50 28 Q38 22 28 26 Z"/>
-            <!-- 头 -->
-            <ellipse cx="36" cy="18" rx="11" ry="13"/>
-            <!-- 颈 + 身 + 裙 -->
-            <path d="M28 32 Q26 48 24 60 L22 80 Q20 100 18 120 L30 128 L36 100 L42 128 L54 120 Q52 100 50 80 L48 60 Q46 48 44 32 Z"/>
-            <!-- 手臂微伸 -->
-            <path d="M44 42 Q54 46 56 60 Q56 66 52 66"/>
-            <!-- 发丝细节 -->
-            <path d="M26 10 Q24 20 26 30" opacity="0.4" stroke="#0a0818" stroke-width="2" fill="none"/>
-          </g>
-        </svg>
-
-        <!-- 他的剪影（右侧入场）— 宽肩 + 伸手 -->
-        <svg class="silhouette silhouette-him" viewBox="0 0 72 140" width="72" height="140" aria-hidden="true">
-          <defs>
-            <filter id="sil-glow-him">
-              <feGaussianBlur stdDeviation="2.5" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <g filter="url(#sil-glow-him)" fill="#0a0818">
-            <!-- 头 -->
-            <ellipse cx="36" cy="18" rx="12" ry="13"/>
-            <!-- 颈 + 肩 + 身 -->
-            <path d="M28 30 L24 36 Q20 50 21 62 L20 88 L18 120 L28 128 L28 88 L44 88 L44 128 L54 120 L52 88 L51 62 Q52 50 48 36 L44 30 Z"/>
-            <!-- 腿部分界线 -->
-            <path d="M28 90 L32 120" opacity="0.3" stroke="#0a0818" stroke-width="1.5" fill="none"/>
-            <!-- 伸出的手臂 -->
-            <path d="M28 44 Q20 48 16 60 Q14 68 18 70"/>
-          </g>
-        </svg>
-
-        <!-- 相遇后出现的心形光点 -->
-        <div class="constellation-heart" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="36" height="36">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                  fill="none" stroke="#f0c870" stroke-width="0.8" opacity="0"/>
-          </svg>
+      <!-- 星座收集进度 -->
+      <div class="star-progress" id="star-progress" aria-live="polite">
+        <div class="star-progress-track">
+          <div class="star-progress-fill" id="star-progress-fill"></div>
         </div>
+        <span class="star-progress-label" id="star-progress-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span>轻划星空，点亮星座</span>
+        </span>
+      </div>
+
+      <!-- 爱心揭示层（全部点亮后出现） -->
+      <div class="heart-reveal" id="heart-reveal" aria-hidden="true">
+        <div class="heart-reveal-glow"></div>
+        <svg class="heart-reveal-svg" viewBox="0 0 200 180" width="180" height="162">
+          <defs>
+            <radialGradient id="heart-gold" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#fff8e0"/>
+              <stop offset="25%" stop-color="#f5d580"/>
+              <stop offset="55%" stop-color="#e8b860"/>
+              <stop offset="80%" stop-color="#d49870"/>
+              <stop offset="100%" stop-color="#b87080"/>
+            </radialGradient>
+            <filter id="heart-glow">
+              <feGaussianBlur stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- 光晕后层 -->
+          <path class="heart-outer" d="M100 168 C42 140 8 100 8 58 C8 24 34 4 62 4 C78 4 92 12 100 26 C108 12 122 4 138 4 C166 4 192 24 192 58 C192 100 158 140 100 168Z"
+                fill="none" stroke="rgba(248,200,140,0.35)" stroke-width="2.5"/>
+          <!-- 实心主体 -->
+          <path class="heart-fill" d="M100 162 C45 135 12 97 12 58 C12 26 36 8 62 8 C78 8 92 16 100 30 C108 16 122 8 138 8 C164 8 188 26 188 58 C188 97 155 135 100 162Z"
+                fill="url(#heart-gold)" filter="url(#heart-glow)" opacity="0"/>
+          <!-- 高光点 -->
+          <circle class="heart-spark s1" cx="80" cy="55" r="3" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s2" cx="110" cy="42" r="2.5" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s3" cx="130" cy="70" r="3.5" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s4" cx="68" cy="80" r="2" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s5" cx="100" cy="95" r="3" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s6" cx="145" cy="95" r="2.5" fill="#fff" opacity="0"/>
+          <circle class="heart-spark s7" cx="55" cy="105" r="2" fill="#fff" opacity="0"/>
+        </svg>
       </div>
 
       <!-- 内容覆盖层 -->
