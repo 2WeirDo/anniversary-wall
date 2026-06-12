@@ -305,14 +305,10 @@
     max-width: 100%;
     padding: 0 1rem;
   }
-  /* 中轴移到左侧 */
-  .timeline-line {
-    left: 28px;
-    transform: none;
-  }
+  /* 中轴隐藏 */
+  .timeline-line,
   .timeline-line-glow {
-    left: 28px;
-    transform: none;
+    display: none;
   }
   /* 卡片全宽，不做左右交替 */
   .timeline-card-inner,
