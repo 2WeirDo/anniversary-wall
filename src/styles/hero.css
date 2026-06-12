@@ -118,16 +118,6 @@
   font-weight: 400;
 }
 
-.scroll-indicator {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  opacity: 0.6;
-}
-.scroll-indicator span {
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-text-light);
-}
 .scroll-arrow {
   color: var(--color-accent);
   animation: bounceDown 2s ease-in-out infinite;
