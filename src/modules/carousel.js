@@ -276,8 +276,8 @@ export class Carousel {
     if (inWindow && !el._imageLoaded) {
       this._loadCardImage(el);
     }
-    // active 卡片预加载大图，弹窗瞬间打开
-    if (c.isActive) {
+    // 附近卡片预加载大图（±3 偏移内共 7 张），确保点击弹窗时大图已就绪
+    if (inWindow && Math.abs(offset) <= 3) {
       const idx = parseInt(el.getAttribute('data-index'));
       if (!this._preloaded.has(idx)) {
         this._preloaded.add(idx);

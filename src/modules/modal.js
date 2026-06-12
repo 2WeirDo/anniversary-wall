@@ -26,13 +26,29 @@ export function initPhotoModal(getCarousel) {
     const photoFilename = PHOTOS[index];
     const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
 
-    modalPhoto.srcset = `${import.meta.env.BASE_URL}photos-optimized/${base}-medium.webp 800w, ${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp 1200w, ${import.meta.env.BASE_URL}photos-optimized/${base}.webp 1600w`;
-    modalPhoto.sizes = '(max-width: 600px) 100vw, (max-width: 1200px) 80vw, 1200px';
-    modalPhoto.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp`;
+    const smallSrc = `${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp`;
+    const largeSrc = `${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp`;
+    const fullSrcset = `${import.meta.env.BASE_URL}photos-optimized/${base}-medium.webp 800w, ${largeSrc} 1200w, ${import.meta.env.BASE_URL}photos-optimized/${base}.webp 1600w`;
+
+    // 立即显示已缓存的小图（轮播中已加载），同时后台加载大图
+    modalPhoto.src = smallSrc;
+    modalPhoto.removeAttribute('srcset');
     modalPhoto.alt = meta.story || `照片 ${index + 1}`;
-    modalPhoto.onerror = function () {
-      this.onerror = null;
+    modalPhoto.onerror = function () { this.onerror = null; };
+
+    // 大图加载完成后无缝替换
+    const loader = new Image();
+    loader.onload = () => {
+      modalPhoto.src = largeSrc;
+      modalPhoto.srcset = fullSrcset;
+      modalPhoto.sizes = '(max-width: 600px) 100vw, (max-width: 1200px) 80vw, 1200px';
     };
+    loader.onerror = () => {
+      // 大图失败保留小图，仍设 srcset 让浏览器尝试其他分辨率
+      modalPhoto.srcset = fullSrcset;
+      modalPhoto.sizes = '(max-width: 600px) 100vw, (max-width: 1200px) 80vw, 1200px';
+    };
+    loader.src = largeSrc;
     modalDate.textContent = meta.date;
     modalStory.textContent = meta.story;
     modalCounter.textContent = `${index + 1} / ${PHOTO_META.length}`;
