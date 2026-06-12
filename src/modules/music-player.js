@@ -30,7 +30,7 @@ export class MusicPlayer {
     this.arrowEl = this.container.querySelector('.music-btn-arrow');
     this.searchInput = this.container.querySelector('.music-search-input');
     this.resultsEl = this.container.querySelector('.music-results');
-    this.presetsEl = this.container.querySelector('.music-presets');
+    this.presetsEl = this.resultsEl;  // 预设和搜索结果共用同一容器
     this.statusEl = this.container.querySelector('.music-status');
 
     // 状态
