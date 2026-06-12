@@ -687,16 +687,16 @@ body::after {
   touch-action: manipulation;
   position: relative;
 }
-/* 扩大触摸区域到 44×44px */
+/* 扩大触摸区域，保持视觉低调 */
 .dot::after {
   content: '';
   position: absolute;
-  inset: -18px;  /* 8 + 18*2 = 44px touch area */
+  inset: -8px;  /* 8 + 8*2 = 24px touch area */
   border-radius: 50%;
   border: 1.5px solid transparent;
   transition: border-color 0.4s;
 }
-/* hover 时显示板块名称标签 */
+/* 仅 hover 时显示板块名称标签，active 时隐藏 */
 .dot::before {
   content: attr(data-label);
   position: absolute;
@@ -712,8 +712,7 @@ body::after {
   transition: opacity 0.3s, transform 0.3s;
   pointer-events: none;
 }
-.dot:hover::before,
-.dot.active::before {
+.dot:hover::before {
   opacity: 0.85;
   transform: translateY(-50%) translateX(-4px);
 }
@@ -733,8 +732,8 @@ body::after {
   50% { box-shadow: 0 0 22px rgba(232, 120, 144, 0.65), 0 0 36px rgba(232, 120, 144, 0.15); }
 }
 @keyframes dotRipple {
-  0%, 100% { border-color: rgba(242, 196, 206, 0.3); inset: -18px; }
-  50% { border-color: rgba(232, 120, 144, 0.15); inset: -22px; }
+  0%, 100% { border-color: rgba(242, 196, 206, 0.3); inset: -8px; }
+  50% { border-color: rgba(232, 120, 144, 0.15); inset: -11px; }
 }
 .dot:hover { opacity: 0.7; }
 .dot:focus-visible {
