@@ -146,7 +146,7 @@ entryOverlay.addEventListener('touchmove', (e) => {
  * 初始化交互与动画（入场后，不影响布局）
  * 非关键模块使用动态 import() 延迟加载，减少首屏 JS 解析时间
  */
-function initMainContent() {
+async function initMainContent() {
   carousel.resume();
 
   triggerHeroChars();
@@ -181,6 +181,9 @@ function initMainContent() {
   initBackToTop();
 
   // 装饰效果 + Ending 模块：懒加载（入场后异步加载，不阻塞交互）
+  // 星图小剧场（同步初始化，利用入场遮罩窗口预渲染）
+  const starTheater = new (await import('./modules/star-theater.js')).StarTheater('ending');
+
   Promise.all([
     import('./modules/effects.js'),
     import('./modules/ending.js'),

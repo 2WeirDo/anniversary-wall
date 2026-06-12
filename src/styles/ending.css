@@ -1,20 +1,159 @@
 /* ========================================
-   Ending Section
+   Ending — 星图 × 剪影小剧场
    ======================================== */
-.ending {
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 30% 70%, rgba(232, 120, 144, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-bg-pink) 0%, var(--color-cream) 50%, var(--color-bg) 100%);
+.ending-cosmic {
+  position: relative;
+  background: radial-gradient(ellipse 60% 50% at 50% 35%, #1a1530 0%, #0c0a1a 50%, #060412 100%);
+  overflow: hidden;
   text-align: center;
 }
 
-.ending-particles {
-  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+/* ---- 星空画布 ---- */
+.star-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
+/* ---- 剪影舞台 ---- */
+.silhouette-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- 剪影通用 ---- */
+.silhouette {
+  position: absolute;
+  bottom: 22%;
+  fill: #0a0818;
+  stroke: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 12px rgba(180, 160, 220, 0.15));
+  transition: opacity 1s ease;
+  will-change: transform, opacity;
+}
+
+/* ---- 她：从左侧入场 ---- */
+.silhouette-her {
+  left: 50%;
+  transform: translateX(calc(-50% - 120px)) translateY(0);
+}
+.silhouette-her.enter {
+  opacity: 1;
+  animation: herWalk 2.8s cubic-bezier(0.34, 0.62, 0.45, 1) forwards;
+}
+@keyframes herWalk {
+  0% {
+    transform: translateX(calc(-50% - 160px)) translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(calc(-50% - 120px)) translateY(-2px);
+  }
+  25% {
+    transform: translateX(calc(-50% - 90px)) translateY(0);
+  }
+  50% {
+    transform: translateX(calc(-50% - 44px)) translateY(-1px);
+  }
+  75% {
+    transform: translateX(calc(-50% - 28px)) translateY(0);
+  }
+  100% {
+    transform: translateX(calc(-50% - 18px)) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---- 他：从右侧入场 ---- */
+.silhouette-him {
+  left: 50%;
+  transform: translateX(calc(-50% + 80px)) translateY(0);
+}
+.silhouette-him.enter {
+  opacity: 1;
+  animation: himWalk 2.8s cubic-bezier(0.34, 0.62, 0.45, 1) 0.5s forwards;
+}
+@keyframes himWalk {
+  0% {
+    transform: translateX(calc(-50% + 140px)) translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(calc(-50% + 100px)) translateY(-2px);
+  }
+  25% {
+    transform: translateX(calc(-50% + 70px)) translateY(0);
+  }
+  50% {
+    transform: translateX(calc(-50% + 32px)) translateY(-1px);
+  }
+  75% {
+    transform: translateX(calc(-50% + 18px)) translateY(0);
+  }
+  100% {
+    transform: translateX(calc(-50% + 10px)) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ---- 相遇阶段：剪影靠近 + 心形浮现 ---- */
+.silhouette-stage.meeting .silhouette-her {
+  animation: herLean 1.2s ease-out forwards;
+}
+@keyframes herLean {
+  to { transform: translateX(calc(-50% - 12px)) translateY(-3px); }
+}
+.silhouette-stage.meeting .silhouette-him {
+  animation: himLean 1.2s ease-out forwards;
+}
+@keyframes himLean {
+  to { transform: translateX(calc(-50% + 6px)) translateY(-2px); }
+}
+
+/* ---- 连接阶段：心形出现 ---- */
+.constellation-heart {
+  position: absolute;
+  bottom: 28%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.silhouette-stage.connected .constellation-heart {
+  opacity: 1;
+  animation: heartBeat 2s ease-in-out infinite;
+}
+.silhouette-stage.connected .constellation-heart svg path {
+  opacity: 0.65;
+  filter: drop-shadow(0 0 6px rgba(240, 200, 120, 0.5));
+}
+@keyframes heartBeat {
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  14% { transform: translate(-50%, 0) scale(1.22); }
+  28% { transform: translate(-50%, 0) scale(1); }
+  42% { transform: translate(-50%, 0) scale(1.1); }
+  56% { transform: translate(-50%, 0) scale(1); }
+}
+
+/* ---- 内容覆盖层 ---- */
 .ending-content {
-  position: relative; z-index: 1;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 55vh;
   animation: endingReveal 1.5s var(--ease-out);
 }
 @keyframes endingReveal {
@@ -22,99 +161,16 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.ending-heart {
-  margin-bottom: 2rem;
-  color: var(--color-accent);
-  animation: heartbeat 2s ease-in-out infinite;
-  filter: drop-shadow(0 8px 24px rgba(232, 120, 144, 0.2));
-}
-.ending-heart svg {
-  width: clamp(60px, 10vw, 80px);
-  height: auto;
-}
-
-.ending-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.4rem, 6vw, 4rem);
-  font-weight: 400;
-  color: var(--color-accent-deep);
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.04em;
-  animation: endingTitleIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes endingTitleIn {
-  0% { filter: blur(12px); opacity: 0; transform: scale(1.08); letter-spacing: 0.2em; }
-  60% { filter: blur(0px); opacity: 1; }
-  100% { filter: blur(0px); opacity: 1; transform: scale(1); letter-spacing: 0.04em; }
-}
-
-.ending-text {
-  font-family: var(--font-body);
-  font-size: clamp(1rem, 2vw, 1.2rem);
-  color: var(--color-text);
-  margin-bottom: 0.4rem;
-  font-weight: 300;
-}
-
-.ending-days {
-  font-family: var(--font-body);
-  font-size: 1.1rem;
-  color: var(--color-text-light);
-  margin-bottom: 0.2rem;
-  letter-spacing: 0.05em;
-}
-.ending-days-counter {
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 7vw, 5rem);
-  color: var(--color-accent-deep);
-  font-weight: 500;
-  line-height: 1;
-  margin-bottom: 0.1rem;
-  font-feature-settings: "tnum";
-  animation: counterReveal 1s var(--ease-spring) 0.6s both;
-  text-shadow: 0 0 60px rgba(232, 120, 144, 0.15);
-}
-@keyframes counterReveal {
-  0% { transform: scale(1.25); opacity: 0; filter: blur(4px); }
-  100% { transform: scale(1); opacity: 1; filter: blur(0); }
-}
-.ending-days-label {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  color: var(--color-accent);
-  font-style: italic;
-  margin-bottom: 2rem;
-}
-
-.ending-text-large {
-  font-family: var(--font-script);
-  font-size: clamp(2rem, 5vw, 3.2rem);
-  color: var(--color-accent);
-  margin-top: 0.5rem;
-  line-height: 1.3;
-}
-
-.ending-sign {
-  margin-top: 3rem;
-  color: var(--color-accent);
-  opacity: 0.5;
-  animation: heartbeat 2.5s ease-in-out infinite;
-}
-.ending-sign svg {
-  width: 32px;
-  height: auto;
-}
-
-/* ---- 放飞天灯按钮 ---- */
-.lantern-btn {
+/* ---- 宇宙天灯按钮 ---- */
+.lantern-cosmic {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding: 0.7rem 2rem;
-  background: transparent;
-  color: var(--color-accent);
-  border: 1px solid var(--color-border);
+  background: rgba(20, 15, 40, 0.5);
+  color: #c8b8d0;
+  border: 1px solid rgba(180, 160, 200, 0.2);
   border-radius: var(--radius-full);
   font-family: var(--font-body);
   font-size: 0.95rem;
@@ -123,39 +179,32 @@
   transition: all 0.4s var(--ease-out);
   position: relative;
   z-index: 10;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
-/* 光晕脉动环 */
-.lantern-btn::before {
+.lantern-cosmic::before {
   content: '';
   position: absolute;
   inset: -6px;
   border-radius: var(--radius-full);
-  border: 1.5px solid rgba(232, 120, 144, 0.2);
+  border: 1.5px solid rgba(200, 170, 140, 0.15);
   animation: lanternRingPulse 2.5s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes lanternRingPulse {
-  0%, 100% { inset: -6px; opacity: 0.3; border-color: rgba(232, 120, 144, 0.15); }
-  50% { inset: -14px; opacity: 0; border-color: rgba(232, 120, 144, 0.05); }
+  0%, 100% { inset: -6px; opacity: 0.3; border-color: rgba(200, 170, 140, 0.12); }
+  50% { inset: -14px; opacity: 0; border-color: rgba(200, 170, 140, 0.03); }
 }
-.lantern-btn::after {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(201, 168, 140, 0.15);
-  animation: lanternRingPulse 2.5s ease-in-out 0.8s infinite;
-  pointer-events: none;
-}
-.lantern-btn:hover {
-  background: rgba(254, 240, 243, 0.5);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 32px rgba(232, 120, 144, 0.15);
+.lantern-cosmic:hover {
+  background: rgba(30, 20, 50, 0.7);
+  border-color: rgba(240, 200, 140, 0.45);
+  color: #f0d890;
+  box-shadow: 0 0 40px rgba(200, 160, 100, 0.15);
   transform: translateY(-1px);
 }
-.lantern-btn:hover::before {
+.lantern-cosmic:hover::before {
   animation-duration: 1.2s;
-  border-color: rgba(232, 120, 144, 0.35);
+  border-color: rgba(240, 200, 140, 0.3);
 }
 .lantern-btn-icon {
   display: inline-flex;
@@ -224,7 +273,7 @@
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
 }
 
-/* 天灯飘移变体（3 组预定义，JS 随机选用，避免动态注入 <style>） */
+/* 天灯飘移变体 */
 @keyframes lanternDrift1 {
   0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
   10% { opacity: 1; transform: translateY(-10vh) scale(1); }
@@ -247,6 +296,28 @@
   100% { opacity: 0; transform: translateY(-110vh) translateX(5px) scale(0.4); }
 }
 
+/* ---- 其他保留样式 ---- */
+.ending-particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 3;
+}
+.ending-heart {
+  margin-bottom: 2rem;
+  color: var(--color-accent);
+  animation: heartbeat 2s ease-in-out infinite;
+  filter: drop-shadow(0 8px 24px rgba(232, 120, 144, 0.2));
+}
+.floating-heart {
+  position: absolute; pointer-events: none;
+  animation: floatUp linear forwards;
+  font-size: 22px;
+  filter: drop-shadow(0 2px 4px rgba(240, 200, 150, 0.2));
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
+  8% { opacity: 0.8; }
+  70% { opacity: 0.6; }
+  100% { transform: translateY(-500px) scale(1.3) rotate(30deg); opacity: 0; }
+}
 @keyframes heartbeat {
   0%, 100% { transform: scale(1); }
   14% { transform: scale(1.18); }
@@ -255,17 +326,84 @@
   56% { transform: scale(1); }
 }
 
-.floating-heart {
-  position: absolute; pointer-events: none;
-  animation: floatUp linear forwards;
-  font-size: 22px;
-  filter: drop-shadow(0 2px 4px rgba(232, 120, 144, 0.15));
+/* ---- 响应式 ---- */
+@media (max-width: 768px) {
+  .silhouette {
+    width: 48px;
+    height: 96px;
+    bottom: 24%;
+  }
+  .silhouette-her.enter {
+    animation: herWalkMobile 2.6s cubic-bezier(0.34, 0.62, 0.45, 1) forwards;
+  }
+  @keyframes herWalkMobile {
+    0% {
+      transform: translateX(calc(-50% - 130px)) translateY(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+      transform: translateX(calc(-50% - 80px)) translateY(0);
+    }
+    100% {
+      transform: translateX(calc(-50% - 16px)) translateY(0);
+      opacity: 1;
+    }
+  }
+  .silhouette-him.enter {
+    animation: himWalkMobile 2.6s cubic-bezier(0.34, 0.62, 0.45, 1) 0.5s forwards;
+  }
+  @keyframes himWalkMobile {
+    0% {
+      transform: translateX(calc(-50% + 100px)) translateY(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+      transform: translateX(calc(-50% + 60px)) translateY(0);
+    }
+    100% {
+      transform: translateX(calc(-50% + 8px)) translateY(0);
+      opacity: 1;
+    }
+  }
+  .ending-content {
+    padding-top: 50vh;
+  }
 }
 
-@keyframes floatUp {
-  0% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
-  8% { opacity: 0.8; }
-  70% { opacity: 0.6; }
-  100% { transform: translateY(-500px) scale(1.3) rotate(30deg); opacity: 0; }
+@media (max-width: 480px) {
+  .silhouette {
+    width: 40px;
+    height: 80px;
+    bottom: 26%;
+  }
+  @keyframes herWalkMobile {
+    0% {
+      transform: translateX(calc(-50% - 110px)) translateY(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+      transform: translateX(calc(-50% - 60px)) translateY(0);
+    }
+    100% {
+      transform: translateX(calc(-50% - 14px)) translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes himWalkMobile {
+    0% {
+      transform: translateX(calc(-50% + 80px)) translateY(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+      transform: translateX(calc(-50% + 40px)) translateY(0);
+    }
+    100% {
+      transform: translateX(calc(-50% + 6px)) translateY(0);
+      opacity: 1;
+    }
+  }
 }
-
