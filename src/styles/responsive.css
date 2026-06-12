@@ -11,8 +11,11 @@
 
 @media (max-width: 768px) {
   .section { padding: 40px 16px; }
-  .carousel-stage { height: 370px; }
-  .carousel-card { width: 250px; height: 320px; }
+
+  /* 移动端删除轮播图（3D transform 卡顿严重） */
+  .gallery,
+  .nav-dots .dot[data-section="1"] { display: none; }
+
   /* 移动端导航箭头始终可见 */
   .carousel-nav {
     opacity: 0.55;
