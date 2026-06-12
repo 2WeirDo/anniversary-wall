@@ -31,6 +31,8 @@ export class MusicPlayer {
     this.queueIndex = -1;
     this._lastSearchResults = [];
     this.searchTimer = null;
+    this._searchAbort = null;
+    this._autoPlayDone = false;
     this.audio = null;
 
     this.init();
@@ -63,16 +65,18 @@ export class MusicPlayer {
       });
     }
 
-    // 搜索输入
+    // 搜索输入（500ms 防抖 + 取消飞行中请求）
     if (this.searchInput) {
       this.searchInput.addEventListener('input', () => {
         clearTimeout(this.searchTimer);
         const q = this.searchInput.value.trim();
         if (!q) {
+          // 取消进行中的搜索
+          if (this._searchAbort) { this._searchAbort.abort(); this._searchAbort = null; }
           this.clearResults();
           return;
         }
-        this.searchTimer = setTimeout(() => this.doSearch(q), 350);
+        this.searchTimer = setTimeout(() => this.doSearch(q), 500);
       });
       this.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -101,6 +105,41 @@ export class MusicPlayer {
         this.closePanel();
       }
     });
+
+    // 页面加载后自动播放指定歌曲
+    this._tryAutoPlay();
+  }
+
+  /* ======== 自动播放 ======== */
+
+  /** 页面加载后尝试自动播放（延迟 + 首次交互兜底） */
+  _tryAutoPlay() {
+    // 方案1：延迟 2s 尝试（部分浏览器允许）
+    setTimeout(() => this._autoPlaySearch(), 2000);
+
+    // 方案2：首次用户交互时兜底
+    const handler = () => {
+      if (!this._autoPlayDone && !this.currentSong) {
+        this._autoPlaySearch();
+      }
+    };
+    document.addEventListener('click', handler, { once: true });
+    document.addEventListener('touchstart', handler, { once: true });
+    document.addEventListener('scroll', handler, { once: true });
+  }
+
+  /** 搜索并播放「用背脊唱情歌 (canon in d version)」 */
+  async _autoPlaySearch() {
+    if (this._autoPlayDone || this.currentSong) return;
+    this._autoPlayDone = true;
+    try {
+      const results = await this.apiSearch('用背脊唱情歌 canon in d');
+      if (results.length > 0) {
+        await this.playSong(results[0]);
+      }
+    } catch (e) {
+      // 自动播放被浏览器阻止或搜索失败，用户可手动播放
+    }
   }
 
   /* ======== API 调用 ======== */
@@ -112,14 +151,14 @@ export class MusicPlayer {
     return `https://corsproxy.io/?${encodeURIComponent(target)}`;
   }
 
-  async _fetchAPI(params) {
+  async _fetchAPI(params, signal) {
     const url = this._apiUrl(params);
-    const res = await fetch(url);
+    const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`请求失败: ${res.status}`);
     return res;
   }
 
-  async apiSearch(query, source = SEARCH_SOURCE) {
+  async apiSearch(query, source = SEARCH_SOURCE, signal) {
     const params = new URLSearchParams({
       types: 'search',
       source,
@@ -127,7 +166,7 @@ export class MusicPlayer {
       pages: '1',
       count: String(SEARCH_COUNT),
     });
-    const res = await this._fetchAPI(params);
+    const res = await this._fetchAPI(params, signal);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
     return data.map(song => ({
@@ -170,6 +209,12 @@ export class MusicPlayer {
 
   async doSearch(query) {
     if (!query.trim()) return;
+
+    // 取消上一次未完成的搜索
+    if (this._searchAbort) { this._searchAbort.abort(); }
+    this._searchAbort = new AbortController();
+    const signal = this._searchAbort.signal;
+
     this.showStatus('搜索中...');
     try {
       // 拆分关键词：完整查询 + 每个独立关键词分别搜索
@@ -181,7 +226,7 @@ export class MusicPlayer {
       const tasks = [];
       for (const kw of uniqueKw) {
         for (const src of sources) {
-          tasks.push(this.apiSearch(kw, src));
+          tasks.push(this.apiSearch(kw, src, signal));
         }
       }
 
@@ -208,6 +253,7 @@ export class MusicPlayer {
         this.renderResults(merged);
       }
     } catch (err) {
+      if (err.name === 'AbortError') return; // 被新搜索取消，静默忽略
       console.warn('搜索出错:', err);
       this.showStatus('搜索失败，请稍后重试');
     }
