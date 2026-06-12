@@ -1,12 +1,141 @@
 /**
- * BGM 播放控制
- * 优先加载本地 FLAC/MP3 文件，文件不存在时自动回退到 Web Audio API 合成
- * 策略：首次用户点击后播放（符合浏览器自动播放策略）
+ * BGM 播放控制 + 可视化曲风切换
+ * - 优先加载本地 MP3，失败则回退 Web Audio API 合成
+ * - 4 套合成预设：温柔月光 / 甜蜜时光 / 静谧星空 / 春日微风
+ * - 用户手势内同步解锁 Audio，绕过浏览器自动播放策略
  */
 
 const BGM_PATHS = [
   `${import.meta.env.BASE_URL}bgm/bgm.mp3`,
 ];
+
+/* ======== 曲风预设 ======== */
+const PRESETS = {
+  moonlight: {
+    name: '温柔月光',
+    chordProgression: [
+      { notes: [261.63, 329.63, 392.00, 493.88] },
+      { notes: [196.00, 246.94, 329.63, 349.23] },
+      { notes: [220.00, 261.63, 329.63, 392.00] },
+      { notes: [174.61, 220.00, 261.63, 329.63] },
+    ],
+    pentatonic: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00],
+    melodyPatterns: [
+      [0, 1, 2, 4, 7, 4, 2, 0],
+      [7, 6, 4, 2, 0, 2, 4],
+      [4, 2, 0, 2, 4, 6, 7],
+      [2, 0, 2, 4, 2, 0],
+    ],
+    barDuration: 4.0,
+    bassFreqs: [130.81, 98.00, 110.00, 87.31],
+    chordGain: 0.045,
+    melodyGain: 0.03,
+    bassGain: 0.03,
+    oscType: 'sine',
+    melodyType: 'triangle',
+    filterFreq: 1200,
+    filterQ: 0.4,
+    warmthFreq: 55,
+    warmthGain: 0.006,
+    masterVol: 0.14,
+    delayTime: 0.35,
+    delayFeedback: 0.2,
+    delayMix: 0.35,
+  },
+  sweet: {
+    name: '甜蜜时光',
+    chordProgression: [
+      { notes: [329.63, 392.00, 493.88, 587.33] },
+      { notes: [261.63, 329.63, 392.00, 440.00] },
+      { notes: [293.66, 369.99, 440.00, 523.25] },
+      { notes: [246.94, 329.63, 392.00, 493.88] },
+    ],
+    pentatonic: [392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51],
+    melodyPatterns: [
+      [0, 2, 4, 7, 8, 7, 4, 2],
+      [8, 7, 5, 3, 1, 3, 5],
+      [6, 5, 3, 1, 0, 1, 3],
+      [2, 4, 6, 8, 6, 4],
+    ],
+    barDuration: 3.5,
+    bassFreqs: [164.81, 130.81, 146.83, 123.47],
+    chordGain: 0.04,
+    melodyGain: 0.04,
+    bassGain: 0.025,
+    oscType: 'triangle',
+    melodyType: 'sine',
+    filterFreq: 1800,
+    filterQ: 0.3,
+    warmthFreq: 65,
+    warmthGain: 0.004,
+    masterVol: 0.16,
+    delayTime: 0.25,
+    delayFeedback: 0.15,
+    delayMix: 0.25,
+  },
+  starry: {
+    name: '静谧星空',
+    chordProgression: [
+      { notes: [174.61, 220.00, 261.63, 329.63] },
+      { notes: [130.81, 164.81, 196.00, 246.94] },
+      { notes: [196.00, 246.94, 293.66, 349.23] },
+      { notes: [146.83, 174.61, 220.00, 261.63] },
+    ],
+    pentatonic: [130.81, 164.81, 196.00, 246.94, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33],
+    melodyPatterns: [
+      [0, 0, 0, 2, 0, 0, 0],
+      [4, 4, 2, 0, 2, 0],
+      [0, 0, 4, 4, 2, 0],
+      [0, 2, 0, 0, 0],
+    ],
+    barDuration: 5.0,
+    bassFreqs: [87.31, 65.41, 98.00, 73.42],
+    chordGain: 0.035,
+    melodyGain: 0.02,
+    bassGain: 0.04,
+    oscType: 'sine',
+    melodyType: 'sine',
+    filterFreq: 600,
+    filterQ: 0.6,
+    warmthFreq: 43,
+    warmthGain: 0.008,
+    masterVol: 0.12,
+    delayTime: 0.5,
+    delayFeedback: 0.35,
+    delayMix: 0.45,
+  },
+  breeze: {
+    name: '春日微风',
+    chordProgression: [
+      { notes: [261.63, 329.63, 392.00, 440.00] },
+      { notes: [220.00, 293.66, 349.23, 440.00] },
+      { notes: [246.94, 329.63, 392.00, 493.88] },
+      { notes: [196.00, 261.63, 329.63, 392.00] },
+    ],
+    pentatonic: [293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50],
+    melodyPatterns: [
+      [0, 1, 3, 5, 6, 5, 3, 1, 0],
+      [4, 3, 1, 0, 1, 3, 4, 5],
+      [2, 4, 5, 6, 5, 4, 2],
+      [6, 5, 3, 1, 0, 1, 3, 5],
+    ],
+    barDuration: 3.0,
+    bassFreqs: [130.81, 110.00, 123.47, 98.00],
+    chordGain: 0.05,
+    melodyGain: 0.035,
+    bassGain: 0.02,
+    oscType: 'triangle',
+    melodyType: 'triangle',
+    filterFreq: 2000,
+    filterQ: 0.25,
+    warmthFreq: 50,
+    warmthGain: 0.005,
+    masterVol: 0.15,
+    delayTime: 0.3,
+    delayFeedback: 0.2,
+    delayMix: 0.3,
+  },
+};
 
 export class AudioPlayer {
   constructor(btnId) {
@@ -14,17 +143,28 @@ export class AudioPlayer {
     this.isPlaying = false;
     this.isInitialized = false;
 
+    // 当前预设
+    this.currentPreset = 'moonlight';
+
     // HTML Audio 元素
     this.audio = document.getElementById('bgm-audio');
 
-    // Web Audio API (fallback)
+    // Web Audio API
     this.ctx = null;
     this.masterGain = null;
     this.activeNodes = [];
-    this.animFrame = null;
+    this._scheduleTimer = null;
+    this._nextScheduleTime = 0;
 
     // 当前模式: 'file' | 'synth' | null
     this.mode = null;
+
+    // 面板
+    this.panel = document.getElementById('music-panel');
+    this.panelOpen = false;
+    this.labelEl = document.getElementById('music-btn-label');
+    this.arrowEl = document.getElementById('music-btn-arrow');
+    this.presetsEl = document.getElementById('music-presets');
 
     this.init();
   }
@@ -32,9 +172,40 @@ export class AudioPlayer {
   init() {
     if (!this.btn) return;
 
+    // 主按钮：播放/暂停
     this.btn.addEventListener('click', (e) => {
+      // 如果点到了展开箭头，不触发播放/暂停
+      if (e.target.closest('#music-btn-arrow')) return;
       e.stopPropagation();
       this.toggle();
+    });
+
+    // 展开箭头：打开/关闭选曲面板
+    if (this.arrowEl) {
+      this.arrowEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.togglePanel();
+      });
+    }
+
+    // 预设按钮
+    if (this.presetsEl) {
+      this.presetsEl.addEventListener('click', (e) => {
+        const presetBtn = e.target.closest('.music-preset');
+        if (!presetBtn) return;
+        const key = presetBtn.dataset.preset;
+        if (key && key !== this.currentPreset) {
+          this.switchPreset(key);
+          this.closePanel();
+        }
+      });
+    }
+
+    // 点击面板外关闭
+    document.addEventListener('click', (e) => {
+      if (this.panelOpen && !e.target.closest('.music-player')) {
+        this.closePanel();
+      }
     });
 
     window.addEventListener('beforeunload', () => {
@@ -42,29 +213,57 @@ export class AudioPlayer {
     });
   }
 
+  /* ======== 面板 ======== */
+
+  togglePanel() {
+    if (this.panelOpen) {
+      this.closePanel();
+    } else {
+      this.openPanel();
+    }
+  }
+
+  openPanel() {
+    this.panelOpen = true;
+    this.panel.classList.add('open');
+    this.btn.classList.add('open-arrow');
+  }
+
+  closePanel() {
+    this.panelOpen = false;
+    this.panel.classList.remove('open');
+    this.btn.classList.remove('open-arrow');
+  }
+
+  /* ======== 切换预设 ======== */
+
+  switchPreset(key) {
+    if (!PRESETS[key]) return;
+    this.currentPreset = key;
+    const preset = PRESETS[key];
+
+    // 更新 UI
+    if (this.labelEl) this.labelEl.textContent = preset.name;
+    const activeBtn = this.presetsEl?.querySelector('.music-preset.active');
+    const nextBtn = this.presetsEl?.querySelector(`[data-preset="${key}"]`);
+    if (activeBtn) activeBtn.classList.remove('active');
+    if (nextBtn) nextBtn.classList.add('active');
+
+    // 如果正在播放合成器，重启
+    if (this.mode === 'synth' && this.isPlaying) {
+      this.stopSynth();
+      this.startSynth();
+    }
+  }
+
   /* ======== 本地文件模式 ======== */
 
-  /**
-   * 尝试用某个路径加载音频
-   * 返回 true 表示成功加载并开始播放
-   */
   tryLoadFile(path) {
     return new Promise((resolve) => {
-      if (!this.audio) {
-        resolve(false);
-        return;
-      }
+      if (!this.audio) { resolve(false); return; }
 
-      const handleCanPlay = () => {
-        cleanup();
-        resolve(true);
-      };
-
-      const handleError = () => {
-        cleanup();
-        resolve(false);
-      };
-
+      const handleCanPlay = () => { cleanup(); resolve(true); };
+      const handleError = () => { cleanup(); resolve(false); };
       const cleanup = () => {
         this.audio.removeEventListener('canplay', handleCanPlay);
         this.audio.removeEventListener('error', handleError);
@@ -72,14 +271,12 @@ export class AudioPlayer {
 
       this.audio.addEventListener('canplay', handleCanPlay, { once: false });
       this.audio.addEventListener('error', handleError, { once: false });
-
       this.audio.src = path;
       this.audio.load();
     });
   }
 
   async startFilePlayback() {
-    // 逐个尝试路径，找到第一个能播放的
     for (const path of BGM_PATHS) {
       const ok = await this.tryLoadFile(path);
       if (ok) {
@@ -87,108 +284,83 @@ export class AudioPlayer {
         this.audio.volume = 0;
         this.audio.loop = true;
         await this.audio.play();
-
-        // 立即标记播放状态，不等淡入
         this.isPlaying = true;
         this.btn.classList.add('playing');
 
-        // 原生 RAF 平滑淡入（替代 GSAP，减少依赖）
         const targetVol = 0.14;
         const startVol = this.audio.volume;
         const fadeStart = performance.now();
-        const fadeDuration = 2400; // ms
         const fadeStep = (now) => {
-          const t = Math.min((now - fadeStart) / fadeDuration, 1);
-          // ease-out (power2 近似): 1 - (1-t)²
+          const t = Math.min((now - fadeStart) / 2400, 1);
           this.audio.volume = startVol + (targetVol - startVol) * (1 - (1 - t) * (1 - t));
           if (t < 1) requestAnimationFrame(fadeStep);
         };
         requestAnimationFrame(fadeStep);
-
         return true;
       }
     }
     return false;
   }
 
-  /* ======== Web Audio API 合成（Fallback） ======== */
+  /* ======== Web Audio 合成 ======== */
 
-  createDelay(ctx, time = 0.3, feedback = 0.25, mix = 0.3) {
+  _createDelay(ctx, time, feedback, mix) {
     const delay = ctx.createDelay(2);
     delay.delayTime.value = time;
-
-    const feedbackGain = ctx.createGain();
-    feedbackGain.gain.value = feedback;
-
+    const fbGain = ctx.createGain();
+    fbGain.gain.value = feedback;
     const wetGain = ctx.createGain();
     wetGain.gain.value = mix;
-
     const dryGain = ctx.createGain();
     dryGain.gain.value = 1 - mix;
-
-    delay.connect(feedbackGain);
-    feedbackGain.connect(delay);
+    delay.connect(fbGain);
+    fbGain.connect(delay);
     delay.connect(wetGain);
-
     return { input: dryGain, delayInput: delay, wetGain, dryGain, output: wetGain };
   }
 
-  playChord(ctx, frequencies, startTime, duration, destination, baseGain = 0.06) {
-    frequencies.forEach((freq) => {
+  _playChord(ctx, freqs, t, dur, dest, gain, oscType) {
+    freqs.forEach((freq) => {
       [-4, 4].forEach((detune) => {
         const osc = ctx.createOscillator();
         const env = ctx.createGain();
-
-        osc.type = 'sine';
+        osc.type = oscType;
         osc.frequency.value = freq;
         osc.detune.value = detune;
-
-        const t = startTime;
-        const attack = 0.15;
-        const decay = 0.3;
-        const sustain = 0.7;
-        const release = 0.8;
-
         env.gain.setValueAtTime(0, t);
-        env.gain.linearRampToValueAtTime(baseGain, t + attack);
-        env.gain.linearRampToValueAtTime(baseGain * sustain, t + attack + decay);
-        env.gain.setValueAtTime(baseGain * sustain, t + duration - release);
-        env.gain.linearRampToValueAtTime(0, t + duration);
-
+        env.gain.linearRampToValueAtTime(gain, t + 0.15);
+        env.gain.linearRampToValueAtTime(gain * 0.7, t + 0.45);
+        env.gain.setValueAtTime(gain * 0.7, t + dur - 0.8);
+        env.gain.linearRampToValueAtTime(0, t + dur);
         osc.connect(env);
-        env.connect(destination);
+        env.connect(dest);
         osc.start(t);
-        osc.stop(t + duration + 0.1);
-
+        osc.stop(t + dur + 0.1);
         this.activeNodes.push(osc, env);
       });
     });
   }
 
-  playMelodyNote(ctx, freq, startTime, duration, destination, gain = 0.04) {
+  _playNote(ctx, freq, t, dur, dest, gain, oscType) {
     const osc = ctx.createOscillator();
     const env = ctx.createGain();
-
-    osc.type = 'triangle';
+    osc.type = oscType;
     osc.frequency.value = freq;
-
-    const t = startTime;
     env.gain.setValueAtTime(0, t);
     env.gain.linearRampToValueAtTime(gain, t + 0.05);
-    env.gain.linearRampToValueAtTime(gain * 0.6, t + duration * 0.5);
-    env.gain.linearRampToValueAtTime(0, t + duration);
-
+    env.gain.linearRampToValueAtTime(gain * 0.6, t + dur * 0.5);
+    env.gain.linearRampToValueAtTime(0, t + dur);
     osc.connect(env);
-    env.connect(destination);
+    env.connect(dest);
     osc.start(t);
-    osc.stop(t + duration + 0.05);
-
+    osc.stop(t + dur + 0.05);
     this.activeNodes.push(osc, env);
   }
 
   startSynth() {
     if (this.ctx) return;
 
+    const preset = PRESETS[this.currentPreset] || PRESETS.moonlight;
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.ctx = ctx;
 
@@ -197,103 +369,79 @@ export class AudioPlayer {
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 1200;
-    filter.Q.value = 0.4;
+    filter.frequency.value = preset.filterFreq;
+    filter.Q.value = preset.filterQ;
     filter.connect(this.masterGain);
 
-    const delay = this.createDelay(ctx, 0.35, 0.2, 0.35);
+    const delay = this._createDelay(ctx, preset.delayTime, preset.delayFeedback, preset.delayMix);
     delay.dryGain.connect(filter);
     delay.wetGain.connect(filter);
-
     const delayInput = delay.delayInput;
 
-    const chordProgressions = [
-      { notes: [261.63, 329.63, 392.00, 493.88] },
-      { notes: [196.00, 246.94, 329.63, 349.23] },
-      { notes: [220.00, 261.63, 329.63, 392.00] },
-      { notes: [174.61, 220.00, 261.63, 329.63] },
-    ];
-
-    const pentatonic = [
-      261.63, 293.66, 329.63, 392.00, 440.00,
-      523.25, 587.33, 659.25, 783.99, 880.00,
-    ];
-
-    const melodyPatterns = [
-      [0, 1, 2, 4, 7, 4, 2, 0],
-      [7, 6, 4, 2, 0, 2, 4],
-      [4, 2, 0, 2, 4, 6, 7],
-      [2, 0, 2, 4, 2, 0],
-    ];
-
-    const barDuration = 4.0;
-    const totalPatternDuration = barDuration * chordProgressions.length;
-    const bassFreqs = [130.81, 98.00, 110.00, 87.31];
+    const { chordProgression, pentatonic, melodyPatterns, barDuration, bassFreqs } = preset;
+    const totalDur = barDuration * chordProgression.length;
 
     const scheduleLoop = () => {
       const now = ctx.currentTime;
-      const lookAhead = 0.2;
-      const scheduleAhead = 8.0;
+      let st = this._nextScheduleTime || now;
+      if (st < now) st = now;
 
-      let scheduleTime = this._nextScheduleTime || now;
-      if (scheduleTime < now) scheduleTime = now;
+      while (st < now + 8.0) {
+        const cycleTime = st % totalDur;
+        const barIdx = Math.floor(cycleTime / barDuration);
 
-      while (scheduleTime < now + scheduleAhead) {
-        const cycleTime = scheduleTime % totalPatternDuration;
-        const barIndex = Math.floor(cycleTime / barDuration);
-        const barStartTime = scheduleTime - (cycleTime % barDuration);
+        if (Math.abs(cycleTime - barIdx * barDuration) < 0.01) {
+          const chord = chordProgression[barIdx];
+          this._playChord(ctx, chord.notes, st, barDuration, delayInput, preset.chordGain, preset.oscType);
 
-        if (Math.abs(cycleTime - barIndex * barDuration) < 0.01) {
-          const chord = chordProgressions[barIndex];
-          this.playChord(ctx, chord.notes, scheduleTime, barDuration, delayInput, 0.045);
-
+          // 贝斯
           const bassOsc = ctx.createOscillator();
           const bassEnv = ctx.createGain();
           bassOsc.type = 'sine';
-          bassOsc.frequency.value = bassFreqs[barIndex] / 2;
-          bassEnv.gain.setValueAtTime(0, scheduleTime);
-          bassEnv.gain.linearRampToValueAtTime(0.03, scheduleTime + 0.2);
-          bassEnv.gain.linearRampToValueAtTime(0.02, scheduleTime + barDuration * 0.7);
-          bassEnv.gain.linearRampToValueAtTime(0, scheduleTime + barDuration);
+          bassOsc.frequency.value = bassFreqs[barIdx] / 2;
+          bassEnv.gain.setValueAtTime(0, st);
+          bassEnv.gain.linearRampToValueAtTime(preset.bassGain, st + 0.2);
+          bassEnv.gain.linearRampToValueAtTime(preset.bassGain * 0.7, st + barDuration * 0.7);
+          bassEnv.gain.linearRampToValueAtTime(0, st + barDuration);
           bassOsc.connect(bassEnv);
           bassEnv.connect(filter);
-          bassOsc.start(scheduleTime);
-          bassOsc.stop(scheduleTime + barDuration + 0.1);
+          bassOsc.start(st);
+          bassOsc.stop(st + barDuration + 0.1);
           this.activeNodes.push(bassOsc, bassEnv);
 
-          const melody = melodyPatterns[barIndex];
-          const noteDuration = barDuration / melody.length;
+          // 旋律
+          const melody = melodyPatterns[barIdx];
+          const noteDur = barDuration / melody.length;
           melody.forEach((noteIdx, i) => {
-            const noteTime = scheduleTime + i * noteDuration;
             const freq = pentatonic[noteIdx % pentatonic.length];
-            this.playMelodyNote(ctx, freq, noteTime, noteDuration * 0.85, delayInput, 0.03);
+            this._playNote(ctx, freq, st + i * noteDur, noteDur * 0.85, delayInput, preset.melodyGain, preset.melodyType);
           });
         }
 
-        scheduleTime += 0.05;
+        st += 0.05;
       }
 
-      this._nextScheduleTime = scheduleTime;
+      this._nextScheduleTime = st;
       this._scheduleTimer = setTimeout(() => scheduleLoop(), 2000);
     };
 
+    // 温暖底噪
     const warmthOsc = ctx.createOscillator();
     const warmthGain = ctx.createGain();
     warmthOsc.type = 'triangle';
-    warmthOsc.frequency.value = 55;
-    warmthGain.gain.value = 0.006;
+    warmthOsc.frequency.value = preset.warmthFreq;
+    warmthGain.gain.value = preset.warmthGain;
     warmthOsc.connect(warmthGain);
     warmthGain.connect(filter);
     warmthOsc.start();
     this.activeNodes.push(warmthOsc, warmthGain);
 
     this.masterGain.connect(ctx.destination);
-
     this._nextScheduleTime = ctx.currentTime + 0.1;
     scheduleLoop();
 
     this.masterGain.gain.setValueAtTime(0, ctx.currentTime);
-    this.masterGain.gain.linearRampToValueAtTime(0.14, ctx.currentTime + 2.5);
+    this.masterGain.gain.linearRampToValueAtTime(preset.masterVol, ctx.currentTime + 2.5);
   }
 
   stopSynth() {
@@ -301,14 +449,10 @@ export class AudioPlayer {
       clearTimeout(this._scheduleTimer);
       this._scheduleTimer = null;
     }
-
     this.activeNodes.forEach((node) => {
-      try {
-        if (node.stop && typeof node.stop === 'function') node.stop();
-      } catch (e) { /* ignore */ }
+      try { if (node.stop && typeof node.stop === 'function') node.stop(); } catch (e) { /* */ }
     });
     this.activeNodes = [];
-
     if (this.ctx) {
       this.ctx.close();
       this.ctx = null;
@@ -318,18 +462,14 @@ export class AudioPlayer {
   /* ======== 公共 API ======== */
 
   async play() {
-    // 防止重入：文件加载期间 isPlaying 尚未置 true，第二次调用会同时启动合成器
     if (this.isPlaying || this._starting) return;
     this._starting = true;
 
     try {
-      // ★ 关键：在用户手势上下文中同步解锁 Audio 元素
-      //  否则后续 await 后的 play() 会被浏览器自动播放策略拦截
-      if (this.audio) {
-        this.audio.play().catch(() => {});
-      }
+      // 用户手势内同步解锁 Audio 元素
+      if (this.audio) this.audio.play().catch(() => {});
 
-      // 已有加载好的文件：直接恢复播放
+      // 已有加载好的文件
       if (this.mode === 'file' && this.audio && this.audio.src) {
         await this.audio.play();
         this.isPlaying = true;
@@ -337,13 +477,13 @@ export class AudioPlayer {
         return;
       }
 
-      // 首次启动：优先尝试本地文件
+      // 首次：尝试 MP3
       if (this.audio && !this.isInitialized) {
         const fileLoaded = await this.startFilePlayback();
-        if (fileLoaded) return; // startFilePlayback 已设置 playing 状态
+        if (fileLoaded) return;
       }
 
-      // 回退：Web Audio API 合成
+      // 回退：Web Audio 合成
       this.mode = 'synth';
       this.startSynth();
       this.isPlaying = true;
@@ -357,23 +497,18 @@ export class AudioPlayer {
 
   pause() {
     if (!this.isPlaying) return;
-
     if (this.mode === 'file' && this.audio) {
       this.audio.pause();
     } else if (this.mode === 'synth') {
       this.stopSynth();
     }
-
     this.isPlaying = false;
     this.btn.classList.remove('playing');
   }
 
   toggle() {
-    if (this.isPlaying) {
-      this.pause();
-    } else {
-      this.play();
-    }
+    if (this.isPlaying) this.pause();
+    else this.play();
   }
 
   initPlay() {
@@ -383,10 +518,7 @@ export class AudioPlayer {
   }
 
   stopAll() {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.src = '';
-    }
+    if (this.audio) { this.audio.pause(); this.audio.src = ''; }
     this.stopSynth();
   }
 }

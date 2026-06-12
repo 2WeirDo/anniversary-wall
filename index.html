@@ -75,16 +75,51 @@
     </svg>
   </button>
 
-  <!-- 音乐控制按钮 -->
-  <button id="music-btn" class="music-btn" aria-label="播放/暂停音乐">
-    <svg class="music-icon-play" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-    <svg class="music-icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="6" y="4" width="4" height="16" />
-      <rect x="14" y="4" width="4" height="16" />
-    </svg>
-  </button>
+  <!-- 音乐控制 — 可视化切换器 -->
+  <div class="music-player" id="music-player">
+    <!-- 选曲面板（展开时显示） -->
+    <div class="music-panel" id="music-panel">
+      <div class="music-panel-title">选择氛围音乐</div>
+      <div class="music-presets" id="music-presets">
+        <button class="music-preset active" data-preset="moonlight">
+          <span class="music-preset-icon">🌙</span>
+          <span class="music-preset-name">温柔月光</span>
+          <span class="music-preset-desc">柔和钢琴</span>
+        </button>
+        <button class="music-preset" data-preset="sweet">
+          <span class="music-preset-icon">🍬</span>
+          <span class="music-preset-name">甜蜜时光</span>
+          <span class="music-preset-desc">轻快明亮</span>
+        </button>
+        <button class="music-preset" data-preset="starry">
+          <span class="music-preset-icon">✨</span>
+          <span class="music-preset-name">静谧星空</span>
+          <span class="music-preset-desc">空灵氛围</span>
+        </button>
+        <button class="music-preset" data-preset="breeze">
+          <span class="music-preset-icon">🌸</span>
+          <span class="music-preset-name">春日微风</span>
+          <span class="music-preset-desc">温暖琶音</span>
+        </button>
+      </div>
+    </div>
+    <!-- 主控制药丸 -->
+    <button id="music-btn" class="music-btn" aria-label="播放/暂停音乐">
+      <svg class="music-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3" />
+      </svg>
+      <svg class="music-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="4" width="4" height="16" />
+        <rect x="14" y="4" width="4" height="16" />
+      </svg>
+      <span class="music-btn-label" id="music-btn-label">温柔月光</span>
+      <span class="music-btn-arrow" id="music-btn-arrow" aria-label="切换曲风">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </span>
+    </button>
+  </div>
 
   <!-- 入场遮罩 -->
   <div id="entry-overlay" class="entry-overlay">
