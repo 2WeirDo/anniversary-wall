@@ -69,6 +69,8 @@ export class Carousel {
     // 布局动画期间阻止 tick 更新
     this._animating = false;
     this._animTL = null;
+    // 预加载 active 卡片的大图，确保弹窗瞬间打开
+    this._preloaded = new Set();
 
     this.init();
   }
@@ -143,14 +145,25 @@ export class Carousel {
     }
   }
 
-  /** 加载可视窗口内所有卡片的图片 */
+  /**
+   * 渐进式加载可视窗口图片
+   * 避免硬刷新时 17 个并发请求瞬间拥塞 SW + 网络
+   * 阶段1（0ms）:   当前 ±2   — 立即可见
+   * 阶段2（120ms）: 当前 ±5   — 即将可见
+   * 阶段3（300ms）: 当前 ±8   — 边缘可见
+   */
   _loadVisibleImages() {
-    this.items.forEach((el, i) => {
-      const offset = circularOffset(i, this.current, this.total);
-      if (Math.abs(offset) <= VISIBLE_HALF) {
-        this._loadCardImage(el);
-      }
-    });
+    const loadSlab = (maxOffset) => {
+      this.items.forEach((el, i) => {
+        const offset = circularOffset(i, this.current, this.total);
+        if (Math.abs(offset) <= maxOffset) {
+          this._loadCardImage(el);
+        }
+      });
+    };
+    loadSlab(2);                                    // 立即：5张
+    setTimeout(() => loadSlab(5), 120);             // 120ms：11张
+    setTimeout(() => loadSlab(VISIBLE_HALF), 300);  // 300ms：17张
   }
 
   /* ---------- 布局 ---------- */
@@ -254,6 +267,16 @@ export class Carousel {
     // 进入可视窗口时触发图片加载
     if (inWindow && !el._imageLoaded) {
       this._loadCardImage(el);
+    }
+    // active 卡片预加载大图，弹窗瞬间打开
+    if (c.isActive) {
+      const idx = parseInt(el.getAttribute('data-index'));
+      if (!this._preloaded.has(idx)) {
+        this._preloaded.add(idx);
+        const base = PHOTOS[idx].replace(/\.(jpg|jpeg|png)$/i, '');
+        const preload = new Image();
+        preload.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp`;
+      }
     }
   }
 

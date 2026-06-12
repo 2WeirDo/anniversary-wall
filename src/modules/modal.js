@@ -26,9 +26,9 @@ export function initPhotoModal(getCarousel) {
     const photoFilename = PHOTOS[index];
     const base = photoFilename.replace(/\.(jpg|jpeg|png)$/i, '');
 
-    modalPhoto.srcset = `${import.meta.env.BASE_URL}photos-optimized/${base}-medium.webp 800w, ${import.meta.env.BASE_URL}photos-optimized/${base}.webp 1600w`;
-    modalPhoto.sizes = '(max-width: 600px) 100vw, 80vw';
-    modalPhoto.src = `${import.meta.env.BASE_URL}photos-optimized/${base}.webp`;
+    modalPhoto.srcset = `${import.meta.env.BASE_URL}photos-optimized/${base}-medium.webp 800w, ${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp 1200w, ${import.meta.env.BASE_URL}photos-optimized/${base}.webp 1600w`;
+    modalPhoto.sizes = '(max-width: 600px) 100vw, (max-width: 1200px) 80vw, 1200px';
+    modalPhoto.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp`;
     modalPhoto.alt = meta.story || `照片 ${index + 1}`;
     modalPhoto.onerror = function () {
       this.onerror = null;
