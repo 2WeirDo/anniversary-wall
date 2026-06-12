@@ -46,7 +46,6 @@ export class MusicPlayer {
     this.audio.addEventListener('ended', () => this.next());
     this.audio.addEventListener('error', () => {
       this.isLoading = false;
-      this.updatePlayButton();
     });
 
     // 主按钮：播放/暂停
@@ -230,7 +229,6 @@ export class MusicPlayer {
     this._setItemLoading(song, true);
     this.isLoading = true;
     this.currentSong = song;
-    this.updatePlayButton();
 
     try {
       const url = await this.getAudioUrl(song);
@@ -240,7 +238,7 @@ export class MusicPlayer {
       await this.audio.play();
       this.isPlaying = true;
       this.isLoading = false;
-      this.btn.classList.add('playing');
+      this.btn.classList.add('playing', 'has-song');
       this.updateLabel();
       this._setItemLoading(song, false);
       this._highlightPlaying();
@@ -250,7 +248,6 @@ export class MusicPlayer {
       this.isLoading = false;
       this._setItemLoading(song, false);
       this.showStatus('播放失败，试试其他歌曲');
-      this.updatePlayButton();
     }
   }
 
@@ -258,7 +255,7 @@ export class MusicPlayer {
     if (!this.audio || !this.currentSong) return;
     this.audio.play().then(() => {
       this.isPlaying = true;
-      this.btn.classList.add('playing');
+      this.btn.classList.add('playing', 'has-song');
       this._highlightPlaying();
     }).catch(() => {});
   }
@@ -268,6 +265,7 @@ export class MusicPlayer {
     this.audio.pause();
     this.isPlaying = false;
     this.btn.classList.remove('playing');
+    // 保持 has-song：暂停时有待播图标
   }
 
   resume() { this.play(); }
@@ -295,14 +293,6 @@ export class MusicPlayer {
     let title = this.currentSong.title;
     if (title.length > maxLen) title = title.slice(0, maxLen) + '…';
     this.labelEl.textContent = title;
-  }
-
-  updatePlayButton() {
-    if (this.isLoading) {
-      this.btn.classList.add('loading');
-    } else {
-      this.btn.classList.remove('loading');
-    }
   }
 
   /* ======== 面板 ======== */
@@ -442,6 +432,7 @@ export class MusicPlayer {
       this.audio.src = '';
     }
     this.isPlaying = false;
+    this.btn.classList.remove('playing', 'has-song');
   }
 }
 

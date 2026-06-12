@@ -523,27 +523,23 @@
   }
 }
 
-/* 加载状态 — CSS 圆环旋转 */
-.music-btn-spinner {
-  display: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid rgba(232, 120, 144, 0.15);
-  border-top-color: var(--color-accent);
-  animation: spin 0.7s linear infinite;
-  flex-shrink: 0;
-}
-.music-btn.loading .music-btn-spinner { display: block; }
-.music-btn.loading .music-icon-play,
-.music-btn.loading .music-icon-pause { display: none; }
-
 /* 播放/暂停图标 */
 .music-icon-play {
   display: block;
-  color: var(--color-accent);
+  color: var(--color-text-light);
   flex-shrink: 0;
-  transition: transform 0.25s var(--ease-out);
+  opacity: 0.5;
+  transition: all 0.3s var(--ease-out);
+}
+/* 已加载歌曲待播 — 播放图标高亮 */
+.music-btn.has-song .music-icon-play {
+  color: var(--color-accent);
+  opacity: 1;
+  animation: playReady 2.4s ease-in-out infinite;
+}
+@keyframes playReady {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.08); opacity: 1; }
 }
 .music-icon-pause {
   display: none;
