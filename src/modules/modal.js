@@ -30,34 +30,34 @@ export function initPhotoModal(getCarousel) {
     flipContainer.classList.remove('flipped');
   }
 
-  /** 将气泡固定在 carousel-stage 右侧 — 与 active 卡片无关，位置始终一致 */
+  /** 气泡紧贴 active 卡片 — 距离固定，不受内容长度影响 */
   function positionBubble() {
     const carousel = getCarousel();
     if (!carousel) return;
 
-    const stage = carousel.container.parentElement; // .carousel-stage
-    if (!stage) return;
+    const activeCard = carousel.items?.find(el => el.classList.contains('active'));
+    if (!activeCard) return;
 
-    const stageRect = stage.getBoundingClientRect();
+    const cardRect = activeCard.getBoundingClientRect();
     const bubbleW = bubble.offsetWidth;
     const bubbleH = bubble.offsetHeight;
-    const gap = 16;
+    const gap = 12;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    // 默认：右侧
-    let left = stageRect.right + gap;
-    let top = stageRect.top;
+    // 默认：卡片右上角
+    let left = cardRect.right + gap;
+    let top = cardRect.top;
     let below = false;
 
-    // 右侧空间不够 → 左侧
+    // 右侧空间不够 → 放左侧
     if (left + bubbleW > vw - 12) {
-      left = stageRect.left - bubbleW - gap;
+      left = cardRect.left - bubbleW - gap;
     }
-    // 左侧也不够 → 放到 stage 下方
+    // 左侧也不够 → 放卡片下方
     if (left < 8 || left + bubbleW > vw - 12) {
       left = Math.max(8, (vw - bubbleW) / 2);
-      top = stageRect.bottom + gap;
+      top = cardRect.bottom + gap;
       below = true;
     }
 
@@ -129,6 +129,7 @@ export function initPhotoModal(getCarousel) {
     const carousel = getCarousel();
     if (carousel) carousel.goTo(newIndex);
     updateBubble(newIndex);
+    requestAnimationFrame(() => positionBubble());
   }
 
   function next() {
@@ -136,6 +137,7 @@ export function initPhotoModal(getCarousel) {
     const carousel = getCarousel();
     if (carousel) carousel.goTo(newIndex);
     updateBubble(newIndex);
+    requestAnimationFrame(() => positionBubble());
   }
 
   /* ---------- 事件绑定 ---------- */
