@@ -1,5 +1,5 @@
 /* ========================================
-   Photo Detail Modal
+   Photo Story Modal — 纯文字卡片 + 3D 翻转
    ======================================== */
 .photo-modal {
   position: fixed;
@@ -33,7 +33,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 560px;
+  max-width: 480px;
   width: calc(100% - 40px);
   max-height: 90vh;
   max-height: 90dvh;
@@ -44,6 +44,7 @@
   transform: translateY(20px) scale(0.95);
   transition: transform 0.5s var(--ease-spring);
   overscroll-behavior: contain;
+  padding: 40px 32px 0;
 }
 .photo-modal.open .photo-modal-content {
   transform: translateY(0) scale(1);
@@ -54,7 +55,7 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 2;
+  z-index: 3;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -83,65 +84,12 @@
   outline-offset: 2px;
 }
 
-/* Image area — 3D flip card */
-.photo-modal-image {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  background: transparent;
-  position: relative;
-  perspective: 800px;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-
-/* 页角卷曲 — 暗示照片可翻转 */
-.photo-flip-front::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 36px 36px;
-  border-color: transparent transparent rgba(255,255,255,0.55) transparent;
-  z-index: 2;
-  pointer-events: none;
-  transition: border-width 0.35s var(--ease-out), border-color 0.35s;
-  border-radius: 0 0 6px 0;
-}
-.photo-modal-image:hover .photo-flip-front::after {
-  border-width: 0 0 48px 48px;
-  border-color: transparent transparent rgba(255,255,255,0.75) transparent;
-}
-
-/* 翻转提示文字 — hover 角标旁出现 */
-.photo-flip-front::before {
-  content: '翻转';
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  z-index: 3;
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  color: rgba(255,255,255,0.9);
-  letter-spacing: 0.06em;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.35s, transform 0.35s;
-  pointer-events: none;
-}
-.photo-modal-image:hover .photo-flip-front::before {
-  opacity: 0.9;
-  transform: translateY(0);
-}
-
-/* 3D flip container */
+/* ========================================
+   3D Flip Container
+   ======================================== */
 .photo-flip-container {
   width: 100%;
-  height: 100%;
+  min-height: 200px;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
@@ -150,33 +98,38 @@
   transform: rotateY(180deg);
 }
 
-/* Front & back faces */
 .photo-flip-front,
 .photo-flip-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  border-radius: inherit;
-  overflow: hidden;
-}
-.photo-flip-front img {
-  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform-origin: center center;
-  transition: transform 0.15s ease-out;
-  will-change: transform;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+}
+
+.photo-flip-front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.photo-flip-front-content {
+  text-align: center;
+  width: 100%;
 }
 
 .photo-flip-back {
+  position: absolute;
+  inset: 0;
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #FEF0F3 0%, #FFF9F7 40%, #FEF5F5 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 2rem;
+  padding: 2rem 1.5rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
+
 .photo-flip-back-text {
   font-family: var(--font-handwrite);
   font-size: 1.35rem;
@@ -185,25 +138,57 @@
   text-align: center;
   letter-spacing: 0.02em;
 }
+
 .photo-flip-back-deco {
   position: absolute;
-  top: 16px; left: 20px;
+  top: 12px; left: 16px;
   opacity: 0.3;
   color: var(--color-accent);
 }
 .photo-flip-back-deco.bottom {
   top: auto;
-  bottom: 16px; left: auto;
-  right: 20px;
+  bottom: 12px; left: auto;
+  right: 16px;
 }
 
-/* Info area */
-.photo-modal-info {
+/* ========================================
+   HelloKitty Flip Button
+   ======================================== */
+.photo-modal-flip-btn {
+  position: absolute;
+  top: 14px;
+  right: 60px;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: transform 0.35s var(--ease-spring);
+  touch-action: manipulation;
+}
+.photo-modal-flip-btn:hover {
+  transform: scale(1.2);
+}
+.photo-modal-flip-btn:active {
+  transform: scale(0.9);
+}
+.photo-modal-flip-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.photo-modal-flip-btn svg {
   width: 100%;
-  padding: 28px 32px 20px;
-  text-align: center;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(240, 128, 144, 0.35));
 }
 
+/* ========================================
+   Info / Date / Story
+   ======================================== */
 .photo-modal-date {
   font-family: var(--font-display);
   font-size: 1.5rem;
@@ -230,23 +215,27 @@
   font-size: 1rem;
   line-height: 1.9;
   color: var(--color-text-dark);
-  padding: 0 8px;
+  padding: 0;
+  text-align: center;
 }
 
 .photo-modal-counter {
   font-family: var(--font-display);
   font-size: 0.85rem;
   color: var(--color-text-light);
-  margin-top: 20px;
+  margin-top: 24px;
+  margin-bottom: 4px;
   font-style: italic;
   letter-spacing: 0.04em;
 }
 
-/* Nav buttons */
+/* ========================================
+   Nav Buttons
+   ======================================== */
 .photo-modal-nav {
   display: flex;
   gap: 20px;
-  padding: 0 32px 28px;
+  padding: 12px 0 28px;
   width: 100%;
   justify-content: center;
 }
@@ -278,17 +267,14 @@
   outline-offset: 2px;
 }
 
-/* Modal responsive */
+/* ========================================
+   Responsive
+   ======================================== */
 @media (max-width: 768px) {
   .photo-modal-content {
     max-width: calc(100% - 24px);
     border-radius: var(--radius-lg);
-  }
-  .photo-modal-image {
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-  .photo-modal-info {
-    padding: 20px 20px 12px;
+    padding: 36px 20px 0;
   }
   .photo-modal-date {
     font-size: 1.25rem;
@@ -298,7 +284,7 @@
     line-height: 1.8;
   }
   .photo-modal-nav {
-    padding: 0 20px 20px;
+    padding: 8px 0 20px;
     gap: 12px;
   }
   .photo-modal-nav-btn {
@@ -311,5 +297,13 @@
     width: 32px;
     height: 32px;
   }
+  .photo-modal-flip-btn {
+    top: 10px;
+    right: 52px;
+    width: 28px;
+    height: 28px;
+  }
+  .photo-flip-back-text {
+    font-size: 1.2rem;
+  }
 }
-

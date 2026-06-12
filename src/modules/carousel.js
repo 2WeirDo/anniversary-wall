@@ -69,8 +69,6 @@ export class Carousel {
     // 布局动画期间阻止 tick 更新
     this._animating = false;
     this._animTL = null;
-    // 预加载 active 卡片的大图，确保弹窗瞬间打开
-    this._preloaded = new Set();
 
     this.init();
   }
@@ -123,7 +121,7 @@ export class Carousel {
             <img ${srcKey}="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp"
               alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
-              onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos-optimized/${base}.webp';this.onerror=null"
+              onerror="this.style.display='none';this.onerror=null"
             />
           </picture>
         </div>
@@ -275,16 +273,6 @@ export class Carousel {
     // 进入可视窗口时触发图片加载
     if (inWindow && !el._imageLoaded) {
       this._loadCardImage(el);
-    }
-    // 附近卡片预加载大图（±3 偏移内共 7 张），确保点击弹窗时大图已就绪
-    if (inWindow && Math.abs(offset) <= 3) {
-      const idx = parseInt(el.getAttribute('data-index'));
-      if (!this._preloaded.has(idx)) {
-        this._preloaded.add(idx);
-        const base = PHOTOS[idx].replace(/\.(jpg|jpeg|png)$/i, '');
-        const preload = new Image();
-        preload.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-large.webp`;
-      }
     }
   }
 

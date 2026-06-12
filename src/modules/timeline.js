@@ -55,7 +55,7 @@ export class Timeline {
               <picture>
                 <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
                 <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" alt="${item.title}"
-                  onerror="const f=this.closest('.timeline-card-image');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s)s.remove();}this.src='${import.meta.env.BASE_URL}photos-optimized/${base}.webp';this.onerror=null"
+                  onerror="this.style.display='none';this.onerror=null"
                 />
               </picture>
               <div class="timeline-card-date-badge">${item.date}</div>

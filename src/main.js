@@ -63,27 +63,6 @@ const timeline = new Timeline('timeline-container');
 // 入场遮罩期间后台预加载全部 29 张缩略图 — 利用女友阅读文字的 2-5 秒窗口静默缓存
 const _bgPreload = backgroundPreloadAll();
 
-// 预加载关键图片（前5张 + 时间线用到的照片 — 使用 -small 缩略图）
-function preloadImages() {
-  const toPreload = new Set();
-  for (let i = 0; i < Math.min(5, PHOTOS.length); i++) {
-    toPreload.add(PHOTOS[i]);
-  }
-  content.timeline.forEach((t) => {
-    if (PHOTOS[t.photoIdx]) toPreload.add(PHOTOS[t.photoIdx]);
-  });
-
-  return Promise.all([...toPreload].map((f) => {
-    const base = f.replace(/\.(jpg|jpeg|png)$/i, '');
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = resolve;
-      img.onerror = resolve;
-      img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp`;
-    });
-  }));
-}
-
 /**
  * 后台全量预加载 — 在入场遮罩期间静默缓存全部 29 张缩略图
  * 分批次加载避免瞬间拥塞，利用女友阅读遮罩文字的 2-5 秒时间窗口

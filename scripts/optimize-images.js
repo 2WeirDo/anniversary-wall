@@ -9,14 +9,13 @@ import { join, extname } from 'node:path';
 const PHOTOS_DIR = join(import.meta.dirname, '../public/photos');
 const OUTPUT_DIR = join(import.meta.dirname, '../public/photos-optimized');
 
+// 只需要 small（400px）用于轮播卡片 + 时间线
+// 弹窗已改为纯文字，不需要 medium / large / original
 const SIZES = [
-  { name: 'thumb', width: 200 },
   { name: 'small', width: 400 },
-  { name: 'medium', width: 800 },
-  { name: 'large', width: 1200 },
 ];
 
-const WEBP_VARIANTS = [...SIZES.map(s => s.name), ''];
+const WEBP_VARIANTS = [...SIZES.map(s => s.name)];
 
 /**
  * 检查某张照片的所有 webp 变体是否都已存在且比源文件新
@@ -94,7 +93,7 @@ async function optimize() {
   for (const webp of webpFiles) {
     // 提取 webp 的基础名（去掉尺寸后缀和扩展名）
     // 例如: "photo1-large.webp" → "photo1", "photo1.webp" → "photo1"
-    const base = webp.replace(/-(?:thumb|small|medium|large)\.webp$/, '').replace(/\.webp$/, '');
+    const base = webp.replace(/-small\.webp$/, '').replace(/\.webp$/, '');
     if (!sourceBases.has(base)) {
       await unlink(join(OUTPUT_DIR, webp));
       cleaned++;
