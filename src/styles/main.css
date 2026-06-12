@@ -1506,7 +1506,7 @@ body::after {
 }
 
 .timeline {
-  max-width: 1000px;
+  max-width: 1150px;
   width: 100%;
   position: relative;
   display: flex;
@@ -1605,7 +1605,7 @@ body::after {
   box-shadow: 0 2px 16px rgba(232, 120, 144, 0.06), 0 0 0 1px rgba(242, 196, 206, 0.15);
   transition: box-shadow 0.5s, transform 0.4s var(--ease-spring);
   width: 48%;
-  max-width: 480px;
+  max-width: 520px;
   position: relative;
 }
 .timeline-card-inner.left {
