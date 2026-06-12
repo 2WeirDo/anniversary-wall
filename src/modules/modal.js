@@ -1,5 +1,5 @@
 /**
- * 故事气泡弹窗 — 定位在 active 卡片右上角，不遮挡照片
+ * 故事气泡弹窗 — 固定定位在 carousel-stage 右侧
  * 玻璃质感气泡 + 箭头指示 + 3D 翻转情话
  */
 import { PHOTO_META, PHOTO_FLIP_TEXTS } from './carousel.js';
@@ -16,7 +16,6 @@ export function initPhotoModal(getCarousel) {
   const nextBtn = document.getElementById('story-bubble-next');
   const flipContainer = document.getElementById('story-bubble-flip');
   const veil = document.getElementById('carousel-veil');
-  const arrow = bubble.querySelector('.story-bubble-arrow');
 
   let currentIndex = 0;
 
@@ -31,66 +30,45 @@ export function initPhotoModal(getCarousel) {
     flipContainer.classList.remove('flipped');
   }
 
-  /** 根据 active 卡片位置计算气泡坐标 */
+  /** 将气泡固定在 carousel-stage 右侧 — 与 active 卡片无关，位置始终一致 */
   function positionBubble() {
     const carousel = getCarousel();
     if (!carousel) return;
 
-    // 找到 active 卡片
-    const activeCard = carousel.items?.find(el => el.classList.contains('active'));
-    if (!activeCard) return;
+    const stage = carousel.container.parentElement; // .carousel-stage
+    if (!stage) return;
 
-    const cardRect = activeCard.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
     const bubbleW = bubble.offsetWidth;
     const bubbleH = bubble.offsetHeight;
     const gap = 16;
-    const arrowSize = 14;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
 
-    // 默认：气泡在卡片右上角外侧
-    let left = cardRect.right + gap;
-    let top = cardRect.top;
+    // 默认：右侧
+    let left = stageRect.right + gap;
+    let top = stageRect.top;
+    let below = false;
 
-    // 箭头位置（相对于气泡）
-    let arrowSide = 'left'; // 箭头在气泡左侧，指向卡片
-    let arrowTop = 30;      // 箭头距气泡顶部的距离
-    let arrowLeft = -7;     // 箭头左偏移
-
-    // 右侧空间不够 → 放左侧
-    if (left + bubbleW > window.innerWidth - 12) {
-      left = cardRect.left - bubbleW - gap;
-      arrowSide = 'right';
-      arrowLeft = bubbleW - arrowSize / 2;
+    // 右侧空间不够 → 左侧
+    if (left + bubbleW > vw - 12) {
+      left = stageRect.left - bubbleW - gap;
+    }
+    // 左侧也不够 → 放到 stage 下方
+    if (left < 8 || left + bubbleW > vw - 12) {
+      left = Math.max(8, (vw - bubbleW) / 2);
+      top = stageRect.bottom + gap;
+      below = true;
     }
 
-    // 底部空间不够 → 对齐卡片底部
-    if (top + bubbleH > window.innerHeight - 12) {
-      top = Math.max(8, window.innerHeight - bubbleH - 12);
-      arrowTop = cardRect.top + cardRect.height / 2 - top;
-    }
+    bubble.classList.toggle('below', below);
 
-    // 顶部空间不够 → 对齐卡片顶部
-    if (top < 8) {
-      top = 8;
-      arrowTop = cardRect.top + cardRect.height / 2 - top;
-    }
-
-    // 箭头距顶部范围限制
-    arrowTop = Math.max(20, Math.min(bubbleH - 20, arrowTop));
+    // 垂直裁剪保护
+    const maxTop = vh - bubbleH - 12;
+    top = Math.max(8, Math.min(maxTop, top));
 
     bubble.style.left = `${Math.round(left)}px`;
     bubble.style.top = `${Math.round(top)}px`;
-
-    // 箭头定位
-    arrow.style.cssText = '';
-    if (arrowSide === 'left') {
-      arrow.style.left = `${arrowLeft}px`;
-      arrow.style.top = `${Math.round(arrowTop)}px`;
-      arrow.style.transform = 'rotate(45deg)';
-    } else {
-      arrow.style.left = `${Math.round(arrowLeft)}px`;
-      arrow.style.top = `${Math.round(arrowTop)}px`;
-      arrow.style.transform = 'rotate(-135deg)';
-    }
   }
 
   /* ---------- 翻转 ---------- */
@@ -119,7 +97,6 @@ export function initPhotoModal(getCarousel) {
 
     updateBubble(index);
 
-    // 显示时先定位，再显示（避免跳动）
     bubble.classList.add('open');
     bubble.setAttribute('aria-hidden', 'false');
     veil.classList.add('active');
@@ -152,7 +129,6 @@ export function initPhotoModal(getCarousel) {
     const carousel = getCarousel();
     if (carousel) carousel.goTo(newIndex);
     updateBubble(newIndex);
-    requestAnimationFrame(() => positionBubble());
   }
 
   function next() {
@@ -160,7 +136,6 @@ export function initPhotoModal(getCarousel) {
     const carousel = getCarousel();
     if (carousel) carousel.goTo(newIndex);
     updateBubble(newIndex);
-    requestAnimationFrame(() => positionBubble());
   }
 
   /* ---------- 事件绑定 ---------- */
@@ -182,7 +157,7 @@ export function initPhotoModal(getCarousel) {
     if (e.key === 'ArrowRight') next();
   });
 
-  // 窗口 resize / scroll 时重新定位
+  // 窗口 resize / scroll 时重新定位（气泡位置基于 stage，stage 可能因滚动而移动）
   window.addEventListener('resize', () => {
     if (bubble.classList.contains('open')) positionBubble();
   });

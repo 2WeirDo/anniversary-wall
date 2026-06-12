@@ -28,6 +28,10 @@
   z-index: 100;
   width: 280px;
   max-width: calc(100vw - 32px);
+  /* 固定高度 — 避免内容长度变化导致气泡大小跳动 */
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -48,9 +52,12 @@
   pointer-events: auto;
 }
 
-/* ---- 小三角箭头 ---- */
+/* ---- 小三角箭头（始终在气泡左侧，垂直居中）---- */
 .story-bubble-arrow {
   position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
   width: 14px;
   height: 14px;
   background: rgba(255, 255, 255, 0.92);
@@ -58,9 +65,14 @@
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border-left: 1px solid rgba(255, 255, 255, 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-  transform: rotate(45deg);
   border-radius: 3px;
   z-index: -1;
+}
+/* 气泡在下方时 — 箭头上方居中，指向上 */
+.story-bubble.below .story-bubble-arrow {
+  left: 50%;
+  top: -7px;
+  transform: translateX(-50%) rotate(-45deg);
 }
 
 /* ---- 关闭按钮 ---- */
@@ -95,9 +107,22 @@
    Bubble Body — 3D Flip
    ======================================== */
 .story-bubble-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 24px 20px 12px;
   min-height: 100px;
   perspective: 600px;
+  /* 细滚动条 — 粉色系 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232, 120, 144, 0.2) transparent;
+}
+.story-bubble-body::-webkit-scrollbar {
+  width: 4px;
+}
+.story-bubble-body::-webkit-scrollbar-thumb {
+  background: rgba(232, 120, 144, 0.2);
+  border-radius: 4px;
 }
 
 .story-bubble-flip {
@@ -161,6 +186,7 @@
    Bubble Footer
    ======================================== */
 .story-bubble-footer {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;

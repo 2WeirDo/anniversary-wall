@@ -109,7 +109,10 @@
   filter: drop-shadow(0 4px 16px rgba(232, 120, 144, 0.2));
 }
 .carousel-card.active { cursor: default; }
-/* 气泡打开时 active 卡片浮于蒙层之上 */
+/* 气泡打开时 — container 整体浮于蒙层之上，低于气泡 */
+.carousel-highlight {
+  z-index: 91 !important;
+}
 .carousel-highlight .carousel-card.active {
   z-index: 95 !important;
 }
