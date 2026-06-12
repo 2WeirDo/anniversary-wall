@@ -151,9 +151,15 @@ export function initPhotoModal(getCarousel) {
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    // 将焦点移入弹窗，方便键盘操作
+    closeBtn.focus();
   }
 
   function close() {
+    // 关闭前移出焦点，避免 aria-hidden 祖先遮挡 focused 元素的 a11y 警告
+    if (modal.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
