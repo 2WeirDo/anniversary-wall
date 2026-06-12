@@ -2,14 +2,14 @@
  * Service Worker — 离线缓存
  * 缓存关键资源，支持离线访问
  */
-const CACHE = 'love-story-v3';
+const CACHE = 'love-story-v4';
 
 const PRECACHE = [
-  '/',
-  '/index.html',
-  '/favicon.svg',
-  '/manifest.json',
-  '/og-cover.jpg',
+  '/anniversary-wall/',
+  '/anniversary-wall/index.html',
+  '/anniversary-wall/favicon.svg',
+  '/anniversary-wall/manifest.json',
+  '/anniversary-wall/og-cover.jpg',
 ];
 
 // 复用的 Cache 实例 — 避免每次请求都调用 caches.open()

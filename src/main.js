@@ -70,7 +70,8 @@ const _bgPreload = backgroundPreloadAll();
 function backgroundPreloadAll() {
   const BATCH = 4;       // 每批并发数
   const DELAY = 80;      // 批次间隔 ms
-  const bases = PHOTOS.map((f) => f.replace(/\.(jpg|jpeg|png)$/i, ''));
+    const PRELOAD_COUNT = 10;
+  const bases = PHOTOS.slice(0, PRELOAD_COUNT).map((f) => f.replace(/\.(jpg|jpeg|png)$/i, ''));
   const results = [];
 
   for (let i = 0; i < bases.length; i += BATCH) {

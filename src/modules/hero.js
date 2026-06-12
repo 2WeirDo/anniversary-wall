@@ -29,12 +29,18 @@ export function initHeroParallax() {
     { el: date, depth: -5 },
   ];
 
+  let _pending = false;
   hero.addEventListener('mousemove', (e) => {
-    const rect = hero.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    els.forEach(({ el, depth }) => {
-      el.style.transform = `translate(${x * depth}px, ${y * Math.abs(depth) * 0.6}px)`;
+    if (_pending) return;
+    _pending = true;
+    requestAnimationFrame(() => {
+      _pending = false;
+      const rect = hero.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      els.forEach(({ el, depth }) => {
+        el.style.transform = `translate(${x * depth}px, ${y * Math.abs(depth) * 0.6}px)`;
+      });
     });
   });
 
