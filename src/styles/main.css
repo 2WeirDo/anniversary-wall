@@ -1604,8 +1604,8 @@ body::after {
   background: var(--color-white);
   box-shadow: 0 2px 16px rgba(232, 120, 144, 0.06), 0 0 0 1px rgba(242, 196, 206, 0.15);
   transition: box-shadow 0.5s, transform 0.4s var(--ease-spring);
-  width: 44%;
-  max-width: 440px;
+  width: 66%;
+  max-width: 660px;
   position: relative;
 }
 .timeline-card-inner.left {
@@ -1651,7 +1651,7 @@ body::after {
 
 /* ---- 照片区域 ---- */
 .timeline-card-image {
-  flex: 0 0 300px;
+  flex: 0 0 200px;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1836,7 +1836,7 @@ body::after {
   .timeline-card-image {
     flex: 0 0 auto;
     width: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 4 / 3;
   }
   .timeline-card-title {
     font-size: 1.3rem;
