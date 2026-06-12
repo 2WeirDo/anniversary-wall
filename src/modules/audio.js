@@ -1,13 +1,7 @@
 /**
- * BGM 播放控制 + 可视化曲风切换
- * - 优先加载本地 MP3，失败则回退 Web Audio API 合成
- * - 4 套合成预设：温柔月光 / 甜蜜时光 / 静谧星空 / 春日微风
- * - 用户手势内同步解锁 Audio，绕过浏览器自动播放策略
+ * BGM — 纯 Web Audio API 合成，零文件加载，秒开
+ * 4 套曲风预设，可视化切换面板
  */
-
-const BGM_PATHS = [
-  `${import.meta.env.BASE_URL}bgm/bgm.mp3`,
-];
 
 /* ======== 曲风预设 ======== */
 const PRESETS = {
@@ -28,19 +22,12 @@ const PRESETS = {
     ],
     barDuration: 4.0,
     bassFreqs: [130.81, 98.00, 110.00, 87.31],
-    chordGain: 0.045,
-    melodyGain: 0.03,
-    bassGain: 0.03,
-    oscType: 'sine',
-    melodyType: 'triangle',
-    filterFreq: 1200,
-    filterQ: 0.4,
-    warmthFreq: 55,
-    warmthGain: 0.006,
+    chordGain: 0.045, melodyGain: 0.03, bassGain: 0.03,
+    oscType: 'sine', melodyType: 'triangle',
+    filterFreq: 1200, filterQ: 0.4,
+    warmthFreq: 55, warmthGain: 0.006,
     masterVol: 0.14,
-    delayTime: 0.35,
-    delayFeedback: 0.2,
-    delayMix: 0.35,
+    delayTime: 0.35, delayFeedback: 0.2, delayMix: 0.35,
   },
   sweet: {
     name: '甜蜜时光',
@@ -59,19 +46,12 @@ const PRESETS = {
     ],
     barDuration: 3.5,
     bassFreqs: [164.81, 130.81, 146.83, 123.47],
-    chordGain: 0.04,
-    melodyGain: 0.04,
-    bassGain: 0.025,
-    oscType: 'triangle',
-    melodyType: 'sine',
-    filterFreq: 1800,
-    filterQ: 0.3,
-    warmthFreq: 65,
-    warmthGain: 0.004,
+    chordGain: 0.04, melodyGain: 0.04, bassGain: 0.025,
+    oscType: 'triangle', melodyType: 'sine',
+    filterFreq: 1800, filterQ: 0.3,
+    warmthFreq: 65, warmthGain: 0.004,
     masterVol: 0.16,
-    delayTime: 0.25,
-    delayFeedback: 0.15,
-    delayMix: 0.25,
+    delayTime: 0.25, delayFeedback: 0.15, delayMix: 0.25,
   },
   starry: {
     name: '静谧星空',
@@ -90,19 +70,12 @@ const PRESETS = {
     ],
     barDuration: 5.0,
     bassFreqs: [87.31, 65.41, 98.00, 73.42],
-    chordGain: 0.035,
-    melodyGain: 0.02,
-    bassGain: 0.04,
-    oscType: 'sine',
-    melodyType: 'sine',
-    filterFreq: 600,
-    filterQ: 0.6,
-    warmthFreq: 43,
-    warmthGain: 0.008,
+    chordGain: 0.035, melodyGain: 0.02, bassGain: 0.04,
+    oscType: 'sine', melodyType: 'sine',
+    filterFreq: 600, filterQ: 0.6,
+    warmthFreq: 43, warmthGain: 0.008,
     masterVol: 0.12,
-    delayTime: 0.5,
-    delayFeedback: 0.35,
-    delayMix: 0.45,
+    delayTime: 0.5, delayFeedback: 0.35, delayMix: 0.45,
   },
   breeze: {
     name: '春日微风',
@@ -121,19 +94,12 @@ const PRESETS = {
     ],
     barDuration: 3.0,
     bassFreqs: [130.81, 110.00, 123.47, 98.00],
-    chordGain: 0.05,
-    melodyGain: 0.035,
-    bassGain: 0.02,
-    oscType: 'triangle',
-    melodyType: 'triangle',
-    filterFreq: 2000,
-    filterQ: 0.25,
-    warmthFreq: 50,
-    warmthGain: 0.005,
+    chordGain: 0.05, melodyGain: 0.035, bassGain: 0.02,
+    oscType: 'triangle', melodyType: 'triangle',
+    filterFreq: 2000, filterQ: 0.25,
+    warmthFreq: 50, warmthGain: 0.005,
     masterVol: 0.15,
-    delayTime: 0.3,
-    delayFeedback: 0.2,
-    delayMix: 0.3,
+    delayTime: 0.3, delayFeedback: 0.2, delayMix: 0.3,
   },
 };
 
@@ -141,23 +107,14 @@ export class AudioPlayer {
   constructor(btnId) {
     this.btn = document.getElementById(btnId);
     this.isPlaying = false;
-    this.isInitialized = false;
 
-    // 当前预设
     this.currentPreset = 'moonlight';
 
-    // HTML Audio 元素
-    this.audio = document.getElementById('bgm-audio');
-
-    // Web Audio API
     this.ctx = null;
     this.masterGain = null;
     this.activeNodes = [];
     this._scheduleTimer = null;
     this._nextScheduleTime = 0;
-
-    // 当前模式: 'file' | 'synth' | null
-    this.mode = null;
 
     // 面板
     this.panel = document.getElementById('music-panel');
@@ -174,13 +131,12 @@ export class AudioPlayer {
 
     // 主按钮：播放/暂停
     this.btn.addEventListener('click', (e) => {
-      // 如果点到了展开箭头，不触发播放/暂停
       if (e.target.closest('#music-btn-arrow')) return;
       e.stopPropagation();
       this.toggle();
     });
 
-    // 展开箭头：打开/关闭选曲面板
+    // 展开箭头
     if (this.arrowEl) {
       this.arrowEl.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -208,20 +164,12 @@ export class AudioPlayer {
       }
     });
 
-    window.addEventListener('beforeunload', () => {
-      this.stopAll();
-    });
+    window.addEventListener('beforeunload', () => this.stopAll());
   }
 
   /* ======== 面板 ======== */
 
-  togglePanel() {
-    if (this.panelOpen) {
-      this.closePanel();
-    } else {
-      this.openPanel();
-    }
-  }
+  togglePanel() { this.panelOpen ? this.closePanel() : this.openPanel(); }
 
   openPanel() {
     this.panelOpen = true;
@@ -242,64 +190,17 @@ export class AudioPlayer {
     this.currentPreset = key;
     const preset = PRESETS[key];
 
-    // 更新 UI
     if (this.labelEl) this.labelEl.textContent = preset.name;
     const activeBtn = this.presetsEl?.querySelector('.music-preset.active');
     const nextBtn = this.presetsEl?.querySelector(`[data-preset="${key}"]`);
     if (activeBtn) activeBtn.classList.remove('active');
     if (nextBtn) nextBtn.classList.add('active');
 
-    // 如果正在播放合成器，重启
-    if (this.mode === 'synth' && this.isPlaying) {
+    // 播放中：重启合成器
+    if (this.isPlaying) {
       this.stopSynth();
       this.startSynth();
     }
-  }
-
-  /* ======== 本地文件模式 ======== */
-
-  tryLoadFile(path) {
-    return new Promise((resolve) => {
-      if (!this.audio) { resolve(false); return; }
-
-      const handleCanPlay = () => { cleanup(); resolve(true); };
-      const handleError = () => { cleanup(); resolve(false); };
-      const cleanup = () => {
-        this.audio.removeEventListener('canplay', handleCanPlay);
-        this.audio.removeEventListener('error', handleError);
-      };
-
-      this.audio.addEventListener('canplay', handleCanPlay, { once: false });
-      this.audio.addEventListener('error', handleError, { once: false });
-      this.audio.src = path;
-      this.audio.load();
-    });
-  }
-
-  async startFilePlayback() {
-    for (const path of BGM_PATHS) {
-      const ok = await this.tryLoadFile(path);
-      if (ok) {
-        this.mode = 'file';
-        this.audio.volume = 0;
-        this.audio.loop = true;
-        await this.audio.play();
-        this.isPlaying = true;
-        this.btn.classList.add('playing');
-
-        const targetVol = 0.14;
-        const startVol = this.audio.volume;
-        const fadeStart = performance.now();
-        const fadeStep = (now) => {
-          const t = Math.min((now - fadeStart) / 2400, 1);
-          this.audio.volume = startVol + (targetVol - startVol) * (1 - (1 - t) * (1 - t));
-          if (t < 1) requestAnimationFrame(fadeStep);
-        };
-        requestAnimationFrame(fadeStep);
-        return true;
-      }
-    }
-    return false;
   }
 
   /* ======== Web Audio 合成 ======== */
@@ -394,7 +295,6 @@ export class AudioPlayer {
           const chord = chordProgression[barIdx];
           this._playChord(ctx, chord.notes, st, barDuration, delayInput, preset.chordGain, preset.oscType);
 
-          // 贝斯
           const bassOsc = ctx.createOscillator();
           const bassEnv = ctx.createGain();
           bassOsc.type = 'sine';
@@ -409,7 +309,6 @@ export class AudioPlayer {
           bassOsc.stop(st + barDuration + 0.1);
           this.activeNodes.push(bassOsc, bassEnv);
 
-          // 旋律
           const melody = melodyPatterns[barIdx];
           const noteDur = barDuration / melody.length;
           melody.forEach((noteIdx, i) => {
@@ -425,7 +324,6 @@ export class AudioPlayer {
       this._scheduleTimer = setTimeout(() => scheduleLoop(), 2000);
     };
 
-    // 温暖底噪
     const warmthOsc = ctx.createOscillator();
     const warmthGain = ctx.createGain();
     warmthOsc.type = 'triangle';
@@ -461,47 +359,22 @@ export class AudioPlayer {
 
   /* ======== 公共 API ======== */
 
-  async play() {
-    if (this.isPlaying || this._starting) return;
-    this._starting = true;
+  play() {
+    if (this.isPlaying) return;  // 合成器秒启，无需 _starting 锁
 
-    try {
-      // 用户手势内同步解锁 Audio 元素
-      if (this.audio) this.audio.play().catch(() => {});
-
-      // 已有加载好的文件
-      if (this.mode === 'file' && this.audio && this.audio.src) {
-        await this.audio.play();
-        this.isPlaying = true;
-        this.btn.classList.add('playing');
-        return;
-      }
-
-      // 首次：尝试 MP3
-      if (this.audio && !this.isInitialized) {
-        const fileLoaded = await this.startFilePlayback();
-        if (fileLoaded) return;
-      }
-
-      // 回退：Web Audio 合成
-      this.mode = 'synth';
-      this.startSynth();
-      this.isPlaying = true;
-      this.btn.classList.add('playing');
-    } catch (err) {
-      console.warn('Audio playback failed:', err.message);
-    } finally {
-      this._starting = false;
+    // 用户手势内同步解锁 AudioContext
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
     }
+
+    this.startSynth();
+    this.isPlaying = true;
+    this.btn.classList.add('playing');
   }
 
   pause() {
     if (!this.isPlaying) return;
-    if (this.mode === 'file' && this.audio) {
-      this.audio.pause();
-    } else if (this.mode === 'synth') {
-      this.stopSynth();
-    }
+    this.stopSynth();
     this.isPlaying = false;
     this.btn.classList.remove('playing');
   }
@@ -511,14 +384,7 @@ export class AudioPlayer {
     else this.play();
   }
 
-  initPlay() {
-    if (this.isInitialized) return;
-    this.isInitialized = true;
-    this.play();
-  }
-
   stopAll() {
-    if (this.audio) { this.audio.pause(); this.audio.src = ''; }
     this.stopSynth();
   }
 }

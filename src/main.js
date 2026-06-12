@@ -116,7 +116,6 @@ async function handleEnter() {
   // 阶段2: 书封裂开 (0.7s)
   setTimeout(() => {
     entryOverlay.classList.add('hidden');
-    audio.initPlay();
     setTimeout(() => {
       document.body.style.overflow = '';
       initMainContent();
