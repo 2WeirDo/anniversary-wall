@@ -26,7 +26,7 @@
 .story-bubble {
   position: fixed;
   z-index: 100;
-  width: 380px;
+  width: 304px;
   max-width: calc(100vw - 32px);
   /* 固定高度 — 避免内容长度变化导致气泡大小跳动 */
   max-height: calc(100vh - 32px);
@@ -156,7 +156,7 @@
 
 .story-bubble-date {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-style: italic;
   color: var(--color-accent);
   margin-bottom: 8px;
@@ -165,7 +165,7 @@
 
 .story-bubble-story {
   font-family: var(--font-body);
-  font-size: 1.17rem;
+  font-size: 0.94rem;
   line-height: 1.75;
   color: var(--color-text-dark);
   margin: 0;
@@ -173,7 +173,7 @@
 
 .story-bubble-flip-text {
   font-family: var(--font-handwrite);
-  font-size: 1.43rem;
+  font-size: 1.14rem;
   color: var(--color-accent-deep);
   line-height: 1.7;
   margin: 0;
@@ -218,7 +218,7 @@
 
 .story-bubble-counter {
   font-family: var(--font-display);
-  font-size: 1.01rem;
+  font-size: 0.81rem;
   color: var(--color-text-light);
   font-style: italic;
   letter-spacing: 0.04em;
@@ -306,21 +306,21 @@
    ======================================== */
 @media (max-width: 768px) {
   .story-bubble {
-    width: 320px;
+    width: 256px;
     border-radius: 16px;
   }
   .story-bubble-body {
     padding: 20px 16px 8px;
   }
   .story-bubble-date {
-    font-size: 1.3rem;
+    font-size: 1.04rem;
   }
   .story-bubble-story {
-    font-size: 1.1rem;
+    font-size: 0.88rem;
     line-height: 1.65;
   }
   .story-bubble-flip-text {
-    font-size: 1.3rem;
+    font-size: 1.04rem;
   }
   .story-bubble-footer {
     padding: 6px 12px 10px;
