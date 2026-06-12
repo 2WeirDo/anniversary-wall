@@ -1006,19 +1006,32 @@ function initNavDots() {
   const dots = document.querySelectorAll('.nav-dots .dot');
   const sections = document.querySelectorAll('.section');
 
+  // 跟踪每个 section 的最新可见比例
+  const sectionRatios = new Map();
+
   const observer = new IntersectionObserver(
     (entries) => {
+      // 更新各 section 的可见比例
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionIndex = parseInt(entry.target.getAttribute('data-section'));
-          dots.forEach((dot) => {
-            const dotIndex = parseInt(dot.getAttribute('data-section'));
-            dot.classList.toggle('active', dotIndex === sectionIndex);
-          });
-        }
+        const idx = parseInt(entry.target.getAttribute('data-section'));
+        sectionRatios.set(idx, entry.intersectionRatio);
       });
+
+      // 找出可见比例最高的 section
+      let maxRatio = 0;
+      let activeIdx = -1;
+      sectionRatios.forEach((ratio, idx) => {
+        if (ratio > maxRatio) { maxRatio = ratio; activeIdx = idx; }
+      });
+
+      if (activeIdx >= 0) {
+        dots.forEach((dot) => {
+          const dotIndex = parseInt(dot.getAttribute('data-section'));
+          dot.classList.toggle('active', dotIndex === activeIdx);
+        });
+      }
     },
-    { threshold: 0.5 }
+    { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
   );
 
   sections.forEach((section) => observer.observe(section));
