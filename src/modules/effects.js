@@ -42,7 +42,7 @@ export function initCarouselSparkles() {
     sparkle.className = 'carousel-sparkle';
     sparkle.style.left = (-5 + Math.random() * 110) + '%';
     sparkle.style.top = (-10 + Math.random() * 120) + '%';
-    const size = (5 + Math.random() * 12);
+    const size = (2.5 + Math.random() * 5);
     sparkle.style.width = sparkle.style.height = size + 'px';
     sparkle.style.animationDelay = Math.random() * 6 + 's';
     sparkle.style.animationDuration = (4 + Math.random() * 6) + 's';
