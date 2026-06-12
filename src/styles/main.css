@@ -1471,31 +1471,36 @@ body::after {
 }
 
 /* 轮播照片计数器 */
-.carousel-counter {
+/* 轮播圆点指示器 — 与右侧导航点风格一致 */
+.carousel-dots {
   position: absolute;
-  bottom: -8px;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  color: var(--color-text-light);
-  letter-spacing: 0.08em;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 4px 16px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: 10px;
   z-index: 5;
   pointer-events: none;
-  transition: color 0.4s, background 0.4s, border-color 0.4s;
-  font-feature-settings: "tnum";
 }
-[data-theme="dark"] .carousel-counter {
-  background: rgba(30, 24, 40, 0.85);
-  color: var(--color-text-light);
-  border-color: rgba(255,255,255,0.08);
+.carousel-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.3;
+  transition: all 0.4s var(--ease-out);
+}
+.carousel-dot.active {
+  opacity: 1;
+  background: var(--color-accent);
+  box-shadow: 0 0 10px rgba(232, 120, 144, 0.45);
+  transform: scale(1.35);
+}
+[data-theme="dark"] .carousel-dot {
+  background: rgba(232, 120, 144, 0.4);
+}
+[data-theme="dark"] .carousel-dot.active {
+  background: var(--color-accent);
+  box-shadow: 0 0 12px rgba(232, 120, 144, 0.5);
 }
 [data-theme="dark"] .carousel-nav {
   background: rgba(30, 24, 40, 0.75);

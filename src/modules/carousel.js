@@ -46,7 +46,8 @@ export class Carousel {
     this.current = 0;          // 浮点位置，持续递增（不取模）
     this.items = [];
     this._quickSetters = [];   // 每卡片预创建的 quickSetter，避免 tick 中创建 tween
-    this.counterEl = document.getElementById('carousel-counter');
+    this.dotsEl = document.getElementById('carousel-dots');
+    this._dots = [];
     this.isDragging = false;
     this.startX = 0;
     this._dragStartCurrent = 0;
@@ -77,6 +78,19 @@ export class Carousel {
   render() {
     this.container.innerHTML = '';
     this.items = [];
+
+    // 渲染圆点指示器
+    if (this.dotsEl) {
+      this.dotsEl.innerHTML = '';
+      this._dots = [];
+      for (let i = 0; i < this.total; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'carousel-dot';
+        if (i === 0) dot.classList.add('active');
+        this.dotsEl.appendChild(dot);
+        this._dots.push(dot);
+      }
+    }
 
     PHOTOS.forEach((photo, i) => {
       const base = photo.replace(/\.(jpg|jpeg|png)$/i, '');
@@ -141,11 +155,29 @@ export class Carousel {
     this.updateCounter();
   }
 
-  /** 更新照片计数器 */
+  /** 更新圆点指示器 — 窗口限制最多 9 个，超出时隐藏边缘 */
   updateCounter() {
-    if (!this.counterEl) return;
+    if (!this._dots.length) return;
     const idx = ((Math.round(this.current) % this.total) + this.total) % this.total;
-    this.counterEl.textContent = `${idx + 1} / ${this.total}`;
+    const MAX = 9;
+    const total = this._dots.length;
+
+    let start, end;
+    if (total <= MAX) {
+      start = 0;
+      end = total;
+    } else {
+      const half = Math.floor(MAX / 2);
+      start = Math.max(0, idx - half);
+      end = start + MAX;
+      if (end > total) { end = total; start = end - MAX; }
+    }
+
+    this._dots.forEach((dot, i) => {
+      const visible = i >= start && i < end;
+      dot.style.display = visible ? '' : 'none';
+      dot.classList.toggle('active', i === idx);
+    });
   }
 
   /**
