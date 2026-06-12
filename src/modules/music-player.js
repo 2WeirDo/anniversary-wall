@@ -243,10 +243,11 @@ export class MusicPlayer {
       return;
     }
 
+    // 标记当前加载中的行
+    this._setItemLoading(song, true);
     this.isLoading = true;
     this.currentSong = song;
     this.updatePlayButton();
-    this.showStatus(`加载中 — ${song.title}`);
 
     try {
       const url = await this.getAudioUrl(song);
@@ -258,11 +259,13 @@ export class MusicPlayer {
       this.isLoading = false;
       this.btn.classList.add('playing');
       this.updateLabel();
-      this.hideStatus();
+      this._setItemLoading(song, false);
+      this._highlightPlaying();
       this.closePanel();
     } catch (err) {
       console.warn('播放失败:', err);
       this.isLoading = false;
+      this._setItemLoading(song, false);
       this.showStatus('播放失败，试试其他歌曲');
       this.updatePlayButton();
     }
@@ -273,6 +276,7 @@ export class MusicPlayer {
     this.audio.play().then(() => {
       this.isPlaying = true;
       this.btn.classList.add('playing');
+      this._highlightPlaying();
     }).catch(() => {});
   }
 
@@ -343,60 +347,114 @@ export class MusicPlayer {
 
   /* ======== UI 渲染 ======== */
 
-  renderPresets() {
-    if (!this.presetsEl) return;
-    if (this.presetCache.length === 0) {
-      this.presetsEl.innerHTML = '<div class="music-status-text">加载推荐歌曲中...</div>';
-      return;
-    }
-    this.presetsEl.innerHTML = this.presetCache.map((song, i) => `
-      <div class="music-result-item" data-index="${i}" data-preset="true">
-        <div class="music-result-cover">
-          ${song.picId
-            ? `<img src="${this._coverUrl(song)}" alt="" loading="lazy" />`
-            : '<span class="music-result-nopic">🎵</span>'}
+  /** 歌曲行模板 — 纯排版，无图片 */
+  _songRow(song, index, showBadge = false) {
+    const isCurrent = this.currentSong
+      && this.currentSong.id === song.id
+      && this.currentSong.source === song.source;
+    return `
+      <div class="music-result-item${isCurrent && this.isPlaying ? ' playing' : ''}"
+           data-index="${index}"
+           data-song-id="${song.id}"
+           data-song-source="${song.source || SEARCH_SOURCE}">
+        <div class="music-result-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
         </div>
         <div class="music-result-info">
           <span class="music-result-title">${escapeHtml(song.title)}</span>
           <span class="music-result-artist">${escapeHtml(song.artist)}</span>
         </div>
-        <div class="music-result-badge">推荐</div>
-      </div>
-    `).join('');
+        <div class="music-result-spinner"></div>
+        <div class="music-result-playing-indicator">
+          <span class="music-bar"></span>
+          <span class="music-bar"></span>
+          <span class="music-bar"></span>
+        </div>
+        ${showBadge ? '<span class="music-result-badge">精选</span>' : ''}
+      </div>`;
+  }
+
+  /** 渲染预设列表 */
+  renderPresets() {
+    if (!this.resultsEl) return;
+    if (this.presetCache.length === 0) {
+      this.resultsEl.innerHTML = '';
+      return;
+    }
+    this.resultsEl.innerHTML = this.presetCache.map((song, i) =>
+      this._songRow(song, i, true)
+    ).join('');
+    this._staggerIn();
+  }
+
+  /** 渲染搜索结果 */
+  renderResults(songs) {
+    if (!this.resultsEl) return;
+    if (this.statusEl) this.statusEl.style.display = 'none';
+    this.resultsEl.innerHTML = songs.map((song, i) =>
+      this._songRow(song, i)
+    ).join('');
+    this._staggerIn();
+  }
+
+  /** 列表项入场 stagger 动画 */
+  _staggerIn() {
+    const items = this.resultsEl.querySelectorAll('.music-result-item');
+    items.forEach((item, i) => {
+      item.style.opacity = '0';
+      item.style.transform = 'translateY(8px)';
+      item.style.transition = `all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) ${i * 0.04}s`;
+      requestAnimationFrame(() => {
+        item.style.opacity = '1';
+        item.style.transform = 'translateY(0)';
+      });
+    });
+  }
+
+  /** 高亮当前播放歌曲行 */
+  _highlightPlaying() {
+    if (!this.resultsEl) return;
+    // 清除所有 playing 状态
+    this.resultsEl.querySelectorAll('.music-result-item.playing').forEach(el => {
+      el.classList.remove('playing');
+    });
+    if (!this.currentSong || !this.isPlaying) return;
+    // 高亮当前歌曲
+    const item = this.resultsEl.querySelector(
+      `[data-song-id="${this.currentSong.id}"][data-song-source="${this.currentSong.source}"]`
+    );
+    if (item) item.classList.add('playing');
+  }
+
+  /** 行内 loading 状态 */
+  _setItemLoading(song, loading) {
+    if (!this.resultsEl || !song) return;
+    const item = this.resultsEl.querySelector(
+      `[data-song-id="${song.id}"][data-song-source="${song.source || SEARCH_SOURCE}"]`
+    );
+    if (!item) return;
+    if (loading) {
+      item.classList.add('loading');
+    } else {
+      item.classList.remove('loading');
+    }
   }
 
   showPresets() {
     this._lastSearchResults = null;
     if (this.statusEl) this.statusEl.style.display = 'none';
-    if (this.resultsEl) {
-      this.resultsEl.classList.add('presets-mode');
-      this.renderPresets();
-    }
-  }
-
-  renderResults(songs) {
-    if (!this.resultsEl) return;
-    this.resultsEl.classList.remove('presets-mode');
-    if (this.statusEl) this.statusEl.style.display = 'none';
-    this.resultsEl.innerHTML = songs.map((song, i) => `
-      <div class="music-result-item" data-index="${i}">
-        <div class="music-result-cover">
-          ${song.picId
-            ? `<img src="${this._coverUrl(song)}" alt="" loading="lazy" />`
-            : '<span class="music-result-nopic">🎵</span>'}
-        </div>
-        <div class="music-result-info">
-          <span class="music-result-title">${escapeHtml(song.title)}</span>
-          <span class="music-result-artist">${escapeHtml(song.artist)}</span>
-        </div>
-        ${song.album ? `<span class="music-result-album">${escapeHtml(song.album)}</span>` : ''}
-      </div>
-    `).join('');
+    this.renderPresets();
   }
 
   showStatus(msg) {
-    if (!this.statusEl) return;
-    this.statusEl.style.display = 'block';
+    if (!this.statusEl || !this.resultsEl) return;
+    this.resultsEl.innerHTML = '';
+    this.statusEl.style.display = 'flex';
     this.statusEl.textContent = msg;
   }
 
