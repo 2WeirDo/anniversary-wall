@@ -509,32 +509,38 @@ export class StarTheater {
     ctx.restore();
   }
 
-  /* ---- 星座连线（已点亮星之间）---- */
+  /* ---- 星座连线（始终显示引导线，已点亮更亮）---- */
   drawConstellationLines(ctx) {
-    const litStars = this.constellationStars.filter(s => s.touched);
-    if (litStars.length < 2) return;
-
-    // 分别绘制狮子座和天蝎座的连线
-    const leoStars = litStars.filter(s => s.color === 'leo');
-    const scoStars = litStars.filter(s => s.color === 'scorpio');
+    // 分别获取狮子座和天蝎座的全部星星（按数组顺序 = offsets 顺序）
+    const leoStars = this.constellationStars.filter(s => s.color === 'leo');
+    const scoStars = this.constellationStars.filter(s => s.color === 'scorpio');
 
     ctx.save();
     ctx.lineWidth = 0.5;
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    // 狮子座连线
+    // 狮子座 — 始终显示暗淡引导线
     if (leoStars.length >= 2) {
-      ctx.strokeStyle = 'rgba(180,200,230,0.3)';
-      ctx.shadowColor = 'rgba(180,200,230,0.4)';
-      ctx.shadowBlur = 6;
+      const leoLit = leoStars.filter(s => s.touched).length;
+      const leoRatio = leoLit / leoStars.length;
+      const alpha = 0.15 + leoRatio * 0.5;  // 0.15 → 0.65
+      ctx.strokeStyle = `rgba(180,200,235,${alpha})`;
+      ctx.shadowColor = `rgba(180,200,235,${alpha * 0.8})`;
+      ctx.shadowBlur = 4 + leoRatio * 6;
+      ctx.lineWidth = 0.35 + leoRatio * 0.45;
       this.drawStarConnections(ctx, leoStars);
     }
 
-    // 天蝎座连线
+    // 天蝎座 — 始终显示暗淡引导线
     if (scoStars.length >= 2) {
-      ctx.strokeStyle = 'rgba(220,190,210,0.3)';
-      ctx.shadowColor = 'rgba(220,190,210,0.4)';
-      ctx.shadowBlur = 6;
+      const scoLit = scoStars.filter(s => s.touched).length;
+      const scoRatio = scoLit / scoStars.length;
+      const alpha = 0.15 + scoRatio * 0.5;  // 0.15 → 0.65
+      ctx.strokeStyle = `rgba(225,195,220,${alpha})`;
+      ctx.shadowColor = `rgba(225,195,220,${alpha * 0.8})`;
+      ctx.shadowBlur = 4 + scoRatio * 6;
+      ctx.lineWidth = 0.35 + scoRatio * 0.45;
       this.drawStarConnections(ctx, scoStars);
     }
 
@@ -542,7 +548,7 @@ export class StarTheater {
   }
 
   drawStarConnections(ctx, stars) {
-    // 按星座原始顺序连线（它们在 constellationStars 中的顺序就是 offsets 顺序）
+    // 按星座原始顺序连线
     ctx.beginPath();
     ctx.moveTo(stars[0].x, stars[0].y);
     for (let i = 1; i < stars.length; i++) {

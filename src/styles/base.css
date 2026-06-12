@@ -191,15 +191,6 @@
   background: linear-gradient(110deg, #2A2435 30%, #322C3F 50%, #2A2435 70%);
   background-size: 200% 100%;
 }
-[data-theme="dark"] .lantern-btn {
-  color: var(--color-accent);
-  border-color: rgba(232, 152, 168, 0.25);
-}
-[data-theme="dark"] .lantern-btn:hover {
-  background: rgba(42, 34, 53, 0.6);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 24px rgba(232, 152, 168, 0.15);
-}
 [data-theme="dark"] .entry-hint { color: #908098; }
 [data-theme="dark"] .scroll-indicator { color: #908098; }
 [data-theme="dark"] .section-divider { background: linear-gradient(90deg, transparent, rgba(232, 152, 168, 0.3), transparent); }

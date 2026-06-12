@@ -6,9 +6,20 @@
 /* ---- 区段容器 ---- */
 .ending-cosmic {
   position: relative;
-  background: linear-gradient(180deg, #1a1530 0%, #0d0a1c 40%, #060410 100%);
+  background: linear-gradient(180deg, #1a1530 0%, #14102a 15%, #0d0a1c 45%, #060410 100%);
   overflow: hidden;
   text-align: center;
+}
+
+/* 顶部淡入 — 与 wishes-fade 无缝衔接 */
+.ending-cosmic::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 18%;
+  background: linear-gradient(180deg, rgba(26,21,48,0.3) 0%, transparent 100%);
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* ---- 星空画布 ---- */
@@ -79,9 +90,9 @@
    ================================================================ */
 .heart-reveal {
   position: absolute;
-  bottom: 24%;
+  top: 36%;
   left: 50%;
-  transform: translate(-50%, 0) scale(0.5);
+  transform: translate(-50%, -50%) scale(0.5);
   z-index: 3;
   opacity: 0;
   pointer-events: none;
@@ -90,16 +101,16 @@
 
 .heart-reveal.visible {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: translate(-50%, -50%) scale(1);
   animation: heartBeat 3s ease-in-out infinite;
 }
 
 @keyframes heartBeat {
-  0%, 100% { transform: translate(-50%, 0) scale(1); }
-  14% { transform: translate(-50%, 0) scale(1.15); }
-  28% { transform: translate(-50%, 0) scale(1); }
-  42% { transform: translate(-50%, 0) scale(1.06); }
-  56% { transform: translate(-50%, 0) scale(1); }
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  14% { transform: translate(-50%, -50%) scale(1.15); }
+  28% { transform: translate(-50%, -50%) scale(1); }
+  42% { transform: translate(-50%, -50%) scale(1.06); }
+  56% { transform: translate(-50%, -50%) scale(1); }
 }
 
 /* 爱心外发光 */
@@ -107,8 +118,8 @@
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
+  width: 160px;
+  height: 160px;
   background: radial-gradient(ellipse,
     rgba(248,200,140,0.2) 0%,
     rgba(240,180,140,0.08) 40%,
@@ -180,7 +191,7 @@
 }
 
 /* ================================================================
-   内容覆盖层
+   内容覆盖层（天灯已移至 footer）
    ================================================================ */
 .ending-content {
   position: relative;
@@ -188,79 +199,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 62vh;
-  animation: contentIn 1.5s var(--ease-out);
-}
-
-@keyframes contentIn {
-  0% { opacity: 0; transform: translateY(30px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ---- 宇宙天灯按钮 ---- */
-.lantern-cosmic {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 1.2rem;
-  padding: 0.7rem 2.2rem;
-  background: rgba(20, 14, 38, 0.55);
-  color: #bfb0d0;
-  border: 1px solid rgba(190, 170, 210, 0.18);
-  border-radius: var(--radius-full);
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  cursor: pointer;
-  letter-spacing: 0.06em;
-  transition: all 0.4s var(--ease-out);
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.lantern-cosmic::before {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid rgba(210, 180, 150, 0.14);
-  animation: ringPulse 2.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes ringPulse {
-  0%, 100% { inset: -6px; opacity: 0.3; border-color: rgba(210, 180, 150, 0.12); }
-  50% { inset: -15px; opacity: 0; border-color: rgba(210, 180, 150, 0.03); }
-}
-
-.lantern-cosmic::after {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(210, 180, 150, 0.1);
-  animation: ringPulse 2.8s ease-in-out 1s infinite;
-  pointer-events: none;
-}
-
-.lantern-cosmic:hover {
-  background: rgba(30, 18, 52, 0.72);
-  border-color: rgba(248, 210, 150, 0.45);
-  color: #f2daa0;
-  box-shadow: 0 0 48px rgba(200, 160, 100, 0.18);
-  transform: translateY(-2px);
-}
-
-.lantern-cosmic:hover::before {
-  animation-duration: 1.4s;
-  border-color: rgba(248, 210, 150, 0.3);
-}
-
-.lantern-btn-icon {
-  display: inline-flex;
-  align-items: center;
-  color: #e8c878;
 }
 
 /* ================================================================
@@ -376,8 +314,8 @@
   .star-progress { bottom: 30%; }
   .star-progress-track { width: 140px; }
   .star-progress-label { font-size: 0.72rem; }
-  .heart-reveal { bottom: 20%; }
-  .heart-reveal-svg { width: 130px; height: 117px; }
+  .heart-reveal { top: 34%; }
+  .heart-reveal-svg { width: 100px; height: 90px; }
   .ending-content { padding-top: 50vh; }
 }
 
@@ -385,6 +323,6 @@
   .star-progress { bottom: 28%; }
   .star-progress-track { width: 120px; }
   .star-progress-label { font-size: 0.68rem; }
-  .heart-reveal-svg { width: 110px; height: 99px; }
+  .heart-reveal-svg { width: 80px; height: 72px; }
   .ending-content { padding-top: 46vh; }
 }
