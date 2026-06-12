@@ -279,17 +279,18 @@
   border-color: rgba(200, 175, 140, 0.3);
 }
 
-/* ---- 暮光过渡（星愿 → 星夜平滑衔接）---- */
+/* ---- 暮光过渡（星愿 → 星夜，渐进深空）---- */
 .wishes-fade {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 65%;
+  height: 70%;
   background: linear-gradient(180deg,
     transparent 0%,
-    rgba(245, 235, 240, 0.25) 15%,
-    rgba(220, 200, 210, 0.4) 35%,
-    rgba(150, 130, 165, 0.5) 55%,
-    rgba(60, 45, 85, 0.65) 75%,
+    rgba(240, 225, 230, 0.2) 12%,
+    rgba(200, 180, 195, 0.35) 28%,
+    rgba(140, 115, 155, 0.5) 48%,
+    rgba(60, 45, 80, 0.65) 68%,
+    rgba(30, 20, 50, 0.85) 85%,
     #1a1530 100%);
   pointer-events: none;
   z-index: 0;

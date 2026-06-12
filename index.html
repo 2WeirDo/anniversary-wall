@@ -296,50 +296,10 @@
       <canvas class="star-canvas" aria-hidden="true"></canvas>
 
       <!-- 星座收集进度 -->
-      <div class="star-progress" id="star-progress" aria-live="polite">
+      <div class="star-progress" id="star-progress" aria-hidden="true">
         <div class="star-progress-track">
           <div class="star-progress-fill" id="star-progress-fill"></div>
         </div>
-        <span class="star-progress-label" id="star-progress-label">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span>轻划星空，点亮星座</span>
-        </span>
-      </div>
-
-      <!-- 爱心揭示层（全部点亮后出现） -->
-      <div class="heart-reveal" id="heart-reveal" aria-hidden="true">
-        <div class="heart-reveal-glow"></div>
-        <svg class="heart-reveal-svg" viewBox="0 0 200 180" width="120" height="108">
-          <defs>
-            <radialGradient id="heart-gold" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#fff8e0"/>
-              <stop offset="25%" stop-color="#f5d580"/>
-              <stop offset="55%" stop-color="#e8b860"/>
-              <stop offset="80%" stop-color="#d49870"/>
-              <stop offset="100%" stop-color="#b87080"/>
-            </radialGradient>
-            <filter id="heart-glow">
-              <feGaussianBlur stdDeviation="4" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- 光晕后层 -->
-          <path class="heart-outer" d="M100 168 C42 140 8 100 8 58 C8 24 34 4 62 4 C78 4 92 12 100 26 C108 12 122 4 138 4 C166 4 192 24 192 58 C192 100 158 140 100 168Z"
-                fill="none" stroke="rgba(248,200,140,0.35)" stroke-width="2.5"/>
-          <!-- 实心主体 -->
-          <path class="heart-fill" d="M100 162 C45 135 12 97 12 58 C12 26 36 8 62 8 C78 8 92 16 100 30 C108 16 122 8 138 8 C164 8 188 26 188 58 C188 97 155 135 100 162Z"
-                fill="url(#heart-gold)" filter="url(#heart-glow)" opacity="0"/>
-          <!-- 高光点 -->
-          <circle class="heart-spark s1" cx="80" cy="55" r="3" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s2" cx="110" cy="42" r="2.5" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s3" cx="130" cy="70" r="3.5" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s4" cx="68" cy="80" r="2" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s5" cx="100" cy="95" r="3" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s6" cx="145" cy="95" r="2.5" fill="#fff" opacity="0"/>
-          <circle class="heart-spark s7" cx="55" cy="105" r="2" fill="#fff" opacity="0"/>
-        </svg>
       </div>
 
       <!-- 浮动粒子容器 -->
