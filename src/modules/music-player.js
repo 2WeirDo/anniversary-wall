@@ -139,7 +139,6 @@ export class MusicPlayer {
       }
     } catch (e) {
       // 自动播放被浏览器阻止或搜索失败，用户可手动播放
-      console.log(1111)
     }
   }
 
