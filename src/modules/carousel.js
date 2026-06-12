@@ -211,7 +211,7 @@ export class Carousel {
    * @param {number} duration 动画时长（秒），0 = 瞬间定位
    * @param {number} [fromCurrent] 动画起始 current 值，不传则从当前视觉状态开始
    */
-  layoutAll(duration = 0.45, fromCurrent) {
+  layoutAll(duration = 0.45, fromCurrent, onComplete) {
     // 停掉上一轮动画
     if (this._animTL) { this._animTL.kill(); this._animTL = null; }
 
@@ -224,6 +224,7 @@ export class Carousel {
         this._setCard(this.items[i], offset);
       }
       this.updateCounter();
+      if (onComplete) onComplete();
       return;
     }
 
@@ -236,6 +237,7 @@ export class Carousel {
         this._animating = false;
         this._animTL = null;
         this._lastTickTime = Date.now();
+        if (onComplete) onComplete();
       },
     });
     this._animTL = tl;
@@ -403,7 +405,7 @@ export class Carousel {
     this.scheduleAuto();
   }
 
-  goTo(index) {
+  goTo(index, onComplete) {
     const fromCurrent = this.current;
     this.stopAuto();
     const rounded = Math.round(fromCurrent);
@@ -414,7 +416,7 @@ export class Carousel {
       target = target > fromCurrent ? target - this.total : target + this.total;
     }
     this.current = target;
-    this.layoutAll(0.35, fromCurrent);
+    this.layoutAll(0.35, fromCurrent, onComplete);
     this.scheduleAuto();
   }
 

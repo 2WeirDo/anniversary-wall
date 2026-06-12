@@ -28,35 +28,34 @@ export function initPhotoModal(getCarousel) {
     flipContainer.classList.remove('flipped');
   }
 
-  /** 气泡基于轮播 stage 正中心定位 — 位置完全固定，不受 active 卡片影响 */
+  /** 气泡基于 active 卡片右上角定位 — 等轮播动画完成后再调用 */
   function positionBubble() {
     const carousel = getCarousel();
     if (!carousel) return;
 
-    const stage = carousel.container.parentElement; // .carousel-stage
-    if (!stage) return;
+    const activeCard = carousel.items?.find(el => el.classList.contains('active'));
+    if (!activeCard) return;
 
-    const stageRect = stage.getBoundingClientRect();
+    const cardRect = activeCard.getBoundingClientRect();
     const bubbleW = bubble.offsetWidth;
     const bubbleH = bubble.offsetHeight;
-    const gap = 16;
+    const gap = 12;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const stageCenterY = stageRect.top + stageRect.height / 2;
 
-    // 默认：stage 右侧，垂直居中于 stage
-    let left = stageRect.right + gap;
-    let top = stageCenterY - bubbleH / 2;
+    // 默认：active 卡片右上角
+    let left = cardRect.right + gap;
+    let top = cardRect.top;
     let below = false;
 
-    // 右侧空间不够 → 左侧
+    // 右侧空间不够 → 放左侧
     if (left + bubbleW > vw - 12) {
-      left = stageRect.left - bubbleW - gap;
+      left = cardRect.left - bubbleW - gap;
     }
-    // 两侧都不够 → 下方居中
+    // 左右都不够 → 放下方居中
     if (left < 8 || left + bubbleW > vw - 12) {
       left = Math.max(8, (vw - bubbleW) / 2);
-      top = stageRect.bottom + gap;
+      top = cardRect.bottom + gap;
       below = true;
     }
 
@@ -89,10 +88,9 @@ export function initPhotoModal(getCarousel) {
   /* ---------- 打开 / 关闭 ---------- */
   function open(index) {
     const carousel = getCarousel();
-    if (carousel) {
-      carousel.pause();
-      carousel.goTo(index);
-    }
+    if (!carousel) return;
+
+    carousel.pause();
 
     updateBubble(index);
 
@@ -100,14 +98,13 @@ export function initPhotoModal(getCarousel) {
     bubble.setAttribute('aria-hidden', 'false');
     veil.classList.add('active');
     carousel.container.classList.add('carousel-highlight');
+    document.body.style.overflow = 'hidden';
 
-    // 等 active class 应用后再定位
-    requestAnimationFrame(() => {
+    // goTo 动画完成后（active 卡片回到屏幕中心）再定位气泡
+    carousel.goTo(index, () => {
       positionBubble();
       closeBtn.focus();
     });
-
-    document.body.style.overflow = 'hidden';
   }
 
   function close() {
