@@ -523,14 +523,18 @@
   }
 }
 
-/* 加载状态 */
+/* 加载状态 — CSS 圆环旋转 */
 .music-btn-spinner {
   display: none;
-  position: absolute;
-  left: 13px;
-  color: var(--color-accent);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 120, 144, 0.15);
+  border-top-color: var(--color-accent);
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
 }
-.music-btn.loading .music-btn-spinner { display: flex; }
+.music-btn.loading .music-btn-spinner { display: block; }
 .music-btn.loading .music-icon-play,
 .music-btn.loading .music-icon-pause { display: none; }
 
