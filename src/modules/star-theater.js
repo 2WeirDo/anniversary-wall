@@ -1,410 +1,472 @@
 /**
- * Star Theater — 指尖星图 × 剪影小剧场
- * Canvas 星空背景 + 星座连线 + 触控星光 + SVG 剪影动画
+ * Star Theater v2 — 指尖星图 × 剪影小剧场
+ *
+ * 设计：「暮光到星夜」
+ * - 两个星座群在深空中随剪影靠近而漂移
+ * - 拥抱时星群汇聚成一颗心
+ * - 指尖划过星点微亮 + 光漪扩散
+ * - Canvas 渲染星场，CSS 驱动剪影表演
  */
 
-/* ---- 心形星座采样点（参数方程，20 个关键星） ---- */
-function heartCurve(t) {
-  const t2 = t * Math.PI * 2;
+/* ---- 心形采样点（24 颗星座星） ---- */
+function heartSample(t) {
+  const a = t * Math.PI * 2;
   return {
-    x: 16 * Math.pow(Math.sin(t2), 3),
-    y: -(13 * Math.cos(t2) - 5 * Math.cos(2 * t2) - 2 * Math.cos(3 * t2) - Math.cos(4 * t2)),
+    x: 16 * Math.pow(Math.sin(a), 3),
+    y: -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)),
   };
 }
-
-const CONSTELLATION_POINTS = Array.from({ length: 20 }, (_, i) => heartCurve(i / 20));
+const HEART_POINTS = Array.from({ length: 24 }, (_, i) => heartSample(i / 24));
 
 export class StarTheater {
   constructor(containerId) {
-    this.container = document.getElementById(containerId);
-    if (!this.container) return;
+    this.el = document.getElementById(containerId);
+    if (!this.el) return;
 
-    // Canvas
-    this.canvas = this.container.querySelector('.star-canvas');
+    this.canvas = this.el.querySelector('.star-canvas');
+    this.stage = this.el.querySelector('.silhouette-stage');
+    this.her = this.el.querySelector('.silhouette-her');
+    this.him = this.el.querySelector('.silhouette-him');
+
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
 
-    // Silhouette stage
-    this.stage = this.container.querySelector('.silhouette-stage');
-    this.silHer = this.container.querySelector('.silhouette-her');
-    this.silHim = this.container.querySelector('.silhouette-him');
-
-    // State
-    this.width = 0;
-    this.height = 0;
+    // 设备
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.stars = [];
-    this.constellationIndices = [];
-    this.pointer = { x: -100, y: -100, active: false };
-    this.trail = [];
-    this.phase = 0;          // 0=idle, 1=her-enters, 2=him-enters, 3=meeting, 4=connected
-    this.phaseStart = 0;
-    this.theaterStarted = false;
-    this.animationId = null;
     this.isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    // 尺寸
+    this.w = 0;
+    this.h = 0;
+    this.cx = 0; // 画布中心 x
+    this.cy = 0; // 画布中心 y
+
+    // 星场
+    this.stars = [];          // 所有星星
+    this.herGroup = [];       // 她的星座星索引
+    this.hisGroup = [];       // 他的星座星索引
+    this.heartStars = [];     // 心形位置（画布坐标）
+
+    // 触控
+    this.pointer = { x: -200, y: -200, active: false };
+    this.ripples = [];        // 光漪
+
+    // 剧场
+    this.phase = 'idle';      // idle | herEnter | himEnter | meet | reach | embrace | merged
+    this._phaseTimer = null;
+    this._started = false;
+
+    // 帧
+    this._tick = null;
 
     this.init();
   }
 
-  /* ======== 初始化 ======== */
+  /* ================================================================
+     INIT
+     ================================================================ */
   init() {
     this.resize();
-    this.generateStars();
+    this.buildStars();
     this.bindEvents();
-    this.startLoop();
-    this.observeScroll();
+    this.observe();
+    this.loop();
 
     window.addEventListener('resize', () => {
       this.resize();
-      this.generateStars();
+      this.buildStars();
     });
   }
 
   resize() {
-    const rect = this.container.getBoundingClientRect();
-    this.width = rect.width;
-    this.height = rect.height;
-    this.canvas.width = this.width * this.dpr;
-    this.canvas.height = this.height * this.dpr;
-    this.canvas.style.width = this.width + 'px';
-    this.canvas.style.height = this.height + 'px';
+    const r = this.el.getBoundingClientRect();
+    this.w = r.width;
+    this.h = r.height;
+    this.cx = this.w / 2;
+    this.cy = this.h * 0.38;
+    this.canvas.width = this.w * this.dpr;
+    this.canvas.height = this.h * this.dpr;
+    this.canvas.style.width = this.w + 'px';
+    this.canvas.style.height = this.h + 'px';
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   }
 
-  /* ======== 星星生成 ======== */
-  generateStars() {
+  /* ================================================================
+     STAR GENERATION
+     ================================================================ */
+  buildStars() {
     this.stars = [];
-    this.constellationIndices = [];
+    this.herGroup = [];
+    this.hisGroup = [];
+    this.heartStars = [];
 
-    const count = this.isMobile ? 100 : 180;
-    const cx = this.width / 2;
-    const cy = this.height * 0.38;
-    const scale = Math.min(this.width, this.height) * 0.022;
+    const N = this.isMobile ? 80 : 160;
+    const scale = Math.min(this.w, this.h) * 0.024;
+    const cx = this.cx;
+    const cy = this.cy;
 
-    // 随机背景星
-    for (let i = 0; i < count; i++) {
+    // 背景星
+    for (let i = 0; i < N; i++) {
+      const x = Math.random() * this.w;
+      const y = Math.random() * this.h;
       this.stars.push({
-        x: Math.random() * this.width,
-        y: Math.random() * this.height,
-        r: 0.4 + Math.random() * 1.8,
-        baseAlpha: 0.15 + Math.random() * 0.55,
-        twinkleSpeed: 0.3 + Math.random() * 1.8,
-        twinklePhase: Math.random() * Math.PI * 2,
+        x, y,
+        r: 0.3 + Math.random() * 2.0,
+        baseAlpha: 0.12 + Math.random() * 0.45,
+        twinkle: 0.3 + Math.random() * 2.2,
+        phase: Math.random() * Math.PI * 2,
+        color: Math.random() < 0.15 ? 'warm' : 'cool', // 少数暖色
+        group: 'bg',
+        homeX: x, homeY: y,
       });
     }
 
-    // 星座关键星（心形，偏移到画布中心偏上）
-    for (const pt of CONSTELLATION_POINTS) {
+    // 她的星座 — 散布在左上方
+    const herBase = { x: cx - scale * 12, y: cy - scale * 6 };
+    for (let i = 0; i < 12; i++) {
       const idx = this.stars.length;
-      this.constellationIndices.push(idx);
+      this.herGroup.push(idx);
+      const offsetX = (Math.random() - 0.5) * scale * 8;
+      const offsetY = (Math.random() - 0.5) * scale * 5;
       this.stars.push({
-        x: cx + pt.x * scale,
-        y: cy + pt.y * scale,
-        r: 1.6 + Math.random() * 1.4,
-        baseAlpha: 0, // 初始不可见，剧场触发后渐亮
-        twinkleSpeed: 0.6 + Math.random() * 0.8,
-        twinklePhase: Math.random() * Math.PI * 2,
-        isConstellation: true,
+        x: herBase.x + offsetX,
+        y: herBase.y + offsetY,
+        r: 1.2 + Math.random() * 1.8,
+        baseAlpha: 0.35 + Math.random() * 0.3,
+        twinkle: 0.5 + Math.random() * 1.2,
+        phase: Math.random() * Math.PI * 2,
+        color: 'her',
+        group: 'her',
+        homeX: herBase.x + offsetX,
+        homeY: herBase.y + offsetY,
       });
     }
+
+    // 他的星座 — 散布在右上方
+    const hisBase = { x: cx + scale * 12, y: cy - scale * 6 };
+    for (let i = 0; i < 12; i++) {
+      const idx = this.stars.length;
+      this.hisGroup.push(idx);
+      const offsetX = (Math.random() - 0.5) * scale * 8;
+      const offsetY = (Math.random() - 0.5) * scale * 5;
+      this.stars.push({
+        x: hisBase.x + offsetX,
+        y: hisBase.y + offsetY,
+        r: 1.2 + Math.random() * 1.8,
+        baseAlpha: 0.35 + Math.random() * 0.3,
+        twinkle: 0.5 + Math.random() * 1.2,
+        phase: Math.random() * Math.PI * 2,
+        color: 'him',
+        group: 'him',
+        homeX: hisBase.x + offsetX,
+        homeY: hisBase.y + offsetY,
+      });
+    }
+
+    // 心形星座目标位置
+    this.heartStars = HEART_POINTS.map(p => ({
+      x: cx + p.x * scale * 0.8,
+      y: cy + p.y * scale * 0.8,
+    }));
   }
 
-  /* ======== 事件绑定 ======== */
+  /* ================================================================
+     EVENTS
+     ================================================================ */
   bindEvents() {
-    this.canvas.addEventListener('pointermove', (e) => this.onPointerMove(e), { passive: true });
-    this.canvas.addEventListener('pointerleave', () => this.onPointerLeave());
-    this.canvas.addEventListener('pointerenter', (e) => {
+    this.canvas.addEventListener('pointermove', e => {
+      this.pointer.active = true;
+      this.pointer.x = e.offsetX;
+      this.pointer.y = e.offsetY;
+      // 加光漪
+      if (this.ripples.length < 8) {
+        this.ripples.push({ x: e.offsetX, y: e.offsetY, r: 0, alpha: 0.5 });
+      }
+    }, { passive: true });
+    this.canvas.addEventListener('pointerleave', () => { this.pointer.active = false; });
+    this.canvas.addEventListener('pointerenter', e => {
       this.pointer.active = true;
       this.pointer.x = e.offsetX;
       this.pointer.y = e.offsetY;
     });
   }
 
-  onPointerMove(e) {
-    this.pointer.active = true;
-    this.pointer.x = e.offsetX;
-    this.pointer.y = e.offsetY;
-
-    // 生成拖尾粒子
-    if (!this.isMobile) {
-      this.trail.push({
-        x: e.offsetX,
-        y: e.offsetY,
-        r: 2 + Math.random() * 6,
-        alpha: 0.7,
-        life: 1,
-      });
-    }
+  /* ================================================================
+     SCROLL OBSERVER → 启动剧场
+     ================================================================ */
+  observe() {
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !this._started) {
+        this._started = true;
+        this.startTheater();
+      }
+    }, { threshold: 0.25 });
+    obs.observe(this.el);
   }
 
-  onPointerLeave() {
-    this.pointer.active = false;
-  }
-
-  /* ======== IntersectionObserver ======== */
-  observeScroll() {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !this.theaterStarted) {
-            this.theaterStarted = true;
-            this.startTheater();
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(this.container);
-  }
-
-  /* ======== 剧场时间线 ======== */
+  /* ================================================================
+     THEATER TIMELINE
+     ================================================================ */
   startTheater() {
-    this.phase = 1;
-    this.phaseStart = performance.now();
+    const add = (cls, el) => el && el.classList.add(cls);
+    const schedule = (ms, fn) => setTimeout(fn, ms);
 
-    if (this.stage) this.stage.classList.add('active');
-    if (this.silHer) this.silHer.classList.add('enter');
-    if (this.silHim) this.silHim.classList.add('enter');
+    // 0ms: 舞台激活
+    add('active', this.stage);
+
+    // 0ms: 她入场
+    this.phase = 'herEnter';
+    add('enter', this.her);
+
+    // 600ms: 他入场
+    schedule(600, () => {
+      this.phase = 'himEnter';
+      add('enter', this.him);
+    });
+
+    // 2400ms: 相遇
+    schedule(2400, () => {
+      this.phase = 'meet';
+      add('meeting', this.stage);
+    });
+
+    // 3400ms: 伸手
+    schedule(3400, () => {
+      this.phase = 'reach';
+      add('reaching', this.stage);
+    });
+
+    // 4400ms: 拥抱
+    schedule(4400, () => {
+      this.phase = 'embrace';
+      add('embracing', this.stage);
+    });
+
+    // 5400ms: 星座融合
+    schedule(5400, () => {
+      this.phase = 'merged';
+      add('merged', this.stage);
+    });
   }
 
-  /* ======== 渲染循环 ======== */
-  startLoop() {
-    const loop = (ts) => {
+  /* ================================================================
+     RENDER LOOP
+     ================================================================ */
+  loop() {
+    const frame = ts => {
       this.draw(ts);
-      this.animationId = requestAnimationFrame(loop);
+      this._tick = requestAnimationFrame(frame);
     };
-    this.animationId = requestAnimationFrame(loop);
+    this._tick = requestAnimationFrame(frame);
   }
 
   stop() {
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-    }
+    if (this._tick) { cancelAnimationFrame(this._tick); this._tick = null; }
   }
 
-  draw(timestamp) {
+  draw(ts) {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.width, this.height);
+    const t = ts * 0.001;
 
-    // 1. 深空背景渐变
-    const bg = ctx.createRadialGradient(
-      this.width / 2, this.height * 0.35, 0,
-      this.width / 2, this.height * 0.5, Math.max(this.width, this.height) * 0.9
-    );
-    bg.addColorStop(0, 'rgba(20, 15, 40, 0.15)');
-    bg.addColorStop(0.5, 'rgba(10, 8, 24, 0.6)');
-    bg.addColorStop(1, 'rgba(6, 4, 16, 0.95)');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, this.width, this.height);
+    // 1. 背景
+    this.drawSky(ctx);
 
-    // 2. 更新剧场阶段
-    this.updateTheaterPhase(timestamp);
+    // 2. 更新星位置（随剧场阶段漂移）
+    this.driftStars();
 
-    // 3. 画星座连线
-    this.drawConstellationLines(ctx);
+    // 3. 星座连线
+    this.drawLines(ctx);
 
-    // 4. 画所有星星
-    for (const star of this.stars) {
-      this.drawStar(ctx, star, timestamp);
+    // 4. 所有星星
+    for (const s of this.stars) this.drawStar(ctx, s, t);
+
+    // 5. 触控光漪 + 点亮
+    this.drawRipples(ctx);
+    if (this.pointer.active) this.glowNear(ctx);
+
+    // 6. 触控光标
+    if (this.pointer.active) this.drawCursor(ctx);
+  }
+
+  /* ---- 深空背景 ---- */
+  drawSky(ctx) {
+    const g = ctx.createRadialGradient(this.cx, this.cy * 0.5, 0, this.cx, this.cy, Math.max(this.w, this.h) * 0.8);
+    g.addColorStop(0, '#1a1530');
+    g.addColorStop(0.5, '#0f0c1e');
+    g.addColorStop(1, '#060410');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.w, this.h);
+  }
+
+  /* ---- 星座星漂移 ---- */
+  driftStars() {
+    const herTarget = this.phase === 'merged' ? this.cx - 15 : this.cx - (this.phase === 'idle' ? 0 : 60);
+    const himTarget = this.phase === 'merged' ? this.cx + 15 : this.cx + (this.phase === 'idle' ? 0 : 60);
+
+    const driftSpeed = this.phase === 'merged' ? 0.015 : this.phase === 'idle' ? 0 : 0.008;
+
+    for (const i of this.herGroup) {
+      const s = this.stars[i];
+      const tx = this.phase === 'merged'
+        ? this.heartStars[i - this.herGroup[0]]?.x ?? s.homeX
+        : s.homeX + (herTarget - this.cx) * 0.6;
+      const ty = this.phase === 'merged'
+        ? this.heartStars[i - this.herGroup[0]]?.y ?? s.homeY
+        : s.homeY;
+      s.x += (tx - s.x) * driftSpeed;
+      s.y += (ty - s.y) * driftSpeed;
     }
-
-    // 5. 触控光晕
-    if (this.pointer.active) {
-      this.drawPointerGlow(ctx);
-    }
-
-    // 6. 拖尾粒子
-    this.drawTrail(ctx);
-
-    // 7. 触控点亮附近星星
-    if (this.pointer.active) {
-      this.glowNearbyStars(ctx, timestamp);
+    for (const i of this.hisGroup) {
+      const s = this.stars[i];
+      const offset = i - this.hisGroup[0];
+      const tx = this.phase === 'merged'
+        ? this.heartStars[12 + offset]?.x ?? s.homeX
+        : s.homeX + (himTarget - this.cx) * 0.6;
+      const ty = this.phase === 'merged'
+        ? this.heartStars[12 + offset]?.y ?? s.homeY
+        : s.homeY;
+      s.x += (tx - s.x) * driftSpeed;
+      s.y += (ty - s.y) * driftSpeed;
     }
   }
 
-  /* ======== 剧场阶段管理 ======== */
-  updateTheaterPhase(ts) {
-    if (this.phase === 0) return;
-    const elapsed = (ts - this.phaseStart) / 1000;
+  /* ---- 星座连线 ---- */
+  drawLines(ctx) {
+    const drawGroup = (indices, color, alpha) => {
+      if (indices.length < 2) return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.6;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      const first = this.stars[indices[0]];
+      ctx.moveTo(first.x, first.y);
+      for (let i = 1; i < indices.length; i++) {
+        const s = this.stars[indices[i]];
+        ctx.lineTo(s.x, s.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    };
 
-    // Phase 1→2: her 到达后 him 出发
-    if (this.phase === 1 && elapsed > 1.2) {
-      this.phase = 2;
-      if (this.silHim) this.silHim.classList.add('enter');
-    }
-    // Phase 2→3: 两人相遇
-    if (this.phase === 2 && elapsed > 2.4) {
-      this.phase = 3;
-      if (this.stage) this.stage.classList.add('meeting');
-    }
-    // Phase 3→4: 心形星座点亮
-    if (this.phase === 3 && elapsed > 3.8) {
-      this.phase = 4;
-      if (this.stage) this.stage.classList.add('connected');
-      // 星座星渐亮
-      for (const idx of this.constellationIndices) {
-        this.stars[idx]._fadeIn = ts;
+    const phaseAlpha = { idle: 0, herEnter: 0.35, himEnter: 0.45, meet: 0.55, reach: 0.65, embrace: 0.7, merged: 0.75 };
+    const a = phaseAlpha[this.phase] || 0;
+
+    if (a > 0) {
+      drawGroup(this.herGroup, 'rgba(240,180,200,0.5)', a * 0.7);
+      drawGroup(this.hisGroup, 'rgba(180,200,240,0.5)', a * 0.7);
+
+      // merged 阶段加金色心形连线
+      if (this.phase === 'merged') {
+        const all = [...this.herGroup, ...this.hisGroup];
+        drawGroup(all, 'rgba(248,200,140,0.6)', 0.55);
       }
     }
   }
 
-  /* ======== 星座连线 ======== */
-  drawConstellationLines(ctx) {
-    if (this.phase < 3) return; // meeting 阶段开始画线
+  /* ---- 单星渲染 ---- */
+  drawStar(ctx, s, t) {
+    let alpha = s.baseAlpha;
+    if (s.group !== 'bg' && this.phase === 'idle') alpha = 0;
+    if (alpha < 0.01) return;
 
-    const constellationAlpha = this.phase >= 4 ? 1 : Math.min(1, this.constellationFadeProgress());
+    const tw = 0.6 + 0.4 * Math.sin(t * s.twinkle + s.phase);
+    const a = alpha * tw;
+    if (a < 0.01) return;
+
+    // 颜色
+    let rgba;
+    if (s.color === 'her') rgba = `rgba(245,185,200,${a})`;
+    else if (s.color === 'him') rgba = `rgba(185,205,245,${a})`;
+    else if (s.color === 'warm') rgba = `rgba(240,210,170,${a})`;
+    else rgba = `rgba(200,195,225,${a})`;
 
     ctx.save();
-    ctx.globalAlpha = constellationAlpha * 0.45;
-    ctx.strokeStyle = '#e8b860';
-    ctx.lineWidth = 0.8;
-    ctx.lineCap = 'round';
-    ctx.shadowColor = 'rgba(240, 200, 140, 0.5)';
-    ctx.shadowBlur = 6;
-
-    ctx.beginPath();
-    const pts = this.constellationIndices.map(i => this.stars[i]);
-    if (pts.length > 0) {
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) {
-        ctx.lineTo(pts[i].x, pts[i].y);
-      }
-    }
-    ctx.stroke();
-
-    // 画第二组稀疏连线（交叉线增加星座感）
-    ctx.globalAlpha = constellationAlpha * 0.2;
-    ctx.lineWidth = 0.5;
-    ctx.shadowBlur = 3;
-    ctx.beginPath();
-    for (let i = 0; i < pts.length - 3; i++) {
-      const j = (i + 8) % pts.length;
-      ctx.moveTo(pts[i].x, pts[i].y);
-      ctx.lineTo(pts[j].x, pts[j].y);
-    }
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  constellationFadeProgress() {
-    if (this.phase < 3) return 0;
-    // 根据时间缓入
-    const now = performance.now();
-    const firstStar = this.constellationIndices[0];
-    if (!firstStar || !this.stars[firstStar]._fadeIn) return 0;
-    const elapsed = (now - this.stars[firstStar]._fadeIn) / 1000;
-    return Math.min(1, elapsed / 1.5);
-  }
-
-  /* ======== 单颗星星 ======== */
-  drawStar(ctx, star, ts) {
-    // 星座星渐变 alpha
-    let alpha = star.baseAlpha;
-    if (star.isConstellation) {
-      if (star._fadeIn) {
-        const elapsed = (ts - star._fadeIn) / 1000;
-        alpha = Math.min(0.9, elapsed / 1.2 * 0.9);
-      } else {
-        alpha = 0;
-      }
-    }
-
-    if (alpha <= 0.01) return;
-
-    // 闪烁
-    const twinkle = 0.6 + 0.4 * Math.sin(ts * 0.001 * star.twinkleSpeed + star.twinklePhase);
-    const finalAlpha = alpha * twinkle;
-
-    const color = star.isConstellation
-      ? `rgba(248, 216, 144, ${finalAlpha})`
-      : `rgba(220, 210, 240, ${finalAlpha})`;
-
-    ctx.save();
-    ctx.fillStyle = color;
 
     // 光晕
-    if (star.isConstellation || star.r > 1.4) {
-      const glow = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, star.r * 3);
-      const glowColor = star.isConstellation
-        ? `rgba(248, 200, 120, ${finalAlpha * 0.5})`
-        : `rgba(200, 190, 230, ${finalAlpha * 0.3})`;
-      glow.addColorStop(0, glowColor);
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, star.r * 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // 星点本体
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  /* ======== 触控光晕 ======== */
-  drawPointerGlow(ctx) {
-    const { x, y } = this.pointer;
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, 80);
-    glow.addColorStop(0, 'rgba(248, 210, 140, 0.35)');
-    glow.addColorStop(0.3, 'rgba(248, 190, 120, 0.15)');
-    glow.addColorStop(0.7, 'rgba(200, 160, 200, 0.04)');
+    const glowR = s.r * 3.5;
+    const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
+    glow.addColorStop(0, rgba.replace(/[\d.]+\)$/, `${a * 0.5})`));
     glow.addColorStop(1, 'transparent');
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(x, y, 80, 0, Math.PI * 2);
+    ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
     ctx.fill();
+
+    // 星核
+    ctx.fillStyle = rgba;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
-  /* ======== 触控点亮附近星星 ======== */
-  glowNearbyStars(ctx, ts) {
-    const { x, y } = this.pointer;
-    for (const star of this.stars) {
-      const dx = star.x - x;
-      const dy = star.y - y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 100) {
-        const boost = (1 - dist / 100) * 0.5;
-        const alpha = Math.min(1, star.baseAlpha + boost);
-        const color = star.isConstellation
-          ? `rgba(255, 230, 170, ${alpha})`
-          : `rgba(240, 230, 255, ${alpha})`;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.r + boost * 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-  }
+  /* ---- 光漪 ---- */
+  drawRipples(ctx) {
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const rp = this.ripples[i];
+      rp.r += 1.2;
+      rp.alpha -= 0.012;
+      if (rp.alpha <= 0) { this.ripples.splice(i, 1); continue; }
 
-  /* ======== 拖尾粒子 ======== */
-  drawTrail(ctx) {
-    for (let i = this.trail.length - 1; i >= 0; i--) {
-      const p = this.trail[i];
-      p.life -= 0.025;
-      p.alpha = p.life * 0.6;
-      if (p.life <= 0) {
-        this.trail.splice(i, 1);
-        continue;
-      }
-      const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-      glow.addColorStop(0, `rgba(248, 210, 150, ${p.alpha})`);
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
+      const g = ctx.createRadialGradient(rp.x, rp.y, rp.r * 0.5, rp.x, rp.y, rp.r);
+      g.addColorStop(0, `rgba(248,210,150,${rp.alpha * 0.7})`);
+      g.addColorStop(0.5, `rgba(248,190,130,${rp.alpha * 0.3})`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+      ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
       ctx.fill();
     }
   }
 
-  /* ======== 销毁 ======== */
+  /* ---- 触控点亮附近星 ---- */
+  glowNear(ctx) {
+    const { x, y } = this.pointer;
+    const radius = this.isMobile ? 90 : 130;
+    for (const s of this.stars) {
+      const dx = s.x - x;
+      const dy = s.y - y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d >= radius) continue;
+      const boost = (1 - d / radius) * 0.55;
+      const a = Math.min(1, s.baseAlpha + boost);
+      const r = s.r + boost * 2.5;
+
+      let rgba;
+      if (s.color === 'her') rgba = `rgba(255,200,215,${a})`;
+      else if (s.color === 'him') rgba = `rgba(200,215,255,${a})`;
+      else rgba = `rgba(240,220,200,${a})`;
+
+      ctx.fillStyle = rgba;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /* ---- 光标微光 ---- */
+  drawCursor(ctx) {
+    const { x, y } = this.pointer;
+    if (x < -100) return;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, 22);
+    g.addColorStop(0, 'rgba(248,210,150,0.3)');
+    g.addColorStop(0.5, 'rgba(248,190,120,0.08)');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* ================================================================
+     DESTROY
+     ================================================================ */
   destroy() {
     this.stop();
-    window.removeEventListener('resize', this.resize);
   }
 }

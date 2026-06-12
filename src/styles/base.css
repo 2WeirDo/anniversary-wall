@@ -152,7 +152,11 @@
 }
 [data-theme="dark"] .wish-divider { color: #3A2E3A; }
 [data-theme="dark"] .wishes-fade {
-  background: linear-gradient(180deg, transparent 0%, rgba(26, 21, 32, 0.6) 40%, #1A1520 100%);
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(26, 21, 32, 0.4) 30%,
+    rgba(20, 14, 30, 0.6) 55%,
+    #1a1530 100%);
 }
 [data-theme="dark"] .gallery {
   background:
