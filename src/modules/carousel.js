@@ -111,8 +111,8 @@ export class Carousel {
       el.innerHTML = `
         <div class="photo-frame">
           <picture>
-            <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}.webp" type="image/webp" />
-            <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}.webp"
+            <source data-srcset="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp" type="image/webp" />
+            <img data-src="${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp"
               alt="${PHOTO_META[i]?.story || '照片 ' + (i + 1)}" draggable="false"
               onload="this.closest('.photo-frame').classList.add('loaded');this.classList.add('loaded')"
               onerror="const f=this.closest('.photo-frame');const p=this.closest('picture');if(p){const s=p.querySelector('source');if(s){s.remove();}}this.src='${import.meta.env.BASE_URL}photos/${photo}';this.onerror=null"
