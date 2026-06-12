@@ -28,34 +28,35 @@ export function initPhotoModal(getCarousel) {
     flipContainer.classList.remove('flipped');
   }
 
-  /** 气泡紧贴 active 卡片 — 距离固定，不受内容长度影响 */
+  /** 气泡基于轮播 stage 正中心定位 — 位置完全固定，不受 active 卡片影响 */
   function positionBubble() {
     const carousel = getCarousel();
     if (!carousel) return;
 
-    const activeCard = carousel.items?.find(el => el.classList.contains('active'));
-    if (!activeCard) return;
+    const stage = carousel.container.parentElement; // .carousel-stage
+    if (!stage) return;
 
-    const cardRect = activeCard.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
     const bubbleW = bubble.offsetWidth;
     const bubbleH = bubble.offsetHeight;
-    const gap = 12;
+    const gap = 16;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const stageCenterY = stageRect.top + stageRect.height / 2;
 
-    // 默认：卡片右上角
-    let left = cardRect.right + gap;
-    let top = cardRect.top;
+    // 默认：stage 右侧，垂直居中于 stage
+    let left = stageRect.right + gap;
+    let top = stageCenterY - bubbleH / 2;
     let below = false;
 
-    // 右侧空间不够 → 放左侧
+    // 右侧空间不够 → 左侧
     if (left + bubbleW > vw - 12) {
-      left = cardRect.left - bubbleW - gap;
+      left = stageRect.left - bubbleW - gap;
     }
-    // 左侧也不够 → 放卡片下方
+    // 两侧都不够 → 下方居中
     if (left < 8 || left + bubbleW > vw - 12) {
       left = Math.max(8, (vw - bubbleW) / 2);
-      top = cardRect.bottom + gap;
+      top = stageRect.bottom + gap;
       below = true;
     }
 
