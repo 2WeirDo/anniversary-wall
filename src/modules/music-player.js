@@ -75,7 +75,7 @@ export class MusicPlayer {
       });
     }
 
-    // 搜索输入（500ms 防抖 + 取消飞行中请求）
+    // 搜索输入（800ms 防抖 + 取消飞行中请求）
     if (this.searchInput) {
       this.searchInput.addEventListener('input', () => {
         clearTimeout(this.searchTimer);
@@ -86,7 +86,7 @@ export class MusicPlayer {
           this._renderFavorites();
           return;
         }
-        this.searchTimer = setTimeout(() => this.doSearch(q), 500);
+        this.searchTimer = setTimeout(() => this.doSearch(q), 800);
       });
       this.searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
@@ -100,6 +100,19 @@ export class MusicPlayer {
     // 结果列表点击
     if (this.resultsEl) {
       this.resultsEl.addEventListener('click', (e) => {
+        // 复制按钮
+        const copyBtn = e.target.closest('.music-copy-btn');
+        if (copyBtn) {
+          e.stopPropagation();
+          const text = copyBtn.dataset.copy;
+          if (text) {
+            navigator.clipboard.writeText(text).catch(() => {});
+            // 复制成功反馈：图标短暂变色
+            copyBtn.classList.add('copied');
+            setTimeout(() => copyBtn.classList.remove('copied'), 1200);
+          }
+          return;
+        }
         // 收藏按钮
         const favBtn = e.target.closest('.music-result-fav');
         if (favBtn) {
@@ -417,7 +430,18 @@ export class MusicPlayer {
           </svg>
         </div>
         <div class="music-result-info">
-          <span class="music-result-title">${escapeHtml(song.title)}</span>
+          <span class="music-result-title">
+            <button class="music-copy-btn"
+                    data-copy="${escapeHtml(song.title)}"
+                    aria-label="复制歌名"
+                    title="复制歌名">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>${escapeHtml(song.title)}
+          </span>
           <span class="music-result-artist">${escapeHtml(song.artist)}</span>
         </div>
         <div class="music-result-spinner"></div>

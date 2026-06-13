@@ -399,6 +399,33 @@
   text-overflow: ellipsis;
   line-height: 1.25;
 }
+.music-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-right: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light);
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity 0.2s, color 0.2s, background 0.2s;
+  vertical-align: middle;
+}
+.music-copy-btn:hover {
+  opacity: 1;
+  color: var(--color-accent);
+  background: rgba(128, 128, 128, 0.12);
+}
+.music-copy-btn.copied {
+  opacity: 1;
+  color: #22c55e;
+}
 .music-result-artist {
   font-size: 0.72rem;
   color: var(--color-text-light);
