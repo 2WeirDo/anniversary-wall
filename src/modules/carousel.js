@@ -60,8 +60,8 @@ export class Carousel {
     this._swiped = false;
     this._autoTick = null;
     this.paused = false;
-    this.SPEED = 1 / 3500;      // ~3.5s/张
-    this.SLOW_SPEED = 1 / 6000; // hover 减速 ~6s/张
+    this.SPEED = 1 / 2800;      // ~2.8s/张（提速20%）
+    this.SLOW_SPEED = 1 / 4800; // hover 减速 ~4.8s/张（提速20%）
     this._currentSpeed = this.SPEED;
     this._lastTickTime = 0;
     this._isHovering = false;
@@ -428,14 +428,9 @@ export class Carousel {
     if (this.paused) return;
 
     this._lastTickTime = Date.now();
-    this._tickFrame = 0;
 
     const onTick = () => {
       if (this.paused || this.isDragging || this._animating) return;
-
-      // 节流到 30fps
-      this._tickFrame++;
-      if (this._tickFrame % 2 !== 0) return;
 
       const now = Date.now();
       const dt = now - this._lastTickTime;
