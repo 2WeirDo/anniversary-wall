@@ -301,13 +301,10 @@
 }
 
 [data-theme="dark"] .story-bubble-nav {
-  background: rgba(30, 24, 40, 0.85);
-  border-color: rgba(255, 255, 255, 0.08);
   color: #C8B8C0;
 }
 [data-theme="dark"] .story-bubble-nav:hover {
-  background: var(--color-accent);
-  color: #1A1520;
+  color: #E898A8;
 }
 
 /* ========================================
