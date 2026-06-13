@@ -5,7 +5,7 @@
 import sharp from 'sharp';
 import { join } from 'node:path';
 
-const PHOTOS_DIR = join(import.meta.dirname, '../public/photos');
+const PHOTOS_DIR = join(import.meta.dirname, '../photos-originals');
 const OUTPUT = join(import.meta.dirname, '../public/og-cover.jpg');
 
 // 使用一张合适的照片作为封面底图

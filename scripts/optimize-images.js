@@ -1,42 +1,25 @@
 /**
  * 图片优化脚本（增量模式）
+ * 从 photos-originals 读取源文件，只生成 400px small webp
  * 只处理新增或修改过的照片，跳过已优化的
  */
 import sharp from 'sharp';
 import { readdir, mkdir, stat, unlink } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 
-const PHOTOS_DIR = join(import.meta.dirname, '../public/photos');
+const PHOTOS_DIR = join(import.meta.dirname, '../photos-originals');
 const OUTPUT_DIR = join(import.meta.dirname, '../public/photos-optimized');
 
-// 只需要 small（400px）用于轮播卡片 + 时间线
-// 弹窗已改为纯文字，不需要 medium / large / original
-const SIZES = [
-  { name: 'small', width: 400 },
-];
-
-const WEBP_VARIANTS = [...SIZES.map(s => s.name)];
+const SMALL_WIDTH = 400;
 
 /**
- * 检查某张照片的所有 webp 变体是否都已存在且比源文件新
+ * 检查某张照片的 small webp 是否已存在且比源文件新
  */
 async function needsRegenerate(inputPath, baseName) {
+  const webpPath = join(OUTPUT_DIR, `${baseName}-small.webp`);
   try {
-    const srcStat = await stat(inputPath);
-    // 逐一检查每个变体
-    for (const suffix of WEBP_VARIANTS) {
-      const variantName = suffix ? `${baseName}-${suffix}.webp` : `${baseName}.webp`;
-      const variantPath = join(OUTPUT_DIR, variantName);
-      try {
-        const webpStat = await stat(variantPath);
-        // 如果 webp 比源文件旧，需要重新生成
-        if (webpStat.mtimeMs < srcStat.mtimeMs) return true;
-      } catch {
-        // 文件不存在
-        return true;
-      }
-    }
-    return false; // 全部存在且都是最新的
+    const [srcStat, webpStat] = await Promise.all([stat(inputPath), stat(webpPath)]);
+    return webpStat.mtimeMs < srcStat.mtimeMs;
   } catch {
     return true;
   }
@@ -63,24 +46,15 @@ async function optimize() {
 
     processed++;
     const { size: originalSize } = await stat(inputPath);
-    process.stdout.write(`${file} (${(originalSize / 1024).toFixed(1)}KB) → `);
 
-    // 生成不同尺寸的 WebP
-    for (const { name, width } of SIZES) {
-      await sharp(inputPath)
-        .resize(width, undefined, { withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toFile(join(OUTPUT_DIR, `${baseName}-${name}.webp`));
-    }
-
-    // 保留原始尺寸的 WebP（高质量）
     await sharp(inputPath)
-      .webp({ quality: 85 })
-      .toFile(join(OUTPUT_DIR, `${baseName}.webp`));
+      .resize(SMALL_WIDTH, undefined, { withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(join(OUTPUT_DIR, `${baseName}-small.webp`));
 
-    const { size: optimizedSize } = await stat(join(OUTPUT_DIR, `${baseName}.webp`));
+    const { size: optimizedSize } = await stat(join(OUTPUT_DIR, `${baseName}-small.webp`));
     const savings = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
-    console.log(`${savings}% smaller`);
+    console.log(`${file} (${(originalSize / 1024).toFixed(1)}KB) → ${savings}% smaller`);
   }
 
   console.log(`\n${processed} processed, ${skipped} skipped (already optimized)`);
@@ -91,8 +65,6 @@ async function optimize() {
   let cleaned = 0;
 
   for (const webp of webpFiles) {
-    // 提取 webp 的基础名（去掉尺寸后缀和扩展名）
-    // 例如: "photo1-large.webp" → "photo1", "photo1.webp" → "photo1"
     const base = webp.replace(/-small\.webp$/, '').replace(/\.webp$/, '');
     if (!sourceBases.has(base)) {
       await unlink(join(OUTPUT_DIR, webp));
