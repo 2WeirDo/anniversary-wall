@@ -59,6 +59,12 @@ export class MusicPlayer {
     this.audio.addEventListener('error', () => {
       this.isLoading = false;
     });
+    this.audio.addEventListener('timeupdate', () => {
+      if (this.audio.duration) {
+        const pct = this.audio.currentTime / this.audio.duration;
+        this.btn.style.setProperty('--music-progress', pct.toFixed(4));
+      }
+    });
 
     // 主按钮：播放/暂停
     this.btn.addEventListener('click', (e) => {
@@ -305,6 +311,9 @@ export class MusicPlayer {
 
   async playSong(song) {
     if (this.isLoading) return;
+
+    // 切歌时重置进度
+    this.btn.style.setProperty('--music-progress', '0');
 
     // 如果已经在播放同一首歌，只切换暂停
     if (this.currentSong && this.currentSong.id === song.id && this.currentSong.source === song.source) {

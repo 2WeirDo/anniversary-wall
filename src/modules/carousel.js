@@ -347,10 +347,13 @@ export class Carousel {
     }
 
     this.current = this._dragStartCurrent - (cx - this.startX) / 150;
-    // 直设全部卡片，避免每帧创建 29 个 GSAP tween
+    // 仅更新可视区卡片
+    const UPDATE_RANGE = VISIBLE_HALF + 2;
     for (let i = 0; i < this.items.length; i++) {
       const offset = circularOffset(i, this.current, this.total);
-      this._setCard(this.items[i], offset);
+      if (Math.abs(offset) <= UPDATE_RANGE) {
+        this._setCard(this.items[i], offset);
+      }
     }
   }
 
@@ -430,6 +433,9 @@ export class Carousel {
 
     this._lastTickTime = Date.now();
 
+    // 仅更新可视区 + 缓冲区的卡片，远距卡片跳过避免无效 style 写入
+    const UPDATE_RANGE = VISIBLE_HALF + 2; // ±7
+
     const onTick = () => {
       if (this.paused || this.isDragging || this._animating) return;
 
@@ -438,10 +444,11 @@ export class Carousel {
       this._lastTickTime = now;
       this.current += dt * this._currentSpeed;
 
-      // 更新全部卡片位置（_animating 锁保证此时无 GSAP 动画冲突）
       for (let i = 0; i < this.items.length; i++) {
         const offset = circularOffset(i, this.current, this.total);
-        this._setCard(this.items[i], offset);
+        if (Math.abs(offset) <= UPDATE_RANGE) {
+          this._setCard(this.items[i], offset);
+        }
       }
 
       this.updateCounter();

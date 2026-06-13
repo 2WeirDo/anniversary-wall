@@ -193,16 +193,18 @@
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
-            <button class="story-bubble-nav story-bubble-prev" id="story-bubble-prev" aria-label="上一张">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <button class="story-bubble-nav story-bubble-next" id="story-bubble-next" aria-label="下一张">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
             <div class="story-bubble-body">
               <div class="story-bubble-flip" id="story-bubble-flip">
                 <div class="story-bubble-front">
-                  <p class="story-bubble-date" id="story-bubble-date"></p>
+                  <div class="story-bubble-date-row">
+                    <button class="story-bubble-nav story-bubble-prev" id="story-bubble-prev" aria-label="上一张">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <p class="story-bubble-date" id="story-bubble-date"></p>
+                    <button class="story-bubble-nav story-bubble-next" id="story-bubble-next" aria-label="下一张">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
                   <p class="story-bubble-story" id="story-bubble-story"></p>
                 </div>
                 <div class="story-bubble-back">
@@ -211,12 +213,6 @@
               </div>
             </div>
             <div class="story-bubble-footer">
-              <button class="story-bubble-share-btn" id="story-bubble-share-btn" aria-label="分享照片故事" title="分享">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-              </button>
               <button class="story-bubble-flip-btn" id="story-bubble-flip-btn" aria-label="翻转查看情话">
                 <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <ellipse cx="30" cy="32" rx="22" ry="19" fill="#FFE4EC" stroke="#F0A0B8" stroke-width="1.5"/>

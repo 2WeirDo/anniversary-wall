@@ -16,7 +16,6 @@ export function initPhotoModal(getCarousel) {
   const veil = document.getElementById('carousel-veil');
   const prevBtn = document.getElementById('story-bubble-prev');
   const nextBtn = document.getElementById('story-bubble-next');
-  const shareBtn = document.getElementById('story-bubble-share-btn');
 
   let currentIndex = 0;
 
@@ -122,28 +121,6 @@ export function initPhotoModal(getCarousel) {
     }
   }
 
-  /* ---------- 分享 ---------- */
-  async function shareStory() {
-    const meta = PHOTO_META[currentIndex];
-    const text = `📷 ${meta.date}\n${meta.story}\n\n—— 拖拖 & 多多的恋爱一周年`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: '我们的回忆', text });
-      } catch (e) {
-        // 用户取消分享，忽略
-      }
-    } else {
-      // 降级为复制
-      try {
-        await navigator.clipboard.writeText(text);
-        shareBtn.classList.add('copied');
-        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
-      } catch (e) {
-        console.warn('复制失败', e);
-      }
-    }
-  }
-
   /* ---------- 气泡内翻页 ---------- */
   function navigateTo(newIndex) {
     const carousel = getCarousel();
@@ -171,10 +148,6 @@ export function initPhotoModal(getCarousel) {
   veil.addEventListener('click', close);
   prevBtn.addEventListener('click', navPrev);
   nextBtn.addEventListener('click', navNext);
-  shareBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    shareStory();
-  });
 
   document.addEventListener('keydown', (e) => {
     if (!bubble.classList.contains('open')) return;

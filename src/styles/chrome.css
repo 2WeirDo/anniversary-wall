@@ -663,19 +663,14 @@
   right: 10px;
   height: 2px;
   border-radius: 1px;
-  background: var(--color-primary);
+  background: var(--color-accent);
   opacity: 0;
-  transform: scaleX(0);
+  transform: scaleX(var(--music-progress, 0));
   transform-origin: left;
-  transition: opacity 0.3s, transform 0.1s linear;
+  transition: opacity 0.3s;
 }
 .music-btn.playing::after {
-  opacity: 0.5;
-  animation: miniProgress 30s linear forwards;
-}
-@keyframes miniProgress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  opacity: 0.45;
 }
 
 /* 展开箭头 */
