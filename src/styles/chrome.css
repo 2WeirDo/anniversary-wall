@@ -224,6 +224,7 @@
   background: rgba(255, 252, 250, 0.92);
   backdrop-filter: blur(32px) saturate(1.8);
   -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  will-change: transform, opacity;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow:
@@ -624,7 +625,7 @@
   50% { transform: scale(1.1); opacity: 1; }
 }
 
-/* 歌名标签 */
+/* 歌名标签 — 超长时 hover 滚动 */
 .music-btn-label {
   font-size: 0.78rem;
   font-weight: 500;
@@ -634,6 +635,47 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: 0.01em;
+  display: inline-block;
+  vertical-align: middle;
+}
+.music-btn-label.marquee {
+  animation: labelMarquee 6s linear infinite;
+}
+.music-btn:hover .music-btn-label.marquee {
+  animation-play-state: running;
+}
+.music-btn-label.marquee {
+  animation-play-state: paused;
+}
+@keyframes labelMarquee {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(0); }
+  80% { transform: translateX(calc(-100% + 90px)); }
+  100% { transform: translateX(0); }
+}
+
+/* 迷你进度指示 — 药丸底部细线 */
+.music-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 14px;
+  right: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-primary);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: opacity 0.3s, transform 0.1s linear;
+}
+.music-btn.playing::after {
+  opacity: 0.5;
+  animation: miniProgress 30s linear forwards;
+}
+@keyframes miniProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 /* 展开箭头 */
@@ -809,6 +851,7 @@
   background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
+  will-change: transform, opacity;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -848,7 +891,7 @@
 .site-footer {
   padding: 2.5rem 1.5rem 3rem;
   text-align: center;
-  background: #C4B2CA; /* 亮色模式：与 ending 底部薰衣草衔接 */
+  background: var(--color-footer-bg);
 }
 .footer-inner {
   display: flex;
@@ -908,34 +951,21 @@
 .footer-text {
   font-family: var(--font-handwrite);
   font-size: 1.15rem;
-  color: rgba(70, 50, 65, 0.58); /* 亮色：薰衣草底深紫灰字 */
+  color: var(--color-footer-text);
   letter-spacing: 0.05em;
 }
 .footer-days {
   font-family: var(--font-display);
   font-size: 0.85rem;
-  color: rgba(70, 50, 65, 0.4);
+  color: var(--color-footer-days);
   margin-top: 0.3rem;
   letter-spacing: 0.04em;
   font-style: italic;
 }
 .footer-days span {
   font-weight: 600;
-  color: rgba(185, 95, 115, 0.72);
+  color: var(--color-footer-days-num);
   font-feature-settings: "tnum";
 }
 
-/* ---- Dark mode ---- */
-[data-theme="dark"] .site-footer {
-  background: #231D2A; /* 与暗色模式结尾底部一致 */
-}
-[data-theme="dark"] .footer-text {
-  color: rgba(210, 190, 180, 0.55);
-}
-[data-theme="dark"] .footer-days {
-  color: rgba(180, 160, 150, 0.4);
-}
-[data-theme="dark"] .footer-days span {
-  color: rgba(232, 152, 168, 0.65);
-}
 

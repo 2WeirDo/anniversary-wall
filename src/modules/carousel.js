@@ -281,6 +281,7 @@ export class Carousel {
   /* ---------- 事件绑定 ---------- */
   bindEvents() {
     document.addEventListener('keydown', (e) => {
+      if (this.paused) return;
       if (e.key === 'ArrowLeft') this.prev();
       if (e.key === 'ArrowRight') this.next();
     });

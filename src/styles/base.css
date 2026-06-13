@@ -43,6 +43,11 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
+  --color-footer-bg: #C4B2CA;
+  --color-footer-text: rgba(70, 50, 65, 0.58);
+  --color-footer-days: rgba(70, 50, 65, 0.4);
+  --color-footer-days-num: rgba(185, 95, 115, 0.72);
+
   --z-dots: 100;
   --z-music: 200;
   --z-overlay: 300;
@@ -70,6 +75,10 @@
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.3);
   --shadow-xl: 0 16px 60px rgba(0, 0, 0, 0.35);
   --shadow-glow: 0 0 60px rgba(232, 152, 168, 0.2);
+  --color-footer-bg: #231D2A;
+  --color-footer-text: rgba(210, 190, 180, 0.55);
+  --color-footer-days: rgba(180, 160, 150, 0.4);
+  --color-footer-days-num: rgba(232, 152, 168, 0.65);
   color-scheme: dark;
 }
 

@@ -14,6 +14,9 @@ export function initPhotoModal(getCarousel) {
   const flipBtn = document.getElementById('story-bubble-flip-btn');
   const flipContainer = document.getElementById('story-bubble-flip');
   const veil = document.getElementById('carousel-veil');
+  const prevBtn = document.getElementById('story-bubble-prev');
+  const nextBtn = document.getElementById('story-bubble-next');
+  const shareBtn = document.getElementById('story-bubble-share-btn');
 
   let currentIndex = 0;
 
@@ -119,13 +122,70 @@ export function initPhotoModal(getCarousel) {
     }
   }
 
+  /* ---------- 分享 ---------- */
+  async function shareStory() {
+    const meta = PHOTO_META[currentIndex];
+    const text = `📷 ${meta.date}\n${meta.story}\n\n—— 拖拖 & 多多的恋爱一周年`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: '我们的回忆', text });
+      } catch (e) {
+        // 用户取消分享，忽略
+      }
+    } else {
+      // 降级为复制
+      try {
+        await navigator.clipboard.writeText(text);
+        shareBtn.classList.add('copied');
+        setTimeout(() => shareBtn.classList.remove('copied'), 1500);
+      } catch (e) {
+        console.warn('复制失败', e);
+      }
+    }
+  }
+
+  /* ---------- 气泡内翻页 ---------- */
+  function navigateTo(newIndex) {
+    const carousel = getCarousel();
+    if (!carousel) return;
+    const total = PHOTO_META.length;
+    currentIndex = ((newIndex % total) + total) % total;
+    updateBubble(currentIndex);
+    carousel.goTo(currentIndex, () => {
+      positionBubble();
+    });
+  }
+
+  function navPrev(e) {
+    e.stopPropagation();
+    navigateTo(currentIndex - 1);
+  }
+
+  function navNext(e) {
+    e.stopPropagation();
+    navigateTo(currentIndex + 1);
+  }
+
   /* ---------- 事件绑定 ---------- */
   closeBtn.addEventListener('click', close);
   veil.addEventListener('click', close);
+  prevBtn.addEventListener('click', navPrev);
+  nextBtn.addEventListener('click', navNext);
+  shareBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    shareStory();
+  });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && bubble.classList.contains('open')) {
+    if (!bubble.classList.contains('open')) return;
+    if (e.key === 'Escape') {
       close();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      navigateTo(currentIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      navigateTo(currentIndex + 1);
     }
   });
 

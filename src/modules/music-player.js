@@ -377,10 +377,12 @@ export class MusicPlayer {
 
   updateLabel() {
     if (!this.labelEl || !this.currentSong) return;
+    const title = this.currentSong.title;
     const maxLen = 8;
-    let title = this.currentSong.title;
-    if (title.length > maxLen) title = title.slice(0, maxLen) + '…';
-    this.labelEl.textContent = title;
+    const truncated = title.length > maxLen ? title.slice(0, maxLen) + '…' : title;
+    this.labelEl.textContent = truncated;
+    // 超长标题启用 hover 滚动
+    this.labelEl.classList.toggle('marquee', title.length > maxLen);
   }
 
   /* ======== 面板 ======== */

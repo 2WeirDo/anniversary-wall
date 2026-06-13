@@ -52,13 +52,13 @@ export function initCarouselSparkles() {
   }
 }
 
-/** 纪念日花瓣雨（仅每月15号触发） */
+/** 纪念日花瓣雨（仅每月15号触发，轻柔飘落后自然消失） */
 export function initPetalRain() {
   const today = new Date();
   if (today.getDate() !== 15) return;
 
   const PETALS = ['🌸', '💮', '🌷', '🩷', '✿', '❀'];
-  const totalPetals = 40;
+  const totalPetals = 25;
 
   for (let i = 0; i < totalPetals; i++) {
     setTimeout(() => {
@@ -66,12 +66,12 @@ export function initPetalRain() {
       petal.className = 'petal';
       petal.textContent = PETALS[Math.floor(Math.random() * PETALS.length)];
       petal.style.left = Math.random() * 100 + '%';
-      petal.style.fontSize = (18 + Math.random() * 22) + 'px';
-      petal.style.animationDuration = (6 + Math.random() * 8) + 's';
+      petal.style.fontSize = (14 + Math.random() * 18) + 'px';
+      petal.style.animationDuration = (5 + Math.random() * 6) + 's';
       petal.style.animationDelay = '0s';
       document.body.appendChild(petal);
       const duration = parseFloat(petal.style.animationDuration) * 1000;
       setTimeout(() => petal.remove(), duration + 200);
-    }, i * 250);
+    }, i * 280);
   }
 }

@@ -5,7 +5,7 @@
  */
 import content from './data/content.json';
 import { WISH_SVG_ICONS } from './data/wish-icons.js';
-import { Carousel, PHOTOS, PHOTO_META, PHOTO_FLIP_TEXTS } from './modules/carousel.js';
+import { Carousel } from './modules/carousel.js';
 import { Timeline } from './modules/timeline.js';
 import { MusicPlayer } from './modules/music-player.js';
 import { Particles, FloatingHearts } from './modules/particles.js';
@@ -14,6 +14,9 @@ import { triggerHeroChars, initHeroParallax } from './modules/hero.js';
 import { initScrollReveals } from './modules/scroll-reveals.js';
 import { initProgressBar, initBackToTop, initNavDots } from './modules/navigation.js';
 import { initPhotoModal } from './modules/modal.js';
+import { initEntry } from './modules/entry.js';
+import { backgroundPreloadAll } from './modules/preloader.js';
+import { MobileGallery } from './modules/mobile-gallery.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -25,10 +28,7 @@ const LOVE_START_DATE = new Date(content.site.startDate);
 // ---- 暗夜模式切换 ----
 initThemeToggle();
 
-// ---- 入场动画 ----
-const entryOverlay = document.getElementById('entry-overlay');
-const entryContent = entryOverlay.querySelector('.entry-content');
-const enterBtn = document.getElementById('enter-btn');
+// ---- 音乐播放器 ----
 const music = new MusicPlayer('music-player');
 
 // 入场前锁定 body 滚动
@@ -39,115 +39,56 @@ document.body.style.overflow = 'hidden';
 // 入场后只启动动画/交互，不改变布局 → 消除跳动
 // ============================================================
 
-// 星愿清单 + 动态文本 + 天数
+// 星愿清单 + 天数
 renderWishes();
-initDynamicText();
 initDaysCounter();
 
 // 照片弹窗（隐藏态）
 let carouselRef = null;
 const photoModal = initPhotoModal(() => carouselRef);
 
-// 照片墙（暂停自动轮播，仅渲染 DOM）
-const carousel = new Carousel('carousel-container', 'carousel-stage', (i) => photoModal.open(i));
-carousel.pause();
-carouselRef = carousel;
+// 检测移动端
+const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-// 轮播导航箭头
-document.getElementById('carousel-prev')?.addEventListener('click', () => carousel.prev());
-document.getElementById('carousel-next')?.addEventListener('click', () => carousel.next());
+// 照片墙 — 移动端用触摸画廊，桌面端用 3D 轮播
+let carousel = null;
+let mobileGallery = null;
+
+if (isMobile) {
+  mobileGallery = new MobileGallery('mobile-gallery', (i) => photoModal.open(i));
+  carouselRef = mobileGallery;
+} else {
+  carousel = new Carousel('carousel-container', 'carousel-stage', (i) => photoModal.open(i));
+  carousel.pause();
+  carouselRef = carousel;
+
+  // 轮播导航箭头
+  document.getElementById('carousel-prev')?.addEventListener('click', () => carousel.prev());
+  document.getElementById('carousel-next')?.addEventListener('click', () => carousel.next());
+}
 
 // 恋爱时间线
 const timeline = new Timeline('timeline-container');
 
-// 入场遮罩期间后台预加载全部 29 张缩略图 — 利用女友阅读文字的 2-5 秒窗口静默缓存
+// 入场遮罩期间后台预加载缩略图
 const _bgPreload = backgroundPreloadAll();
 
-/**
- * 后台全量预加载 — 在入场遮罩期间静默缓存全部 29 张缩略图
- * 分批次加载避免瞬间拥塞，利用女友阅读遮罩文字的 2-5 秒时间窗口
- */
-function backgroundPreloadAll() {
-  const BATCH = 4;       // 每批并发数
-  const DELAY = 80;      // 批次间隔 ms
-    const PRELOAD_COUNT = 10;
-  const bases = PHOTOS.slice(0, PRELOAD_COUNT).map((f) => f.replace(/\.(jpg|jpeg|png)$/i, ''));
-  const results = [];
-
-  for (let i = 0; i < bases.length; i += BATCH) {
-    const batch = bases.slice(i, i + BATCH);
-    const delay = (i / BATCH) * DELAY;
-    const batchPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        Promise.all(batch.map((base) => new Promise((r) => {
-          const img = new Image();
-          img.onload = r;
-          img.onerror = r;
-          img.src = `${import.meta.env.BASE_URL}photos-optimized/${base}-small.webp`;
-        }))).then(resolve);
-      }, delay);
-    });
-    results.push(batchPromise);
-  }
-  return Promise.all(results);
-}
-
-let _entered = false;
-
-async function handleEnter() {
-  if (_entered) return;
-  _entered = true;
-
-  // 显示加载状态
-  enterBtn.classList.add('loading');
-  enterBtn.querySelector('span').textContent = '加载中...';
-
-  // 等待后台预加载赶上进度（最多 2.5 秒，平衡加载速度和入场体验）
-  await Promise.race([
-    _bgPreload,
-    new Promise((r) => setTimeout(r, 2500)),
-  ]);
-
-  // 阶段1: 内容先淡出 (0.2s)
-  entryContent.classList.add('fade-out');
-  // 阶段2: 书封裂开 (0.7s)
+// ---- 入场动画 ----
+const entry = initEntry(async () => {
+  await _bgPreload;
+  // 等待书封裂开动画完成后初始化主内容
   setTimeout(() => {
-    entryOverlay.classList.add('hidden');
-    setTimeout(() => {
-      document.body.style.overflow = '';
-      initMainContent();
-    }, 700);
-  }, 200);
-}
-
-enterBtn.addEventListener('click', handleEnter);
-
-entryOverlay.addEventListener('wheel', (e) => {
-  if (e.deltaY > 0) {
-    e.preventDefault();
-    handleEnter();
-  }
-}, { passive: false });
-
-let _entryTouchStartY = 0;
-entryOverlay.addEventListener('touchstart', (e) => {
-  _entryTouchStartY = e.touches[0].clientY;
-}, { passive: true });
-entryOverlay.addEventListener('touchmove', (e) => {
-  if (_entered) return;
-  const dy = _entryTouchStartY - e.touches[0].clientY;
-  if (dy > 60) {
-    e.preventDefault();
-    handleEnter();
-  }
-}, { passive: false });
+    entry.unlock();
+    initMainContent();
+  }, 700);
+});
 
 /**
  * 初始化交互与动画（入场后，不影响布局）
  * 非关键模块使用动态 import() 延迟加载，减少首屏 JS 解析时间
  */
 async function initMainContent() {
-  carousel.resume();
+  if (carousel) carousel.resume();
 
   triggerHeroChars();
   initHeroParallax();
@@ -182,34 +123,35 @@ async function initMainContent() {
 
   // 装饰效果 + Ending 模块：懒加载（入场后异步加载，不阻塞交互）
   // 星图小剧场（同步初始化，利用入场遮罩窗口预渲染）
-  const starTheater = new (await import('./modules/star-theater.js')).StarTheater('ending');
+  let starTheater = null;
+  try {
+    starTheater = new (await import('./modules/star-theater.js')).StarTheater('ending');
+  } catch (e) {
+    console.warn('星图小剧场加载失败，跳过', e);
+  }
 
   Promise.all([
     import('./modules/effects.js'),
     import('./modules/ending.js'),
   ]).then(([effects, ending]) => {
-    effects.initCarouselSparkles();
-    effects.initPetalRain();
-    effects.initBridgeSparkles();
-    ending.initEndingCeremony();
-    ending.initEndingCounterRoll();
-    ending.initLanternButton();
+    try { effects.initCarouselSparkles(); } catch (e) { console.warn('轮播光粒子初始化失败', e); }
+    try { effects.initPetalRain(); } catch (e) { console.warn('花瓣雨初始化失败', e); }
+    try { effects.initBridgeSparkles(); } catch (e) { console.warn('桥接光效初始化失败', e); }
+    try { ending.initEndingCeremony(); } catch (e) { console.warn('结尾仪式初始化失败', e); }
+    try { ending.initEndingCounterRoll(); } catch (e) { console.warn('结尾计数器初始化失败', e); }
+    try { ending.initLanternButton(); } catch (e) { console.warn('天灯按钮初始化失败', e); }
+  }).catch((e) => {
+    console.warn('effects/ending 模块加载失败，跳过装饰效果', e);
   });
 
-  // 光标拖尾：首次鼠标移动时才加载（触摸设备跳过）
-  let cursorTrailLoaded = false;
-  document.addEventListener('mousemove', () => {
-    if (!cursorTrailLoaded) {
-      cursorTrailLoaded = true;
-      import('./modules/cursor-trail.js').then(m => m.initCursorTrail());
-    }
-  }, { once: true });
-  document.addEventListener('touchstart', () => {
-    cursorTrailLoaded = true; // 触摸设备跳过
-  }, { once: true });
+  // 光标拖尾：仅精确指针设备（鼠标/触控板），触摸设备跳过
+  if (window.matchMedia('(pointer: fine)').matches) {
+    import('./modules/cursor-trail.js').then(m => m.initCursorTrail())
+      .catch(e => console.warn('光标拖尾加载失败，跳过', e));
+  }
 }
 
-/* ======== 天数计数器 + 一周年倒计时 ======== */
+/* ======== 天数计数器 ======== */
 function initDaysCounter() {
   const heroDaysEl = document.getElementById('hero-days');
   const footerDaysEl = document.getElementById('footer-days');
@@ -253,11 +195,6 @@ function renderWishes() {
   if (pendingEl && wishes.pending) {
     pendingEl.innerHTML = wishes.pending.map(w => buildCard(w, 'pending')).join('');
   }
-}
-
-/* ======== 渲染动态文本（来自 content.json） ======== */
-function initDynamicText() {
-  // hero-sub / ending 文本已移除
 }
 
 /* ======== Service Worker 注册（PWA） ======== */
