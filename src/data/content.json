@@ -402,6 +402,13 @@
     "subtitle": "每一个有你的日子，都是最美的风景"
   },
 
+  "music": {
+    "defaultFavorites": [
+      { "keyword": "答案 冒海飞/徐丽冬" },
+      { "keyword": "兄妹 方大同/薛凯琪" }
+    ]
+  },
+
   "ending": {
     "title": "Forever & Always",
     "text": "还有很多很多个周年",

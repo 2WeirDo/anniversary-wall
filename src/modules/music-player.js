@@ -3,6 +3,8 @@
  * 基于 GDStudio 免费音乐 API，支持网易云/酷我曲库搜索与流媒体播放
  */
 
+import content from '../data/content.json';
+
 /* ======== API 配置 ======== */
 const SEARCH_SOURCE = 'netease';  // 网易云（音频直链可用）
 const AUDIO_QUALITY = '320';
@@ -34,6 +36,8 @@ export class MusicPlayer {
     this._searchAbort = null;
     this._autoPlayDone = false;
     this.favorites = this._loadFavorites();
+    this._defaultFavoritesResolved = [];
+    this._defaultFavoritesResolving = false;
     this.audio = null;
 
     this.init();
@@ -46,7 +50,12 @@ export class MusicPlayer {
     // 创建 audio 元素
     this.audio = new Audio();
     this.audio.preload = 'auto';
-    this.audio.addEventListener('ended', () => this.next());
+    this.audio.addEventListener('ended', () => {
+      if (this.currentSong && this.audio) {
+        this.audio.currentTime = 0;
+        this.audio.play().catch(() => {});
+      }
+    });
     this.audio.addEventListener('error', () => {
       this.isLoading = false;
     });
@@ -120,7 +129,7 @@ export class MusicPlayer {
       }
     });
 
-    // 页面加载后自动播放指定歌曲
+    // 页面加载后随机播放收藏列表歌曲
     this._tryAutoPlay();
   }
 
@@ -128,13 +137,16 @@ export class MusicPlayer {
 
   /** 页面加载后尝试自动播放（延迟 + 首次交互兜底） */
   _tryAutoPlay() {
-    // 方案1：延迟 2s 尝试（部分浏览器允许）
-    setTimeout(() => this._autoPlaySearch(), 2000);
+    // 后台解析默认收藏（不阻塞）
+    this._resolveDefaultFavorites();
+
+    // 方案1：延迟 3s 尝试（等待默认收藏解析完成 + 部分浏览器允许）
+    setTimeout(() => this._autoPlayRandom(), 3000);
 
     // 方案2：首次用户交互时兜底
     const handler = () => {
       if (!this._autoPlayDone && !this.currentSong) {
-        this._autoPlaySearch();
+        this._autoPlayRandom();
       }
     };
     document.addEventListener('click', handler, { once: true });
@@ -142,15 +154,18 @@ export class MusicPlayer {
     document.addEventListener('scroll', handler, { once: true });
   }
 
-  /** 搜索并播放「用背脊唱情歌 (canon in d version)」 */
-  async _autoPlaySearch() {
+  /** 从收藏列表中随机选一首播放（默认收藏 + 用户收藏） */
+  async _autoPlayRandom() {
     if (this._autoPlayDone || this.currentSong) return;
     this._autoPlayDone = true;
+
+    // 合并可用歌曲列表
+    const pool = [...this._defaultFavoritesResolved, ...this.favorites];
+    if (pool.length === 0) return;
+
     try {
-      const results = await this.apiSearch('用背脊唱情歌 (canon in d version)');
-      if (results.length > 0) {
-        await this.playSong(results[0]);
-      }
+      const song = pool[Math.floor(Math.random() * pool.length)];
+      await this.playSong(song);
     } catch (e) {
       // 自动播放被浏览器阻止或搜索失败，用户可手动播放
     }
@@ -512,6 +527,34 @@ export class MusicPlayer {
     } catch { return []; }
   }
 
+  /** 从 content.json 读取默认收藏关键词，逐个搜索并缓存结果 */
+  async _resolveDefaultFavorites() {
+    if (this._defaultFavoritesResolving) return;
+    this._defaultFavoritesResolving = true;
+    const defaults = content?.music?.defaultFavorites;
+    if (!defaults || defaults.length === 0) {
+      this._defaultFavoritesResolving = false;
+      return;
+    }
+    try {
+      const resolved = [];
+      for (const item of defaults) {
+        try {
+          const results = await this.apiSearch(item.keyword);
+          if (results.length > 0) {
+            resolved.push(results[0]);
+          }
+        } catch {
+          // 某首搜索失败，跳过
+        }
+      }
+      this._defaultFavoritesResolved = resolved;
+    } catch {
+      // 整体解析失败，使用空数组
+    }
+    this._defaultFavoritesResolving = false;
+  }
+
   _saveFavorites() {
     try {
       localStorage.setItem('music-favorites', JSON.stringify(this.favorites));
@@ -556,18 +599,36 @@ export class MusicPlayer {
     });
   }
 
-  /** 渲染收藏列表 */
+  /** 渲染收藏列表（默认收藏 + 用户收藏，去重） */
   _renderFavorites() {
     if (!this.resultsEl) return;
     if (this.statusEl) this.statusEl.style.display = 'none';
 
-    if (this.favorites.length === 0) {
+    // 合并：默认收藏在前，用户收藏在后，按 id+source 去重
+    const seen = new Set();
+    const merged = [];
+    for (const song of this._defaultFavoritesResolved) {
+      const key = this._getFavoriteKey(song);
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(song);
+      }
+    }
+    for (const song of this.favorites) {
+      const key = this._getFavoriteKey(song);
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(song);
+      }
+    }
+
+    if (merged.length === 0) {
       this.resultsEl.innerHTML = '';
       return;
     }
 
-    this._lastSearchResults = this.favorites;
-    this.resultsEl.innerHTML = this.favorites.map((song, i) =>
+    this._lastSearchResults = merged;
+    this.resultsEl.innerHTML = merged.map((song, i) =>
       this._songRow(song, i)
     ).join('');
     this._staggerIn();
