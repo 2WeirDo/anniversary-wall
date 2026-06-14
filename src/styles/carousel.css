@@ -53,8 +53,8 @@
   color: #d4687c;
   transform: translateY(-50%) scale(1.15);
 }
-.carousel-nav-prev { left: -36px; }
-.carousel-nav-next { right: -36px; }
+.carousel-nav-prev { left: 6px; }
+.carousel-nav-next { right: 6px; }
 
 .carousel-stage {
   width: 100%;
