@@ -19,6 +19,99 @@ function heartXY(t) {
 const TOTAL_STARS = 32;
 const HEART_SAMPLES = Array.from({ length: TOTAL_STARS }, (_, i) => heartXY(i / TOTAL_STARS));
 
+/* ---- 终章书法路径：W (cursive handwriting) ---- */
+const W_CURSIVE_PATH = [
+  ['M', -1.35,  0.25],
+  ['Q', -1.20, -0.10, -1.05, -0.55],
+  ['Q', -0.90, -0.92, -0.60, -0.88],
+  ['Q', -0.40, -0.85, -0.25, -0.15],
+  ['Q', -0.12,  0.20, -0.15,  0.22],
+  ['Q', -0.05,  0.05,  0.08, -0.55],
+  ['Q',  0.18, -0.90,  0.20, -0.88],
+  ['Q',  0.22, -0.85,  0.35, -0.05],
+  ['Q',  0.42,  0.20,  0.42,  0.22],
+  ['Q',  0.50,  0.05,  0.65, -0.60],
+  ['Q',  0.75, -0.90,  0.78, -0.88],
+  ['Q',  0.82, -0.85,  0.98,  0.05],
+  ['Q',  1.08,  0.22,  1.10,  0.18],
+  ['Q',  1.18, -0.05,  1.30, -0.22],
+  ['Q',  1.38, -0.35,  1.34, -0.42],
+];
+
+/* ---- 终章书法路径：Y (cursive handwriting) ---- */
+const Y_CURSIVE_PATH = [
+  ['M', -0.70, -0.92],
+  ['Q', -0.50, -0.75, -0.28, -0.45],
+  ['Q', -0.10, -0.15,  0.00,  0.08],
+  ['Q',  0.08,  0.22,  0.12,  0.15],
+  ['Q',  0.18, -0.20,  0.22, -0.55],
+  ['Q',  0.28, -0.82,  0.42, -0.88],
+  ['Q',  0.38, -0.70,  0.28, -0.25],
+  ['Q',  0.18,  0.08,  0.05,  0.15],
+  ['Q', -0.08,  0.30, -0.12,  0.48],
+  ['Q', -0.15,  0.52, -0.12,  0.50],
+  ['Q', -0.02,  0.42, -0.02,  0.32],
+];
+
+/** 估算路径总长度（归一化坐标） */
+function pathLength(pathData) {
+  let len = 0;
+  let px = 0, py = 0;
+  for (const seg of pathData) {
+    const [cmd, ...args] = seg;
+    if (cmd === 'M') {
+      px = args[args.length - 2];
+      py = args[args.length - 1];
+    } else {
+      // Q: 用控制点-终点弦长近似
+      const cpx = args[0], cpy = args[1], ex = args[2], ey = args[3];
+      len += Math.hypot(cpx - px, cpy - py) + Math.hypot(ex - cpx, ey - cpy);
+      px = ex; py = ey;
+    }
+  }
+  return len;
+}
+
+/** 获取路径上 t (0~1) 位置的点 */
+function pointOnPath(pathData, t) {
+  const total = pathLength(pathData);
+  if (t <= 0) return { x: pathData[0][1], y: pathData[0][2] };
+  if (t >= 1) { const last = pathData[pathData.length - 1]; return { x: last[last.length - 2], y: last[last.length - 1] }; }
+  let acc = 0;
+  let px = pathData[0][1], py = pathData[0][2];
+  for (let i = 1; i < pathData.length; i++) {
+    const seg = pathData[i];
+    const cpx = seg[1], cpy = seg[2], ex = seg[3], ey = seg[4];
+    const segLen = Math.hypot(cpx - px, cpy - py) + Math.hypot(ex - cpx, ey - cpy);
+    if (acc + segLen >= t * total) {
+      const localT = (t * total - acc) / segLen;
+      // 二次贝塞尔插值
+      const mt = 1 - localT;
+      return {
+        x: mt * mt * px + 2 * mt * localT * cpx + localT * localT * ex,
+        y: mt * mt * py + 2 * mt * localT * cpy + localT * localT * ey,
+      };
+    }
+    acc += segLen;
+    px = ex; py = ey;
+  }
+  return { x: px, y: py };
+}
+
+/** heartbeat 缩放（匹配 CSS @keyframes heartbeat, 0.56s 周期） */
+function heartbeatScale(ts) {
+  const period = 560; // ms
+  const phase = (ts % period) / period; // 0..1
+  if (phase < 0.14) return 1 + 0.18 * (phase / 0.14);           // 1 → 1.18
+  if (phase < 0.28) return 1.18 - 0.18 * ((phase - 0.14) / 0.14); // 1.18 → 1
+  if (phase < 0.42) return 1 + 0.10 * ((phase - 0.28) / 0.14);   // 1 → 1.10
+  if (phase < 0.56) return 1.10 - 0.10 * ((phase - 0.42) / 0.14); // 1.10 → 1
+  return 1;
+}
+
+const W_PATH_LEN = pathLength(W_CURSIVE_PATH);
+const Y_PATH_LEN = pathLength(Y_CURSIVE_PATH);
+
 /* ================================================================
    星座数据 — 狮子座 & 天蝎座（各 16 颗，共 32 颗）
    狮子座：侧身剪影朝右 — 圆形鬃毛→身躯→四肢→尾尖毛簇
@@ -120,8 +213,17 @@ export class StarTheater {
     // 终章：W / Y 字母 + 中心爱心光晕
     this._finaleStart = 0;
     this._finaleDuration = 3500;
-    this._finaleAlpha = 0;
     this._mergedAt = 0;
+    // 增强状态
+    this._letterWProgress = 0;
+    this._letterYProgress = 0;
+    this._letterDrawn = false;
+    this._heartStartedAt = 0;
+    this._heartRings = [];
+    this._ringSpawnedThisBeat = false;
+    this._embers = [];
+    this._nebulaPhase = 0;
+    this._breathePhase = 0;
 
     // 帧
     this._tick = null;
@@ -242,9 +344,15 @@ export class StarTheater {
       this.phase = 'collect';
       this._mergeStart = 0;
       this._burstSpawned = false;
-      this._finaleAlpha = 0;
       this._finaleStart = 0;
       this._mergedAt = 0;
+      this._letterWProgress = 0;
+      this._letterYProgress = 0;
+      this._letterDrawn = false;
+      this._heartStartedAt = 0;
+      this._heartRings = [];
+      this._ringSpawnedThisBeat = false;
+      this._embers = [];
     }
     this.updateProgressUI();
   }
@@ -385,7 +493,7 @@ export class StarTheater {
     // 7b. 终章：W / Y 字母 + 中心爱心光晕
     if (this.phase === 'finale') {
       this.updateFinale(ts);
-      this.drawFinaleGlows(ctx);
+      this.drawFinaleGlows(ctx, ts);
     }
 
     // 8. 触控光标
@@ -596,133 +704,346 @@ export class StarTheater {
     }
   }
 
-  /* ---- 终章：W / Y 字母 + 中心爱心光晕 ---- */
+  /* ---- 终章：W / Y 书法描边 + 脉冲爱心 + 粒子 ---- */
   updateFinale(ts) {
     const elapsed = ts - this._finaleStart;
-    this._finaleAlpha = Math.min(1, elapsed / this._finaleDuration);
+
+    // Phase: nebula bloom (0 → 0.3s)
+    const nebulaAlpha = Math.min(1, elapsed / 300);
+
+    // Phase: W stroke-draw (0.3 → 1.6s)
+    if (elapsed > 300) {
+      this._letterWProgress = Math.min(1, (elapsed - 300) / 1300);
+    }
+
+    // Phase: Y stroke-draw (0.6 → 2.5s)
+    if (elapsed > 600) {
+      this._letterYProgress = Math.min(1, (elapsed - 600) / 1900);
+    }
+
+    // Phase: heart pulse starts at 1.2s
+    if (elapsed > 1200 && this._heartStartedAt === 0) {
+      this._heartStartedAt = ts;
+    }
+
+    // Check letters drawn
+    if (this._letterWProgress >= 1 && this._letterYProgress >= 1 && !this._letterDrawn) {
+      this._letterDrawn = true;
+    }
+
+    // Drift phases
+    this._nebulaPhase = ts * 0.0003;
+    this._breathePhase = ts * 0.0018;
+
+    // Update embers
+    this._updateEmbers();
+
+    // Update heart rings
+    this._updateHeartRings(ts);
+
+    // Spawn embers
+    this._spawnFinaleEmbers(ts);
   }
 
-  drawFinaleGlows(ctx) {
-    const a = this._finaleAlpha;
-    if (a <= 0) return;
+  /* ---- Ember 系统 ---- */
+  _spawnFinaleEmbers(ts) {
     const sc = this._scale;
     const cx = this.cx;
     const cy = this.cy;
     const heartCY = cy + sc * 5;
+    const wLX = cx - sc * 17, wLY = cy + sc * 3;
+    const yLX = cx + sc * 17, yLY = cy + sc * 3;
+    const fs = sc * 14;
+    const maxEmbers = 400;
 
-    // 缓出
-    const ease = 1 - Math.pow(1 - a, 3);
-
-    // ---- 左侧 W 光晕 ----
-    this.drawLetterGlow(ctx, 'W', cx - sc * 17, cy + sc * 3, sc * 14, ease,
-      [255, 220, 170], [255, 180, 130]);
-
-    // ---- 右侧 Y 光晕 ----
-    this.drawLetterGlow(ctx, 'Y', cx + sc * 17, cy + sc * 3, sc * 14, ease,
-      [255, 220, 170], [255, 180, 130]);
-
-    // ---- 中心爱心光晕 ----
-    this.drawCenterHeartGlow(ctx, cx, heartCY, sc, ease);
+    // W trail (while drawing)
+    if (this._letterWProgress < 1 && this._letterWProgress > 0) {
+      const pt = pointOnPath(W_CURSIVE_PATH, this._letterWProgress);
+      this._spawnEmbersAt(wLX + pt.x * fs, wLY + pt.y * fs, 2, 3);
+    }
+    // Y trail (while drawing)
+    if (this._letterYProgress < 1 && this._letterYProgress > 0) {
+      const pt = pointOnPath(Y_CURSIVE_PATH, this._letterYProgress);
+      this._spawnEmbersAt(yLX + pt.x * fs, yLY + pt.y * fs, 2, 3);
+    }
+    // Letters drawn — occasional ember from path
+    if (this._letterDrawn && Math.random() < 0.5) {
+      const ptW = pointOnPath(W_CURSIVE_PATH, Math.random());
+      this._spawnEmbersAt(wLX + ptW.x * fs, wLY + ptW.y * fs, 1, 2);
+      const ptY = pointOnPath(Y_CURSIVE_PATH, Math.random());
+      this._spawnEmbersAt(yLX + ptY.x * fs, yLY + ptY.y * fs, 1, 2);
+    }
+    // Heart embers
+    if (this._heartStartedAt > 0 && Math.random() < 0.6) {
+      const hp = heartXY(Math.random());
+      const hs = sc * 1.45;
+      this._spawnEmbersAt(cx + hp.x * hs, heartCY + hp.y * hs, 1, 3);
+    }
+    // Cap
+    while (this._embers.length > maxEmbers) this._embers.shift();
   }
 
-  /* 绘制发光字母 */
-  drawLetterGlow(ctx, letter, lx, ly, fontSize, alpha, glowColor, coreColor) {
-    const a = alpha;
-    if (a < 0.01) return;
+  _spawnEmbersAt(x, y, minCount, maxCount) {
+    const count = minCount + Math.floor(Math.random() * (maxCount - minCount + 1));
+    for (let i = 0; i < count; i++) {
+      this._embers.push({
+        x: x + (Math.random() - 0.5) * 8,
+        y: y + (Math.random() - 0.5) * 8,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: -(0.3 + Math.random() * 0.8),
+        life: 1,
+        decay: 0.004 + Math.random() * 0.008,
+        r: 0.5 + Math.random() * 1.6,
+      });
+    }
+  }
 
-    const [gr, gg, gb] = glowColor;
-    const [cr, cg, cb] = coreColor;
+  _updateEmbers() {
+    for (let i = this._embers.length - 1; i >= 0; i--) {
+      const p = this._embers[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.003;
+      p.life -= p.decay;
+      if (p.life <= 0 || p.y < -40) { this._embers.splice(i, 1); }
+    }
+  }
 
+  /* ---- Heart ring 系统 ---- */
+  _updateHeartRings(ts) {
+    const sc = this._scale;
+    if (this._heartStartedAt <= 0) return;
+    const beatT = (ts - this._heartStartedAt) % 560;
+    const hb = heartbeatScale(ts - this._heartStartedAt);
+
+    // Spawn ring at heartbeat peak
+    if (hb > 1.15 && !this._ringSpawnedThisBeat) {
+      this._ringSpawnedThisBeat = true;
+      const cx = this.cx;
+      const heartCY = this.cy + sc * 5;
+      this._heartRings.push({ r: sc * 2, alpha: 0.55, x: cx, y: heartCY });
+    }
+    if (hb < 1.02) this._ringSpawnedThisBeat = false;
+
+    // Expand + fade
+    for (let i = this._heartRings.length - 1; i >= 0; i--) {
+      const ring = this._heartRings[i];
+      ring.r += sc * 0.12;
+      ring.alpha -= 0.012;
+      if (ring.alpha <= 0) this._heartRings.splice(i, 1);
+    }
+  }
+
+  /* ================================================================
+     PREMIUM FINALE DRAW
+     ================================================================ */
+  drawFinaleGlows(ctx, ts) {
+    const sc = this._scale;
+    const cx = this.cx;
+    const cy = this.cy;
+    const heartCY = cy + sc * 5;
+    const wX = cx - sc * 17, wY = cy + sc * 3;
+    const yX = cx + sc * 17, yY = cy + sc * 3;
+    const fs = sc * 14;
+
+    // Nebula bloom alpha
+    const elapsed = ts - this._finaleStart;
+    const nebulaA = Math.min(1, elapsed / 300) * 0.55;
+
+    // 1. Letter nebulae (behind)
+    this._drawLetterNebula(ctx, wX, wY, fs, nebulaA, 0);
+    this._drawLetterNebula(ctx, yX, yY, fs, nebulaA, 1);
+
+    // 2. Stroke-draw letters
+    if (this._letterWProgress > 0) {
+      this._drawCursiveLetter(ctx, W_CURSIVE_PATH, W_PATH_LEN, wX, wY, fs, this._letterWProgress, this._letterDrawn);
+    }
+    if (this._letterYProgress > 0) {
+      this._drawCursiveLetter(ctx, Y_CURSIVE_PATH, Y_PATH_LEN, yX, yY, fs, this._letterYProgress, this._letterDrawn);
+    }
+
+    // 3. Pulsing heart
+    if (this._heartStartedAt > 0) {
+      this._drawHeartPulse(ctx, cx, heartCY, sc, ts);
+      // Expanding rings
+      for (const ring of this._heartRings) {
+        ctx.strokeStyle = `rgba(255,200,150,${ring.alpha})`;
+        ctx.lineWidth = sc * 0.25;
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // 4. Embers
+    this._drawEmbers(ctx);
+  }
+
+  /* 字母底光 — 3 个偏移暖色 blob additive blend */
+  _drawLetterNebula(ctx, lx, ly, fs, alpha, seed) {
+    if (alpha < 0.01) return;
     ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.globalCompositeOperation = 'lighter';
 
-    // 外层柔光（大范围模糊）
-    const outerR = fontSize * 0.8;
-    const gOuter = ctx.createRadialGradient(lx, ly, fontSize * 0.15, lx, ly, outerR);
-    gOuter.addColorStop(0, `rgba(${gr},${gg},${gb},${a * 0.5})`);
-    gOuter.addColorStop(0.5, `rgba(${gr},${gg},${gb},${a * 0.18})`);
-    gOuter.addColorStop(1, 'transparent');
-    ctx.fillStyle = gOuter;
+    const blobColors = [
+      [255, 200, 140],
+      [255, 170, 110],
+      [255, 220, 175],
+    ];
+    const offsets = [
+      [fs * 0.12, fs * -0.08],
+      [fs * -0.10, fs * 0.10],
+      [fs * 0.04, fs * 0.06],
+    ];
+
+    for (let i = 0; i < 3; i++) {
+      const [cr, cg, cb] = blobColors[i];
+      const [ox, oy] = offsets[i];
+      const drift = Math.sin(this._nebulaPhase * (i + 1) * 1.7 + seed) * fs * 0.06;
+      const bx = lx + ox + drift;
+      const by = ly + oy + drift * 0.6;
+      const blobR = fs * (0.55 + 0.15 * Math.sin(this._nebulaPhase * (i + 3) * 2.1 + seed * 5));
+      const a_i = [0.35, 0.25, 0.30][i] * alpha;
+
+      const g = ctx.createRadialGradient(bx, by, 0, bx, by, blobR);
+      g.addColorStop(0, `rgba(${cr},${cg},${cb},${a_i})`);
+      g.addColorStop(0.6, `rgba(${cr},${cg},${cb},${a_i * 0.3})`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(bx, by, blobR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* 书法描边字母 — setLineDash 动画 + 三层 glow */
+  _drawCursiveLetter(ctx, pathData, pathTotalLen, lx, ly, fs, progress, drawn) {
+    if (progress <= 0) return;
+    ctx.save();
+
+    const sc = fs;
+    const totalLen = pathTotalLen * sc;
+    const dashLen = progress * totalLen;
+    const tipBoost = progress < 1 ? 1.3 : 1.0;
+
+    // Build path
     ctx.beginPath();
-    ctx.arc(lx, ly, outerR, 0, Math.PI * 2);
-    ctx.fill();
+    for (const seg of pathData) {
+      const [cmd, ...args] = seg;
+      if (cmd === 'M') {
+        ctx.moveTo(lx + args[0] * sc, ly + args[1] * sc);
+      } else {
+        ctx.quadraticCurveTo(
+          lx + args[0] * sc, ly + args[1] * sc,
+          lx + args[2] * sc, ly + args[3] * sc
+        );
+      }
+    }
 
-    // 中层光晕
-    const midR = fontSize * 0.45;
-    const gMid = ctx.createRadialGradient(lx, ly, fontSize * 0.08, lx, ly, midR);
-    gMid.addColorStop(0, `rgba(${cr},${cg},${cb},${a * 0.65})`);
-    gMid.addColorStop(0.6, `rgba(${cr},${cg},${cb},${a * 0.15})`);
-    gMid.addColorStop(1, 'transparent');
-    ctx.fillStyle = gMid;
-    ctx.beginPath();
-    ctx.arc(lx, ly, midR, 0, Math.PI * 2);
-    ctx.fill();
+    // Post-draw breathing
+    if (drawn) {
+      const breathe = 1 + 0.012 * Math.sin(this._breathePhase + (pathData === Y_CURSIVE_PATH ? 0.8 : 0));
+      ctx.translate(lx, ly);
+      ctx.scale(breathe, breathe);
+      ctx.translate(-lx, -ly);
+    }
 
-    // 字母主体
-    ctx.font = `bold ${fontSize}px "Georgia", "Times New Roman", serif`;
-    ctx.shadowColor = `rgba(${gr},${gg},${gb},${a * 0.6})`;
-    ctx.shadowBlur = fontSize * 0.5;
-    ctx.fillStyle = `rgba(${cr},${cg},${cb},${a * 0.9})`;
-    ctx.fillText(letter, lx, ly);
+    // Layer 1: Outer glow
+    ctx.setLineDash([totalLen, totalLen]);
+    ctx.lineDashOffset = -dashLen;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = sc * 0.22;
+    ctx.shadowColor = `rgba(255,180,120,${0.4 * tipBoost})`;
+    ctx.shadowBlur = sc * 0.55;
+    ctx.strokeStyle = `rgba(255,210,160,${0.3 * tipBoost})`;
+    ctx.stroke();
 
-    // 内层亮核
+    // Layer 2: Mid glow
+    ctx.shadowColor = `rgba(255,210,155,${0.5 * tipBoost})`;
+    ctx.shadowBlur = sc * 0.28;
+    ctx.lineWidth = sc * 0.10;
+    ctx.strokeStyle = `rgba(255,235,195,${0.55 * tipBoost})`;
+    ctx.stroke();
+
+    // Layer 3: Core
     ctx.shadowBlur = 0;
-    ctx.fillStyle = `rgba(255,255,255,${a * 0.35})`;
-    ctx.fillText(letter, lx, ly);
+    ctx.lineWidth = sc * 0.04;
+    ctx.strokeStyle = `rgba(255,250,240,${0.85 * tipBoost})`;
+    ctx.stroke();
 
     ctx.restore();
   }
 
-  /* 中心爱心形光晕 */
-  drawCenterHeartGlow(ctx, hx, hy, sc, alpha) {
-    const a = alpha;
-    if (a < 0.01) return;
-
-    const heartScale = sc * 1.45; // 比星点爱心稍大
-    const samples = 48;
+  /* 脉冲爱心 + 光环 */
+  _drawHeartPulse(ctx, hx, hy, sc, ts) {
+    const beatScale = heartbeatScale(ts - this._heartStartedAt);
+    const hs = sc * 1.45 * beatScale;
+    const a = Math.min(1, (ts - this._heartStartedAt) / 800); // fade in over 0.8s
 
     ctx.save();
 
-    // 爱心路径
+    // Heart path
     ctx.beginPath();
+    const samples = 48;
     for (let i = 0; i <= samples; i++) {
       const hp = heartXY(i / samples);
-      const px = hx + hp.x * heartScale;
-      const py = hy + hp.y * heartScale;
+      const px = hx + hp.x * hs;
+      const py = hy + hp.y * hs;
       if (i === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);
     }
     ctx.closePath();
 
-    // 外层柔光
-    ctx.shadowColor = `rgba(255,200,170,${a * 0.55})`;
-    ctx.shadowBlur = sc * 5;
-    ctx.fillStyle = `rgba(255,210,180,${a * 0.12})`;
+    // Outer shadow fill
+    ctx.shadowColor = `rgba(255,140,110,${a * 0.5})`;
+    ctx.shadowBlur = sc * 6;
+    ctx.fillStyle = `rgba(255,190,160,${a * 0.10})`;
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 中层
-    ctx.shadowColor = `rgba(255,180,150,${a * 0.4})`;
+    // Mid stroke
+    ctx.shadowColor = `rgba(255,180,150,${a * 0.35})`;
     ctx.shadowBlur = sc * 2.5;
-    ctx.strokeStyle = `rgba(255,200,170,${a * 0.25})`;
-    ctx.lineWidth = sc * 0.5;
+    ctx.strokeStyle = `rgba(255,210,175,${a * 0.28})`;
+    ctx.lineWidth = sc * 0.6;
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // 内层脉冲光 — 径向渐变覆盖爱心中心区域
-    const pulseR = sc * 8;
-    const gPulse = ctx.createRadialGradient(hx, hy, sc * 0.5, hx, hy, pulseR);
-    gPulse.addColorStop(0, `rgba(255,235,210,${a * 0.35})`);
-    gPulse.addColorStop(0.4, `rgba(255,200,160,${a * 0.15})`);
-    gPulse.addColorStop(0.7, `rgba(255,170,140,${a * 0.04})`);
-    gPulse.addColorStop(1, 'transparent');
-    ctx.fillStyle = gPulse;
+    // Inner core gradient
+    const coreR = sc * 7;
+    const gCore = ctx.createRadialGradient(hx, hy, sc * 0.5, hx, hy, coreR);
+    gCore.addColorStop(0, `rgba(255,245,230,${a * 0.4})`);
+    gCore.addColorStop(0.45, `rgba(255,200,160,${a * 0.12})`);
+    gCore.addColorStop(1, 'transparent');
+    ctx.fillStyle = gCore;
     ctx.beginPath();
-    ctx.arc(hx, hy, pulseR, 0, Math.PI * 2);
+    ctx.arc(hx, hy, coreR, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
+  }
+
+  /* Ember 粒子绘制 */
+  _drawEmbers(ctx) {
+    for (const p of this._embers) {
+      if (p.life <= 0) continue;
+      // Tiny glow
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.5);
+      g.addColorStop(0, `rgba(255,215,140,${p.life * 0.55})`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core
+      ctx.fillStyle = `rgba(255,245,220,${p.life * 0.85})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   /* ---- 光漪 ---- */
