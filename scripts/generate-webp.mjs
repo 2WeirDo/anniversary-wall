@@ -27,6 +27,7 @@ for (const jpg of jpgs) {
   const outputPath = resolve(OPTIMIZED_DIR, webpName);
 
   await sharp(inputPath)
+    .rotate()
     .resize({ width: 800, withoutEnlargement: true })
     .webp({ quality: 75 })
     .toFile(outputPath);
