@@ -144,11 +144,6 @@ async function initMainContent() {
     console.warn('effects/ending 模块加载失败，跳过装饰效果', e);
   });
 
-  // 光标拖尾：仅精确指针设备（鼠标/触控板），触摸设备跳过
-  if (window.matchMedia('(pointer: fine)').matches) {
-    import('./modules/cursor-trail.js').then(m => m.initCursorTrail())
-      .catch(e => console.warn('光标拖尾加载失败，跳过', e));
-  }
 }
 
 /* ======== 天数计数器 ======== */
@@ -204,4 +199,10 @@ if ('serviceWorker' in navigator) {
       // 静默失败，不影响主功能
     });
   });
+}
+
+/* ======== 光标拖尾（顶层初始化，不依赖 initMainContent） ======== */
+if (window.matchMedia('(pointer: fine)').matches) {
+  import('./modules/cursor-trail.js').then(m => m.initCursorTrail())
+    .catch(e => console.warn('光标拖尾加载失败，跳过', e));
 }
