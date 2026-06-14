@@ -6,7 +6,8 @@ export function initThemeToggle() {
   if (!btn) return;
 
   const saved = localStorage.getItem('love-story-theme');
-  if (saved === 'dark') {
+  // 首次访问（无记录）默认暗色模式，用户主动切亮色后则记住
+  if (!saved || saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
   }
 
