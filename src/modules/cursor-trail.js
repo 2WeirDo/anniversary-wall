@@ -28,110 +28,180 @@ export function initCursorTrail() {
   resize();
   window.addEventListener('resize', resize);
 
-  // ── drawKitty(x, y, size, alpha) ——
+  // ── drawKitty(x, y, size, alpha) —— 淡墨风格 ──
   function drawKitty(x, y, size, alpha) {
-    if (alpha <= 0.01) return;
+    if (alpha <= 0.005) return;
     const s = size;
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x, y);
 
-    // 光晕
-    ctx.fillStyle = 'rgba(240, 184, 200, 0.10)';
+    // ── 光晕：径向渐变，外缘自然消失 ──
+    const glow = ctx.createRadialGradient(0, 0, s * 0.12, 0, 0, s * 0.72);
+    glow.addColorStop(0, 'rgba(245,198,208,0.20)');
+    glow.addColorStop(0.45, 'rgba(245,198,208,0.06)');
+    glow.addColorStop(1, 'rgba(245,198,208,0)');
+    ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.55, 0, Math.PI * 2);
+    ctx.arc(0, 0, s * 0.72, 0, Math.PI * 2);
     ctx.fill();
 
-    // 耳朵（白色三角 + 内侧粉三角）
-    const ears = [
-      { bx: -0.30, by: -0.12, mx: -0.38, my: -0.44, ex: -0.08, ey: -0.22,
-        ibx: -0.26, iby: -0.16, imx: -0.32, imy: -0.36, iex: -0.12, iey: -0.21 },
-      { bx:  0.30, by: -0.12, mx:  0.38, my: -0.44, ex:  0.08, ey: -0.22,
-        ibx:  0.26, iby: -0.16, imx:  0.32, imy: -0.36, iex:  0.12, iey: -0.21 },
-    ];
-    ears.forEach(e => {
-      ctx.fillStyle = '#fff';
-      ctx.strokeStyle = '#EDB8C5';
-      ctx.lineWidth = 1;
+    // ── 耳朵 ──
+    const earOutline = 'rgba(210,175,182,0.50)';
+    const earLineW = Math.max(0.6, s * 0.028);
+
+    function drawEar(side /* -1 left, +1 right */) {
+      const sx = side;
+      // 外耳三角
+      const bx = sx * 0.30, by = -0.12;
+      const mx = sx * 0.38, my = -0.46;
+      const ex = sx * 0.07, ey = -0.23;
+
+      ctx.fillStyle = '#fefdfc';
+      ctx.strokeStyle = earOutline;
+      ctx.lineWidth = earLineW;
+      ctx.lineJoin = 'round';
       ctx.beginPath();
-      ctx.moveTo(e.bx * s, e.by * s);
-      ctx.lineTo(e.mx * s, e.my * s);
-      ctx.lineTo(e.ex * s, e.ey * s);
+      ctx.moveTo(bx * s, by * s);
+      ctx.lineTo(mx * s, my * s);
+      ctx.lineTo(ex * s, ey * s);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#FDE4EC';
+      // 内耳粉三角（略小）
+      const ibx = sx * 0.25, iby = -0.15;
+      const imx = sx * 0.32, imy = -0.38;
+      const iex = sx * 0.10, iey = -0.22;
+      const inner = ctx.createLinearGradient(0, my * s, 0, by * s);
+      inner.addColorStop(0, '#fde4ec');
+      inner.addColorStop(1, '#fef4f7');
+      ctx.fillStyle = inner;
       ctx.beginPath();
-      ctx.moveTo(e.ibx * s, e.iby * s);
-      ctx.lineTo(e.imx * s, e.imy * s);
-      ctx.lineTo(e.iex * s, e.iey * s);
+      ctx.moveTo(ibx * s, iby * s);
+      ctx.lineTo(imx * s, imy * s);
+      ctx.lineTo(iex * s, iey * s);
       ctx.closePath();
       ctx.fill();
-    });
+    }
+    drawEar(-1);
+    drawEar(+1);
 
-    // 脸（白色椭圆：scale + arc）
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.strokeStyle = '#EDB8C5';
-    ctx.lineWidth = 1.2;
+    // ── 脸部：径向渐变珍珠光泽 ──
+    const faceGrad = ctx.createRadialGradient(
+      -s * 0.04, -s * 0.03, s * 0.03,
+      0, s * 0.02, s * 0.44);
+    faceGrad.addColorStop(0, '#ffffff');
+    faceGrad.addColorStop(0.55, '#fffefe');
+    faceGrad.addColorStop(0.85, '#fef7f8');
+    faceGrad.addColorStop(1, '#fef0f3');
+
+    ctx.fillStyle = faceGrad;
+    ctx.strokeStyle = 'rgba(210,178,184,0.45)';
+    ctx.lineWidth = Math.max(0.7, s * 0.032);
     ctx.save();
     ctx.translate(0, s * 0.02);
-    ctx.scale(1, 0.36 / 0.44);
+    ctx.scale(1, 0.38 / 0.44);
     ctx.beginPath();
     ctx.arc(0, 0, s * 0.44, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
 
-    // 蝴蝶结
-    const bx = s * 0.25, by = -s * 0.43;
-    ctx.fillStyle = '#EDB8C5';
+    // ── 胡须：6根纤细弧线 ──
+    ctx.strokeStyle = 'rgba(190,160,166,0.40)';
+    ctx.lineWidth = Math.max(0.4, s * 0.019);
+    ctx.lineCap = 'round';
+    const wOff = [-0.04, 0, 0.04];
+    wOff.forEach(wo => {
+      // 左须
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.30, s * 0.04 + wo * s);
+      ctx.quadraticCurveTo(-s * 0.48, s * 0.05 + wo * s, -s * 0.60, s * 0.03 + wo * s * 0.8);
+      ctx.stroke();
+      // 右须
+      ctx.beginPath();
+      ctx.moveTo(s * 0.30, s * 0.04 + wo * s);
+      ctx.quadraticCurveTo(s * 0.48, s * 0.05 + wo * s, s * 0.60, s * 0.03 + wo * s * 0.8);
+      ctx.stroke();
+    });
+
+    // ── 蝴蝶结（右耳侧，双色瓣 + 褶皱结心）──
+    const bCx = s * 0.27, bCy = -s * 0.16;
+    const lobeR = s * 0.15;
+
+    // 左瓣
+    const bowL = ctx.createLinearGradient(bCx - s * 0.28, bCy, bCx, bCy);
+    bowL.addColorStop(0, '#e8a8b6');
+    bowL.addColorStop(0.5, '#f0c0cc');
+    bowL.addColorStop(1, '#f5d0db');
+    ctx.fillStyle = bowL;
     ctx.save();
-    ctx.translate(bx - s * 0.08, by);
-    ctx.rotate(-0.35);
-    ctx.scale(1, 0.09 / 0.14);
+    ctx.translate(bCx - s * 0.10, bCy);
+    ctx.rotate(-0.38);
+    ctx.scale(1, 0.5 / 0.16);
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.translate(bx + s * 0.12, by);
-    ctx.rotate(0.35);
-    ctx.scale(1, 0.09 / 0.14);
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 0.14, 0, Math.PI * 2);
+    ctx.arc(0, 0, lobeR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    ctx.fillStyle = '#E8A8B6';
-    ctx.beginPath();
-    ctx.arc(bx + s * 0.02, by, s * 0.05, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 眼睛
-    ctx.fillStyle = '#333';
+    // 右瓣
+    const bowR = ctx.createLinearGradient(bCx, bCy, bCx + s * 0.28, bCy);
+    bowR.addColorStop(0, '#f5d0db');
+    bowR.addColorStop(0.5, '#f0c0cc');
+    bowR.addColorStop(1, '#e8a8b6');
+    ctx.fillStyle = bowR;
     ctx.save();
-    ctx.translate(-s * 0.1, -s * 0.06);
-    ctx.scale(1, 0.065 / 0.045);
+    ctx.translate(bCx + s * 0.10, bCy);
+    ctx.rotate(0.38);
+    ctx.scale(1, 0.5 / 0.16);
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.045, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.translate(s * 0.1, -s * 0.06);
-    ctx.scale(1, 0.065 / 0.045);
-    ctx.beginPath();
-    ctx.arc(0, 0, s * 0.045, 0, Math.PI * 2);
+    ctx.arc(0, 0, lobeR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // 鼻子
-    ctx.fillStyle = '#F5D0BF';
+    // 结心
+    const knot = ctx.createRadialGradient(bCx, bCy, 0, bCx, bCy, s * 0.065);
+    knot.addColorStop(0, '#f8dde5');
+    knot.addColorStop(1, '#d89aab');
+    ctx.fillStyle = knot;
+    ctx.beginPath();
+    ctx.arc(bCx, bCy, s * 0.065, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── 眼睛：深色椭圆 + 白色高光 ──
+    function drawEye(ex, ey) {
+      const eyeGrad = ctx.createLinearGradient(0, ey * s - s * 0.04, 0, ey * s + s * 0.02);
+      eyeGrad.addColorStop(0, '#3a3040');
+      eyeGrad.addColorStop(1, '#221a25');
+      ctx.fillStyle = eyeGrad;
+      ctx.save();
+      ctx.translate(ex * s, ey * s);
+      ctx.scale(1, 0.07 / 0.05);
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 高光点
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(ex * s + s * 0.016, ey * s - s * 0.018, s * 0.016, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    drawEye(-0.1, -0.06);
+    drawEye( 0.1, -0.06);
+
+    // ── 鼻子：柔和粉椭圆 ──
+    const noseGrad = ctx.createRadialGradient(0, s * 0.08, 0, 0, s * 0.09, s * 0.055);
+    noseGrad.addColorStop(0, '#f9e2da');
+    noseGrad.addColorStop(1, '#f0c5b5');
+    ctx.fillStyle = noseGrad;
     ctx.save();
     ctx.translate(0, s * 0.09);
-    ctx.scale(1, 0.035 / 0.05);
+    ctx.scale(1, 0.04 / 0.055);
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.05, 0, Math.PI * 2);
+    ctx.arc(0, 0, s * 0.055, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -140,7 +210,7 @@ export function initCursorTrail() {
 
   // ── 动画状态 ──
   const N = 3;
-  const sizes = [22, 18, 14];
+  const sizes = [26, 20, 15];
   const pts = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
   let mx = 0, my = 0;
   let active = false;
