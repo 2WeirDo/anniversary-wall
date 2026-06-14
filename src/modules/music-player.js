@@ -634,14 +634,22 @@ export class MusicPlayer {
     });
   }
 
-  /** 渲染收藏列表（默认收藏 + 用户收藏，去重） */
+  /** 渲染收藏列表（当前播放歌曲 + 默认收藏 + 用户收藏，去重） */
   _renderFavorites() {
     if (!this.resultsEl) return;
     if (this.statusEl) this.statusEl.style.display = 'none';
 
-    // 合并：默认收藏在前，用户收藏在后，按 id+source 去重
+    // 合并：当前播放歌曲置顶 → 默认收藏 → 用户收藏，按 id+source 去重
     const seen = new Set();
     const merged = [];
+
+    // 当前播放歌曲始终在最上面
+    if (this.currentSong) {
+      const key = this._getFavoriteKey(this.currentSong);
+      seen.add(key);
+      merged.push(this.currentSong);
+    }
+
     for (const song of this._defaultFavoritesResolved) {
       const key = this._getFavoriteKey(song);
       if (!seen.has(key)) {
