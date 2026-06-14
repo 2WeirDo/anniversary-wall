@@ -8,7 +8,7 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(30, 18, 14, 0.58);
+  background: rgba(60, 30, 40, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   opacity: 0;
@@ -110,15 +110,15 @@
   padding: 24px 20px 12px;
   min-height: 100px;
   perspective: 600px;
-  /* 细滚动条 — 暖金色系 */
+  /* 细滚动条 — 粉色系 */
   scrollbar-width: thin;
-  scrollbar-color: rgba(200, 150, 110, 0.2) transparent;
+  scrollbar-color: rgba(232, 120, 144, 0.2) transparent;
 }
 .story-bubble-body::-webkit-scrollbar {
   width: 4px;
 }
 .story-bubble-body::-webkit-scrollbar-thumb {
-  background: rgba(200, 150, 110, 0.2);
+  background: rgba(232, 120, 144, 0.2);
   border-radius: 4px;
 }
 
@@ -149,7 +149,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #FDF5EE, #FFF9F4, #FDF2E8);
+  background: linear-gradient(135deg, #FEF0F3, #FFF9F7, #FEF5F5);
   border-radius: 12px;
   padding: 12px;
 }
@@ -213,7 +213,7 @@
   width: 100%;
   height: 100%;
   display: block;
-  filter: drop-shadow(0 1px 2px rgba(200, 150, 110, 0.35));
+  filter: drop-shadow(0 1px 2px rgba(240, 128, 144, 0.3));
 }
 
 .story-bubble-counter {
@@ -264,7 +264,7 @@
    Dark Mode
    ======================================== */
 [data-theme="dark"] .carousel-veil {
-  background: rgba(4, 2, 6, 0.75);
+  background: rgba(6, 4, 12, 0.7);
 }
 
 [data-theme="dark"] .story-bubble {
@@ -293,7 +293,7 @@
 }
 
 [data-theme="dark"] .story-bubble-back {
-  background: linear-gradient(135deg, #2A2018, #221C14, #1E1810);
+  background: linear-gradient(135deg, #2A2235, #1E1828, #231D2A);
 }
 
 [data-theme="dark"] .story-bubble-footer {

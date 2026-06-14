@@ -1,11 +1,10 @@
 /* ========================================
-   Gallery / Carousel —「烛光记忆」
-   暖调象牙相框 + 琥珀金光晕，像在烛光下翻阅相册
+   Gallery / Carousel
    ======================================== */
 .gallery {
   background:
-    radial-gradient(ellipse 55% 45% at 50% 42%, rgba(230, 185, 140, 0.15) 0%, transparent 55%),
-    linear-gradient(180deg, #FDF9F5 0%, #F8F0EA 30%, #EDE0D8 100%);
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(254, 240, 243, 0.5) 0%, transparent 60%),
+    linear-gradient(180deg, #FEFBFB 0%, var(--color-bg) 40%, var(--color-primary-light) 100%);
   flex-direction: column;
   gap: 3rem;
   position: relative;
@@ -16,7 +15,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 30%;
-  background: linear-gradient(180deg, #FEFCFB 0%, transparent 100%);
+  background: linear-gradient(180deg, #FEFBFB 0%, transparent 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -30,31 +29,29 @@
   position: relative;
 }
 
-/* 左右导航箭头 — 纤细金色，hover 时浮现 + 微光 */
+/* 左右导航箭头 — hover 时浮现 */
 .carousel-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  color: #C8A882;
+  color: var(--color-accent);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.35s, color 0.3s, transform 0.3s, filter 0.3s;
+  transition: opacity 0.3s, color 0.25s, transform 0.25s;
   pointer-events: none;
   background: none;
   border: none;
   padding: 4px;
   will-change: transform, opacity;
-  filter: none;
 }
 .carousel-wrapper:hover .carousel-nav {
   opacity: 1;
   pointer-events: auto;
 }
 .carousel-nav:hover {
-  color: #D4A574;
+  color: #d4687c;
   transform: translateY(-50%) scale(1.15);
-  filter: drop-shadow(0 0 6px rgba(210, 160, 110, 0.5));
 }
 .carousel-nav-prev { left: 6px; }
 .carousel-nav-next { right: 6px; }
@@ -78,9 +75,9 @@
   animation: sparkleFloat ease-in-out infinite alternate;
 }
 @keyframes sparkleFloat {
-  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.15; }
-  50% { transform: translateY(-20px) translateX(8px) scale(1.3); opacity: 0.55; }
-  100% { transform: translateY(-35px) translateX(-6px) scale(0.9); opacity: 0.2; }
+  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.2; }
+  50% { transform: translateY(-20px) translateX(8px) scale(1.3); opacity: 0.7; }
+  100% { transform: translateY(-35px) translateX(-6px) scale(0.9); opacity: 0.3; }
 }
 
 .carousel-container {
@@ -100,15 +97,14 @@
   will-change: transform, opacity;
 }
 .carousel-card:not(.active) {
-  opacity: 0.65;
+  opacity: 0.72;
 }
 .carousel-card:not(.active):hover {
-  opacity: 0.88;
-  filter: drop-shadow(0 4px 18px rgba(200, 155, 115, 0.25));
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 16px rgba(232, 120, 144, 0.2));
 }
 .carousel-card.active { cursor: default; }
-
-/* 气泡打开时 — container 整体浮于蒙层之上 */
+/* 气泡打开时 — container 整体浮于蒙层之上，低于气泡 */
 .carousel-highlight {
   z-index: 91 !important;
 }
@@ -117,34 +113,30 @@
 }
 .carousel-highlight .carousel-card.active .photo-frame {
   box-shadow:
-    0 20px 60px rgba(180, 130, 90, 0.22),
-    0 0 0 4px rgba(210, 170, 130, 0.35),
-    0 40px 100px rgba(190, 140, 95, 0.12),
-    0 0 0 1px rgba(200, 150, 110, 0.2);
+    0 20px 60px rgba(200, 120, 140, 0.18),
+    0 0 0 4px rgba(242, 196, 206, 0.3),
+    0 40px 100px rgba(232, 120, 144, 0.1),
+    0 0 0 1px rgba(232, 120, 144, 0.15);
 }
 
-/* ═══ 相框：暖象牙白 + 细微内影 ═══ */
 .carousel-card .photo-frame {
   width: 100%; height: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #FDFAF6;
-  border: 2px solid #F0E6DA;
+  background: white;
+  border: 3px solid white;
   position: relative;
-  box-shadow:
-    0 2px 12px rgba(80, 40, 20, 0.06),
-    inset 0 0 0 1px rgba(255, 252, 248, 0.8);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-/* 激活时烛光暖辉 */
+/* 倒影 — 柔和光池：模拟相纸光面在桌面上的暖调反光
+   不用 -webkit-box-reflect（太生硬），改用径向辉光 + 色散边缘 */
 .carousel-card.active .photo-frame {
   box-shadow:
-    0 20px 60px rgba(190, 140, 95, 0.22),
-    0 0 0 4px rgba(210, 170, 130, 0.35),
-    0 40px 100px rgba(180, 130, 85, 0.12);
+    0 20px 60px rgba(200, 120, 140, 0.18),
+    0 0 0 4px rgba(242, 196, 206, 0.3),
+    0 40px 100px rgba(232, 120, 144, 0.1);
 }
-
-/* 倒影 — 暖调光池：像烛光投在木桌上的光晕 */
 .carousel-card.active::after {
   content: '';
   position: absolute;
@@ -155,9 +147,9 @@
   height: 80px;
   background:
     radial-gradient(ellipse 55% 90% at 50% 0%,
-      rgba(210, 160, 110, 0.15) 0%,
-      rgba(200, 150, 100, 0.06) 30%,
-      rgba(240, 210, 170, 0.03) 55%,
+      rgba(232, 120, 144, 0.1) 0%,
+      rgba(242, 196, 206, 0.05) 30%,
+      rgba(254, 240, 243, 0.03) 55%,
       transparent 75%
     );
   pointer-events: none;
@@ -166,12 +158,11 @@
   border-radius: 50%;
 }
 
-/* 相框底部微妙的暖调渐变（模拟烛光从下方照亮） */
 .carousel-card .photo-frame::after {
   content: '';
   position: absolute; inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, transparent 55%, rgba(210, 160, 120, 0.06) 100%);
+  background: linear-gradient(180deg, transparent 60%, rgba(232, 120, 144, 0.04) 100%);
   pointer-events: none;
 }
 
@@ -192,7 +183,7 @@
   opacity: 1;
 }
 
-/* 照片加载骨架屏 — 暖调 */
+/* 照片加载骨架屏 */
 .carousel-card .photo-frame {
   position: relative;
 }
@@ -201,7 +192,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(110deg, #F2EAE2 30%, #FBF7F2 50%, #F2EAE2 70%);
+  background: linear-gradient(110deg, #F5EDF0 30%, #FDF8F9 50%, #F5EDF0 70%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
   z-index: 0;
@@ -224,73 +215,21 @@
   transform: translateX(-50%);
   font-family: var(--font-handwrite);
   font-size: 1.1rem;
-  color: #C8A882;
-  opacity: 0.75;
+  color: var(--color-accent);
+  opacity: 0.7;
   z-index: 5;
   pointer-events: none;
   letter-spacing: 0.05em;
 }
-
-/* ═══ 暗色模式 — 真正的烛光氛围 ═══ */
-[data-theme="dark"] .gallery {
-  background:
-    radial-gradient(ellipse 55% 45% at 50% 42%, rgba(230, 185, 140, 0.12) 0%, transparent 55%),
-    linear-gradient(180deg, #1D1822 0%, #1A1520 30%, #14101A 100%);
-}
-[data-theme="dark"] .gallery::before {
-  background: linear-gradient(180deg, #1A1520 0%, transparent 100%);
-}
 [data-theme="dark"] .carousel-nav {
-  color: #B8977A;
+  color: var(--color-accent);
 }
 [data-theme="dark"] .carousel-nav:hover {
-  color: #D4B896;
-  filter: drop-shadow(0 0 8px rgba(210, 170, 120, 0.5));
-}
-
-/* 暗色模式相框 — 稍深象牙 */
-[data-theme="dark"] .carousel-card .photo-frame {
-  background: #F5F0E8;
-  border-color: #E5D8C4;
-  box-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 250, 242, 0.6);
-}
-[data-theme="dark"] .carousel-card.active .photo-frame {
-  box-shadow:
-    0 20px 60px rgba(200, 150, 100, 0.3),
-    0 0 0 4px rgba(200, 160, 115, 0.4),
-    0 40px 100px rgba(190, 140, 90, 0.16);
-}
-[data-theme="dark"] .carousel-highlight .carousel-card.active .photo-frame {
-  box-shadow:
-    0 20px 60px rgba(200, 150, 100, 0.3),
-    0 0 0 4px rgba(200, 160, 115, 0.45),
-    0 40px 100px rgba(190, 140, 90, 0.18),
-    0 0 0 1px rgba(200, 150, 110, 0.25);
-}
-[data-theme="dark"] .carousel-card.active::after {
-  background:
-    radial-gradient(ellipse 55% 90% at 50% 0%,
-      rgba(210, 160, 110, 0.18) 0%,
-      rgba(200, 150, 100, 0.08) 30%,
-      rgba(240, 210, 170, 0.04) 55%,
-      transparent 75%
-    );
-}
-[data-theme="dark"] .carousel-card .photo-frame::before {
-  background: linear-gradient(110deg, #2A2230 30%, #342C3C 50%, #2A2230 70%);
-  background-size: 200% 100%;
-}
-[data-theme="dark"] .carousel-card:not(.active):hover {
-  filter: drop-shadow(0 4px 20px rgba(200, 155, 115, 0.3));
-}
-[data-theme="dark"] .carousel-counter {
-  color: #B8977A;
+  color: #f0a0b2;
 }
 
 /* ========================================
-   移动端画廊 — 触摸滑动 (同步烛光配色)
+   移动端画廊 — 触摸滑动
    桌面端隐藏，≤768px 显示
    ======================================== */
 .mobile-gallery {
@@ -316,18 +255,15 @@
   padding: 0 12px;
 }
 
-/* 移动端相框 — 同步暖象牙色 */
 .mobile-photo-frame {
   width: 100%;
   max-width: 360px;
   aspect-ratio: 3 / 4;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #FDFAF6;
-  border: 2px solid #F0E6DA;
-  box-shadow:
-    0 8px 32px rgba(80, 40, 20, 0.08),
-    inset 0 0 0 1px rgba(255, 252, 248, 0.8);
+  background: white;
+  border: 3px solid white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
@@ -350,23 +286,14 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(110deg, #F2EAE2 30%, #FBF7F2 50%, #F2EAE2 70%);
+  background: linear-gradient(110deg, #F5EDF0 30%, #FDF8F9 50%, #F5EDF0 70%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
   z-index: 0;
   pointer-events: none;
 }
-
-/* 暗色模式移动端 */
-[data-theme="dark"] .mobile-photo-frame {
-  background: #F5F0E8;
-  border-color: #E5D8C4;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.25),
-    inset 0 0 0 1px rgba(255, 250, 242, 0.6);
-}
 [data-theme="dark"] .mobile-photo-frame::before {
-  background: linear-gradient(110deg, #2A2230 30%, #342C3C 50%, #2A2230 70%);
+  background: linear-gradient(110deg, #2A2435 30%, #322C3F 50%, #2A2435 70%);
   background-size: 200% 100%;
 }
 
@@ -382,14 +309,14 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #D4C4B0;
-  opacity: 0.4;
+  background: var(--color-primary);
+  opacity: 0.35;
   transition: all 0.3s var(--ease-out);
 }
 .mobile-gallery-dot.active {
   opacity: 1;
-  background: #C8A882;
-  box-shadow: 0 0 8px rgba(200, 150, 110, 0.5);
+  background: var(--color-accent);
+  box-shadow: 0 0 8px rgba(232, 120, 144, 0.5);
   transform: scale(1.4);
 }
 
@@ -398,8 +325,8 @@
   text-align: center;
   font-family: var(--font-handwrite);
   font-size: 1rem;
-  color: #C8A882;
-  opacity: 0.75;
+  color: var(--color-accent);
+  opacity: 0.7;
   margin-top: 0.5rem;
   letter-spacing: 0.05em;
 }
@@ -416,3 +343,5 @@
     display: none;
   }
 }
+
+
