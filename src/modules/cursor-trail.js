@@ -37,7 +37,7 @@ export function initCursorTrail() {
     ctx.translate(x, y);
 
     // 光晕
-    ctx.fillStyle = 'rgba(240, 184, 200, 0.18)';
+    ctx.fillStyle = 'rgba(240, 184, 200, 0.10)';
     ctx.beginPath();
     ctx.arc(0, 0, s * 0.55, 0, Math.PI * 2);
     ctx.fill();
@@ -140,12 +140,13 @@ export function initCursorTrail() {
 
   // ── 动画状态 ──
   const N = 3;
-  const sizes = [26, 20, 15];
+  const sizes = [22, 18, 14];
   const pts = Array.from({ length: N }, () => ({ x: 0, y: 0 }));
   let mx = 0, my = 0;
   let active = false;
   let idle = 0;
   let raf = null;
+  let frame = 0; // 呼吸动画帧计数
 
   window.addEventListener('mousemove', (e) => {
     if (!active) {
@@ -174,14 +175,21 @@ export function initCursorTrail() {
 
     const fade = idle > 60 ? Math.max(0, 1 - (idle - 60) / 70) : 1;
 
+    frame++;
+    const t = frame * 16; // 近似毫秒
+
     let lx = mx, ly = my;
     for (let i = 0; i < N; i++) {
-      const ease = 0.2 - i * 0.06;
-      pts[i].x += (lx - pts[i].x) * Math.max(ease, 0.05);
-      pts[i].y += (ly - pts[i].y) * Math.max(ease, 0.05);
+      // 慢速跟随，Kitty 远离光标
+      const ease = 0.08 - i * 0.025;
+      pts[i].x += (lx - pts[i].x) * Math.max(ease, 0.02);
+      pts[i].y += (ly - pts[i].y) * Math.max(ease, 0.02);
 
-      const a = fade * (1 - i * 0.2);
-      if (a > 0.01) drawKitty(pts[i].x + 8, pts[i].y + 8, sizes[i], a);
+      // 基础透明度 + 缓慢呼吸波动（若隐若现）
+      const base = 0.7 - i * 0.18;
+      const breath = 0.82 + 0.18 * Math.sin(t / 2500 + i * 1.3);
+      const a = fade * base * breath;
+      if (a > 0.005) drawKitty(pts[i].x + 12, pts[i].y + 12, sizes[i], a);
 
       lx = pts[i].x;
       ly = pts[i].y;
