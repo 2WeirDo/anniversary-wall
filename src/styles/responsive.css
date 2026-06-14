@@ -20,11 +20,9 @@
   .carousel-nav {
     opacity: 0.55;
     pointer-events: auto;
-    width: 34px;
-    height: 34px;
   }
-  .carousel-nav-prev { left: 0; }
-  .carousel-nav-next { right: 0; }
+  .carousel-nav-prev { left: 2px; }
+  .carousel-nav-next { right: 2px; }
   .entry-content { padding: 2rem 1.5rem; }
   .entry-line { height: 40px; }
   .entry-title { font-size: clamp(2.2rem, 8vw, 2.8rem); }

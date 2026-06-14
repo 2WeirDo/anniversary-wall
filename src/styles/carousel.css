@@ -35,34 +35,26 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(232, 120, 144, 0.15);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  will-change: transform, opacity;
   color: var(--color-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.3s, background 0.25s, border-color 0.25s, transform 0.25s;
+  transition: opacity 0.3s, color 0.25s, transform 0.25s;
   pointer-events: none;
+  background: none;
+  border: none;
+  padding: 4px;
+  will-change: transform, opacity;
 }
 .carousel-wrapper:hover .carousel-nav {
   opacity: 1;
   pointer-events: auto;
 }
 .carousel-nav:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(232, 120, 144, 0.35);
-  transform: translateY(-50%) scale(1.08);
+  color: #d4687c;
+  transform: translateY(-50%) scale(1.15);
 }
-.carousel-nav-prev { left: -8px; }
-.carousel-nav-next { right: -8px; }
+.carousel-nav-prev { left: -36px; }
+.carousel-nav-next { right: -36px; }
 
 .carousel-stage {
   width: 100%;
@@ -230,13 +222,10 @@
   letter-spacing: 0.05em;
 }
 [data-theme="dark"] .carousel-nav {
-  background: rgba(30, 24, 40, 0.75);
-  border-color: rgba(255, 255, 255, 0.08);
   color: var(--color-accent);
 }
 [data-theme="dark"] .carousel-nav:hover {
-  background: rgba(40, 32, 52, 0.92);
-  border-color: rgba(232, 120, 144, 0.3);
+  color: #f0a0b2;
 }
 
 /* ========================================
