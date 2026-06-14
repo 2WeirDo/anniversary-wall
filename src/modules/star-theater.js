@@ -108,7 +108,7 @@ export class StarTheater {
     this.ripples = [];
 
     // 状态
-    this.phase = 'collect';    // collect | merging | merged
+    this.phase = 'collect';    // collect | merging | merged | finale
     this._mergeStart = 0;
     this._mergeDuration = 2500;
     this._started = false;
@@ -116,6 +116,12 @@ export class StarTheater {
     // 成功庆典粒子
     this.burstParticles = [];
     this._burstSpawned = false;
+
+    // 终章：W / Y 字母 + 中心爱心光晕
+    this._finaleStart = 0;
+    this._finaleDuration = 3500;
+    this._finaleAlpha = 0;
+    this._mergedAt = 0;
 
     // 帧
     this._tick = null;
@@ -236,6 +242,9 @@ export class StarTheater {
       this.phase = 'collect';
       this._mergeStart = 0;
       this._burstSpawned = false;
+      this._finaleAlpha = 0;
+      this._finaleStart = 0;
+      this._mergedAt = 0;
     }
     this.updateProgressUI();
   }
@@ -372,6 +381,12 @@ export class StarTheater {
 
     // 7. 金色粒子爆发
     this.drawBurst(ctx);
+
+    // 7b. 终章：W / Y 字母 + 中心爱心光晕
+    if (this.phase === 'finale') {
+      this.updateFinale(ts);
+      this.drawFinaleGlows(ctx);
+    }
 
     // 8. 触控光标
     if (this.pointer.active) this.drawCursor(ctx);
@@ -539,9 +554,15 @@ export class StarTheater {
     const dur = this._mergeDuration;
 
     if (elapsed >= dur) {
-      if (this.phase !== 'merged') {
+      if (this.phase === 'merging') {
         this.phase = 'merged';
+        this._mergedAt = ts;
         this.spawnBurst();
+      }
+      // 爆发后 1.8s 启动终章 W/Y/心形光晕
+      if (this.phase === 'merged' && ts - this._mergedAt > 1800) {
+        this.phase = 'finale';
+        this._finaleStart = ts;
       }
       for (const s of this.constellationStars) {
         s.x = s.targetX;
@@ -573,6 +594,135 @@ export class StarTheater {
       ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  /* ---- 终章：W / Y 字母 + 中心爱心光晕 ---- */
+  updateFinale(ts) {
+    const elapsed = ts - this._finaleStart;
+    this._finaleAlpha = Math.min(1, elapsed / this._finaleDuration);
+  }
+
+  drawFinaleGlows(ctx) {
+    const a = this._finaleAlpha;
+    if (a <= 0) return;
+    const sc = this._scale;
+    const cx = this.cx;
+    const cy = this.cy;
+    const heartCY = cy + sc * 5;
+
+    // 缓出
+    const ease = 1 - Math.pow(1 - a, 3);
+
+    // ---- 左侧 W 光晕 ----
+    this.drawLetterGlow(ctx, 'W', cx - sc * 17, cy + sc * 3, sc * 14, ease,
+      [255, 220, 170], [255, 180, 130]);
+
+    // ---- 右侧 Y 光晕 ----
+    this.drawLetterGlow(ctx, 'Y', cx + sc * 17, cy + sc * 3, sc * 14, ease,
+      [255, 220, 170], [255, 180, 130]);
+
+    // ---- 中心爱心光晕 ----
+    this.drawCenterHeartGlow(ctx, cx, heartCY, sc, ease);
+  }
+
+  /* 绘制发光字母 */
+  drawLetterGlow(ctx, letter, lx, ly, fontSize, alpha, glowColor, coreColor) {
+    const a = alpha;
+    if (a < 0.01) return;
+
+    const [gr, gg, gb] = glowColor;
+    const [cr, cg, cb] = coreColor;
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 外层柔光（大范围模糊）
+    const outerR = fontSize * 0.8;
+    const gOuter = ctx.createRadialGradient(lx, ly, fontSize * 0.15, lx, ly, outerR);
+    gOuter.addColorStop(0, `rgba(${gr},${gg},${gb},${a * 0.5})`);
+    gOuter.addColorStop(0.5, `rgba(${gr},${gg},${gb},${a * 0.18})`);
+    gOuter.addColorStop(1, 'transparent');
+    ctx.fillStyle = gOuter;
+    ctx.beginPath();
+    ctx.arc(lx, ly, outerR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 中层光晕
+    const midR = fontSize * 0.45;
+    const gMid = ctx.createRadialGradient(lx, ly, fontSize * 0.08, lx, ly, midR);
+    gMid.addColorStop(0, `rgba(${cr},${cg},${cb},${a * 0.65})`);
+    gMid.addColorStop(0.6, `rgba(${cr},${cg},${cb},${a * 0.15})`);
+    gMid.addColorStop(1, 'transparent');
+    ctx.fillStyle = gMid;
+    ctx.beginPath();
+    ctx.arc(lx, ly, midR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 字母主体
+    ctx.font = `bold ${fontSize}px "Georgia", "Times New Roman", serif`;
+    ctx.shadowColor = `rgba(${gr},${gg},${gb},${a * 0.6})`;
+    ctx.shadowBlur = fontSize * 0.5;
+    ctx.fillStyle = `rgba(${cr},${cg},${cb},${a * 0.9})`;
+    ctx.fillText(letter, lx, ly);
+
+    // 内层亮核
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.35})`;
+    ctx.fillText(letter, lx, ly);
+
+    ctx.restore();
+  }
+
+  /* 中心爱心形光晕 */
+  drawCenterHeartGlow(ctx, hx, hy, sc, alpha) {
+    const a = alpha;
+    if (a < 0.01) return;
+
+    const heartScale = sc * 1.45; // 比星点爱心稍大
+    const samples = 48;
+
+    ctx.save();
+
+    // 爱心路径
+    ctx.beginPath();
+    for (let i = 0; i <= samples; i++) {
+      const hp = heartXY(i / samples);
+      const px = hx + hp.x * heartScale;
+      const py = hy + hp.y * heartScale;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+
+    // 外层柔光
+    ctx.shadowColor = `rgba(255,200,170,${a * 0.55})`;
+    ctx.shadowBlur = sc * 5;
+    ctx.fillStyle = `rgba(255,210,180,${a * 0.12})`;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // 中层
+    ctx.shadowColor = `rgba(255,180,150,${a * 0.4})`;
+    ctx.shadowBlur = sc * 2.5;
+    ctx.strokeStyle = `rgba(255,200,170,${a * 0.25})`;
+    ctx.lineWidth = sc * 0.5;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // 内层脉冲光 — 径向渐变覆盖爱心中心区域
+    const pulseR = sc * 8;
+    const gPulse = ctx.createRadialGradient(hx, hy, sc * 0.5, hx, hy, pulseR);
+    gPulse.addColorStop(0, `rgba(255,235,210,${a * 0.35})`);
+    gPulse.addColorStop(0.4, `rgba(255,200,160,${a * 0.15})`);
+    gPulse.addColorStop(0.7, `rgba(255,170,140,${a * 0.04})`);
+    gPulse.addColorStop(1, 'transparent');
+    ctx.fillStyle = gPulse;
+    ctx.beginPath();
+    ctx.arc(hx, hy, pulseR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
   /* ---- 光漪 ---- */
