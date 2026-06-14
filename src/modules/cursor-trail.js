@@ -1,195 +1,184 @@
 /**
- * Hello Kitty 光标拖尾 — 淡彩瓷娃娃风格
- * 3只轻盈的 CSS Hello Kitty，直线跟随，触屏跳过
+ * Hello Kitty 光标拖尾 — Canvas 绘制，单元素零卡顿
+ * 3只渐小的 Kitty，直线跟随，触屏自动跳过
  */
 export function initCursorTrail() {
   if (window.matchMedia('(pointer: coarse)').matches) return;
 
-  const TRAIL_COUNT = 3;
-  const trails = [];
+  // ── 单张 canvas，硬件加速 ──
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.style.cssText = `
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9998;
+  `;
+  document.body.appendChild(canvas);
 
-  // 配色：淡粉瓷色系，柔和克制
-  const palette = {
-    border:   '#F2C4D0',  // 淡玫瑰粉 — 脸的边框
-    bow:      '#EDB8C5',  // 柔粉 — 蝴蝶结
-    bowKnot:  '#E8A8B6',  // 稍深 — 蝴蝶结中心结
-    earInner: '#FDE4EC',  // 极淡粉 — 耳朵内侧
-    eye:      '#C4A0A8',  // 灰粉棕 — 眼睛（不用纯黑）
-    nose:     '#F5D0BF',  // 暖杏色 — 鼻子
-    whisker:  '#E8D5DA',  // 淡粉灰 — 胡须
-    glow:     'rgba(237, 184, 197, 0.22)', // 柔光
-  };
+  const dpr = Math.min(window.devicePixelRatio || 1, 2); // 视网膜屏不过度消耗
+  let W, H;
 
-  const sizes = [24, 19, 15]; // 小巧不抢眼
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
 
-  for (let i = 0; i < TRAIL_COUNT; i++) {
-    const s = sizes[i];
-    const faceH = s * 0.84;
+  // ── 画一只 Hello Kitty ──
+  function drawKitty(x, y, size, alpha) {
+    const s = size;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
 
-    const wrapper = document.createElement('span');
-    wrapper.style.cssText = `
-      position: fixed; pointer-events: none; z-index: 9998;
-      opacity: 0; transition: opacity 0.35s ease-out;
-    `;
+    // 光晕
+    ctx.fillStyle = 'rgba(240, 184, 200, 0.18)';
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 0.55, 0, Math.PI * 2);
+    ctx.fill();
 
-    // ── 脸 ──
-    const face = document.createElement('span');
-    face.style.cssText = `
-      display: block; position: relative;
-      width: ${s}px; height: ${faceH}px;
-      background: rgba(255,255,255,0.92);
-      border: 1.5px solid ${palette.border};
-      border-radius: 50% 50% 46% 46%;
-      box-shadow: 0 0 ${s * 1.2}px ${palette.glow};
-    `;
-
-    // ── 耳朵 ──
-    const earPositions = [
-      { side: 'left',  left: s * 0.0 },
-      { side: 'right', left: s * 0.6 },
-    ];
-    earPositions.forEach(({ left }) => {
-      const ear = document.createElement('span');
-      ear.style.cssText = `
-        position: absolute; top: -${s * 0.28}px; left: ${left}px;
-        width: 0; height: 0;
-        border-left: ${s * 0.2}px solid transparent;
-        border-right: ${s * 0.2}px solid transparent;
-        border-bottom: ${s * 0.32}px solid white;
-        filter: drop-shadow(0 -0.5px 0 ${palette.border});
-      `;
-      const inner = document.createElement('span');
-      inner.style.cssText = `
-        position: absolute;
-        top: ${s * 0.11}px; left: -${s * 0.11}px;
-        width: 0; height: 0;
-        border-left: ${s * 0.11}px solid transparent;
-        border-right: ${s * 0.11}px solid transparent;
-        border-bottom: ${s * 0.16}px solid ${palette.earInner};
-      `;
-      ear.appendChild(inner);
-      face.appendChild(ear);
-    });
-
-    // ── 蝴蝶结 ──
-    const bow = document.createElement('span');
-    bow.style.cssText = `
-      position: absolute;
-      top: -${s * 0.42}px; left: ${s * 0.6}px;
-      display: flex; gap: 1px;
-    `;
-    [0, 1].forEach(() => {
-      const lobe = document.createElement('span');
-      const bw = s * 0.24, bh = s * 0.20;
-      lobe.style.cssText = `
-        width: ${bw}px; height: ${bh}px;
-        background: ${palette.bow};
-        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-        box-shadow: 0 0 2px rgba(237,184,197,0.3);
-      `;
-      bow.appendChild(lobe);
-    });
-    // 蝴蝶结中心小圆结
-    const knot = document.createElement('span');
-    const knotSz = s * 0.09;
-    knot.style.cssText = `
-      position: absolute; top: ${s * 0.12}px; left: 50%;
-      transform: translateX(-50%);
-      width: ${knotSz}px; height: ${knotSz}px;
-      background: ${palette.bowKnot}; border-radius: 50%;
-    `;
-    face.appendChild(bow);
-
-    // ── 眼睛 ──
+    // 耳朵 — 白色外三角
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#EDB8C5';
+    ctx.lineWidth = 1;
     [
-      { left: s * 0.28, top: s * 0.33 },
-      { left: s * 0.57, top: s * 0.33 },
-    ].forEach(({ left, top }) => {
-      const eye = document.createElement('span');
-      eye.style.cssText = `
-        position: absolute; top: ${top}px; left: ${left}px;
-        width: ${s * 0.085}px; height: ${s * 0.12}px;
-        background: ${palette.eye}; border-radius: 50%;
-      `;
-      face.appendChild(eye);
+      [-s * 0.32, -s * 0.12, -s * 0.38, -s * 0.42, -s * 0.08, -s * 0.22],  // 左耳
+      [ s * 0.32, -s * 0.12,  s * 0.38, -s * 0.42,  s * 0.08, -s * 0.22],  // 右耳
+    ].forEach(([bx, by, mx, my, ex, ey]) => {
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(mx, my);
+      ctx.lineTo(ex, ey);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
     });
 
-    // ── 鼻子（小号省略）──
-    if (i < 2) {
-      const nose = document.createElement('span');
-      nose.style.cssText = `
-        position: absolute; top: ${s * 0.47}px; left: 50%;
-        transform: translateX(-50%);
-        width: ${s * 0.1}px; height: ${s * 0.065}px;
-        background: ${palette.nose}; border-radius: 50%;
-      `;
-      face.appendChild(nose);
+    // 耳朵内侧粉
+    ctx.fillStyle = '#FDE4EC';
+    [
+      [-s * 0.27, -s * 0.16, -s * 0.32, -s * 0.34, -s * 0.12, -s * 0.21],
+      [ s * 0.27, -s * 0.16,  s * 0.32, -s * 0.34,  s * 0.12, -s * 0.21],
+    ].forEach(([bx, by, mx, my, ex, ey]) => {
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(mx, my);
+      ctx.lineTo(ex, ey);
+      ctx.closePath();
+      ctx.fill();
+    });
 
-      // 胡须
-      [-1, 1].forEach(dir => {
-        for (let w = 0; w < 3; w++) {
-          const whisker = document.createElement('span');
-          whisker.style.cssText = `
-            position: absolute;
-            top: ${s * 0.45 + s * 0.045 * w}px;
-            ${dir === -1 ? 'left' : 'right'}: ${dir * s * 0.18}px;
-            width: ${s * 0.18}px; height: 0.8px;
-            background: ${palette.whisker};
-            transform: rotate(${dir * (14 - w * 9)}deg);
-          `;
-          face.appendChild(whisker);
-        }
-      });
-    }
+    // 脸 — 白色椭圆（宽>高，Hello Kitty 标志性比例）
+    ctx.fillStyle = 'rgba(255,255,255,0.94)';
+    ctx.strokeStyle = '#EDB8C5';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, s * 0.02, s * 0.44, s * 0.36, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
 
-    wrapper.appendChild(face);
-    document.body.appendChild(wrapper);
-    trails.push({ el: wrapper, x: 0, y: 0 });
+    // 蝴蝶结 — 右耳上方，这是 Hello Kitty 最标志的元素
+    const bx = s * 0.25, by = -s * 0.43;
+    ctx.fillStyle = '#EDB8C5';
+    ctx.beginPath();
+    ctx.ellipse(bx - s * 0.08, by, s * 0.14, s * 0.09, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(bx + s * 0.12, by, s * 0.14, s * 0.09, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    // 蝴蝶结中心
+    ctx.fillStyle = '#E8A8B6';
+    ctx.beginPath();
+    ctx.arc(bx + s * 0.02, by, s * 0.05, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 眼睛 — 黑色小圆点，间距是灵魂
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.1, -s * 0.06, s * 0.045, s * 0.065, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse( s * 0.1, -s * 0.06, s * 0.045, s * 0.065, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 鼻子 — 淡黄椭圆
+    ctx.fillStyle = '#F5D0BF';
+    ctx.beginPath();
+    ctx.ellipse(0, s * 0.09, s * 0.05, s * 0.035, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 
-  // ── 跟踪逻辑 ──
-  let mouseX = -999, mouseY = -999, hideTimer = null;
+  // ── 跟踪状态 ──
+  const TRAIL_COUNT = 3;
+  const sizes  = [26, 20, 15];
+  const points = Array.from({ length: TRAIL_COUNT }, () => ({ x: -999, y: -999 }));
+  let mouseX = -999, mouseY = -999;
+  let visible = false;
 
   document.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    trails.forEach(t => { t.el.style.opacity = '1'; });
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      trails.forEach((t, i) => setTimeout(() => { t.el.style.opacity = '0'; }, i * 90));
-    }, 600);
-  });
-
-  let rafId = null, idleTimer = null;
-
-  function animate() {
-    let lx = mouseX, ly = mouseY;
-    trails.forEach((t, i) => {
-      const ease = 0.2 - i * 0.06;
-      t.x += (lx - t.x) * Math.max(ease, 0.05);
-      t.y += (ly - t.y) * Math.max(ease, 0.05);
-      t.el.style.left = t.x + 'px';
-      t.el.style.top = t.y + 'px';
-      t.el.style.transform = 'translate(-50%, -50%)';
-      lx = t.x; ly = t.y;
-    });
-    rafId = requestAnimationFrame(animate);
-  }
-
-  function startTrail() {
-    if (rafId) return;
-    rafId = requestAnimationFrame(animate);
-  }
-
-  function stopTrail() {
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  }
-
-  document.addEventListener('mousemove', () => {
-    clearTimeout(idleTimer);
-    startTrail();
-    idleTimer = setTimeout(stopTrail, 2000);
+    visible = true;
   }, { passive: true });
 
-  startTrail();
+  // ── 动画循环 ──
+  let rafId = null;
+  let idleFrames = 0;
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+
+    if (!visible && idleFrames > 90) {
+      // 完全不可见 + 1.5s 空闲 → 暂停 RAF
+      rafId = null;
+      return;
+    }
+
+    let lx = mouseX, ly = mouseY;
+    let allNear = true;
+
+    points.forEach((p, i) => {
+      const ease = 0.2 - i * 0.06;
+      p.x += (lx - p.x) * Math.max(ease, 0.05);
+      p.y += (ly - p.y) * Math.max(ease, 0.05);
+
+      if (Math.abs(p.x - mouseX) > 1 || Math.abs(p.y - mouseY) > 1) allNear = false;
+
+      const alpha = visible ? Math.max(0.25, 1 - i * 0.22) : Math.max(0, (1 - i * 0.22) - idleFrames * 0.008);
+      if (alpha > 0.01) {
+        // 略微偏移，不遮挡光标
+        drawKitty(ctx, p.x + 8, p.y + 8, sizes[i], alpha);
+      }
+
+      lx = p.x;
+      ly = p.y;
+    });
+
+    if (allNear && visible) {
+      idleFrames++;
+      if (idleFrames > 60) visible = false; // 1s 不动开始淡出
+    } else {
+      idleFrames = 0;
+    }
+
+    rafId = requestAnimationFrame(animate);
+  }
+
+  // 鼠标移动时唤醒
+  document.addEventListener('mousemove', () => {
+    if (!rafId) {
+      idleFrames = 0;
+      visible = true;
+      rafId = requestAnimationFrame(animate);
+    }
+  }, { passive: true });
+
+  rafId = requestAnimationFrame(animate);
 }
