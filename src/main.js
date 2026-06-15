@@ -135,7 +135,6 @@ async function initMainContent() {
     import('./modules/ending.js'),
   ]).then(([effects, ending]) => {
     try { effects.initCarouselSparkles(); } catch (e) { console.warn('轮播光粒子初始化失败', e); }
-    try { effects.initPetalRain(); } catch (e) { console.warn('花瓣雨初始化失败', e); }
     try { effects.initBridgeSparkles(); } catch (e) { console.warn('桥接光效初始化失败', e); }
     try { ending.initEndingCeremony(); } catch (e) { console.warn('结尾仪式初始化失败', e); }
     try { ending.initEndingCounterRoll(); } catch (e) { console.warn('结尾计数器初始化失败', e); }
