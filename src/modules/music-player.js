@@ -192,11 +192,11 @@ export class MusicPlayer {
 
   /* ======== API 调用 ======== */
 
-  /** 构建 API URL（生产环境走 CORS 代理） */
+  /** 构建 API URL（开发环境走 Vite proxy，生产环境走 Service Worker 代理） */
   _apiUrl(params) {
-    const target = `https://music-api.gdstudio.xyz/api.php?${params}`;
     if (import.meta.env.DEV) return `/api/music/api.php?${params}`;
-    return `https://corsproxy.io/?${encodeURIComponent(target)}`;
+    // 生产环境通过 SW 代理到 music-api.gdstudio.xyz，绕过 CORS
+    return `${import.meta.env.BASE_URL}api/music/api.php?${params}`;
   }
 
   /**

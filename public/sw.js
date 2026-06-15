@@ -2,7 +2,7 @@
  * Service Worker — 离线缓存
  * 缓存关键资源，支持离线访问
  */
-const CACHE = 'love-story-v4';
+const CACHE = 'love-story-v5';
 
 const PRECACHE = [
   '/anniversary-wall/',
@@ -46,6 +46,18 @@ self.addEventListener('activate', (event) => {
 // 请求策略
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const swURL = new URL(event.request.url);
+
+  // API 代理：将同源 /api/music/ 请求转发到 GDStudio 音乐 API（绕过 CORS）
+  // 匹配路径：/anniversary-wall/api/music/...
+  const API_PROXY_PREFIX = '/anniversary-wall/api/music/';
+  if (swURL.pathname.startsWith(API_PROXY_PREFIX)) {
+    const apiPath = swURL.pathname.slice(API_PROXY_PREFIX.length); // e.g. "api.php"
+    const targetUrl = `https://music-api.gdstudio.xyz/${apiPath}${swURL.search}`;
+    event.respondWith(fetch(targetUrl));
+    return;
+  }
 
   // 图片 / 照片 / 音频：不拦截，让浏览器 HTTP 缓存 + CDN 原生处理
   // SW 缓存大文件到 IndexedDB 极慢且浪费存储配额
