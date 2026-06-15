@@ -294,7 +294,7 @@ export class MusicPlayer {
     });
   }
 
-  async apiSearch(query, source = SEARCH_SOURCE, signal) {
+  async apiSearch(query, source = SEARCH_SOURCE, signal, _retryEmpty = false) {
     const params = new URLSearchParams({
       types: 'search',
       source,
@@ -305,7 +305,7 @@ export class MusicPlayer {
     const res = await this._fetchAPI(params, signal);
     const data = await res.json();
     if (!Array.isArray(data)) return [];
-    return data.map(song => ({
+    const results = data.map(song => ({
       id: song.id || song.url_id,
       title: song.name || song.title || '未知歌曲',
       artist: Array.isArray(song.artist) ? song.artist.join(' / ') : (song.artist || '未知歌手'),
@@ -315,6 +315,12 @@ export class MusicPlayer {
       lyricId: song.lyric_id || song.id,
       source: song.source || source,
     }));
+    // 生产环境 API 偶发空结果，静默重试一次
+    if (results.length === 0 && !import.meta.env.DEV && !_retryEmpty) {
+      await sleep(400);
+      return this.apiSearch(query, source, signal, true);
+    }
+    return results;
   }
 
   async getAudioUrl(song) {
