@@ -22,6 +22,56 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* ======== Service Worker 注册（提前，确保 API 代理就绪） ======== */
+window.__swProxyReady = (() => {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(false);
+  // 立即注册（不等 window.load），让 SW 尽早接管
+  return navigator.serviceWorker.register('/anniversary-wall/sw.js')
+    .then(reg => {
+      // 有更新中的 SW → 等待它激活
+      if (reg.installing || reg.waiting) {
+        return new Promise(resolve => {
+          const onStateChange = () => {
+            if (navigator.serviceWorker.controller) {
+              resolve(true);
+            }
+          };
+          if (reg.installing) reg.installing.addEventListener('statechange', onStateChange);
+          if (reg.waiting) reg.waiting.addEventListener('statechange', onStateChange);
+          // 兜底 3s
+          setTimeout(() => resolve(!!navigator.serviceWorker.controller), 3000);
+        });
+      }
+      // 已有活跃 SW 且控制着页面 → 强制检查更新
+      if (reg.active && navigator.serviceWorker.controller) {
+        return reg.update().then(() => {
+          if (reg.waiting || reg.installing) {
+            return new Promise(resolve => {
+              const target = reg.waiting || reg.installing;
+              target.addEventListener('statechange', () => {
+                if (navigator.serviceWorker.controller) resolve(true);
+              });
+              // 触发 skipWaiting 的消息（新版 SW 监听到后立即激活）
+              if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              setTimeout(() => resolve(!!navigator.serviceWorker.controller), 3000);
+            });
+          }
+          return true;
+        }).catch(() => !!navigator.serviceWorker.controller);
+      }
+      // 首次安装
+      return new Promise(resolve => {
+        if (reg.installing) {
+          reg.installing.addEventListener('statechange', () => {
+            if (navigator.serviceWorker.controller) resolve(true);
+          });
+        }
+        setTimeout(() => resolve(!!navigator.serviceWorker.controller), 3000);
+      });
+    })
+    .catch(() => false); // 注册失败不影响主功能
+})();
+
 // ---- 关系起始日 ----
 const LOVE_START_DATE = new Date(content.site.startDate);
 
@@ -191,14 +241,6 @@ function renderWishes() {
   }
 }
 
-/* ======== Service Worker 注册（PWA） ======== */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/anniversary-wall/sw.js').catch(() => {
-      // 静默失败，不影响主功能
-    });
-  });
-}
 
 /* ======== 光标拖尾（顶层初始化，不依赖 initMainContent） ======== */
 if (window.matchMedia('(pointer: fine)').matches) {

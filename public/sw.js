@@ -2,7 +2,7 @@
  * Service Worker — 离线缓存
  * 缓存关键资源，支持离线访问
  */
-const CACHE = 'love-story-v5';
+const CACHE = 'love-story-v6';
 
 const PRECACHE = [
   '/anniversary-wall/',
@@ -41,6 +41,13 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+});
+
+// 消息：页面可主动请求新版 SW 立即激活
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // 请求策略

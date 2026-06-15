@@ -35,6 +35,7 @@ export class MusicPlayer {
     this.searchTimer = null;
     this._searchAbort = null;
     this._autoPlayDone = false;
+    this._swMissing = false;           // SW 代理未就绪标记
     this.favorites = this._loadFavorites();
     this._defaultFavoritesResolved = [];
     this._defaultFavoritesResolving = false;
@@ -220,6 +221,14 @@ export class MusicPlayer {
       const res = await fetch(url, { signal: mergedSignal });
       clearTimeout(timeoutId);
       if (!res.ok) {
+        // 404 + HTML 响应 = GitHub Pages 未匹配到 SW 代理 → 提示刷新
+        if (res.status === 404) {
+          const ct = res.headers.get('content-type') || '';
+          if (ct.includes('text/html')) {
+            this._swMissing = true;
+            throw new Error('Service Worker 代理未就绪，请刷新页面后重试');
+          }
+        }
         // 5xx 可重试，4xx 直接抛错
         if (res.status >= 500 && _retry < MAX_RETRIES) {
           await sleep(1000 * (_retry + 1)); // 1s → 2s
@@ -292,6 +301,9 @@ export class MusicPlayer {
   async doSearch(query) {
     if (!query.trim()) return;
 
+    // 等待 SW 代理就绪
+    await this._ensureProxyReady();
+
     // 取消上一次未完成的搜索
     if (this._searchAbort) { this._searchAbort.abort(); }
     this._searchAbort = new AbortController();
@@ -337,7 +349,9 @@ export class MusicPlayer {
     } catch (err) {
       if (err.name === 'AbortError') return; // 被新搜索取消，静默忽略
       console.warn('搜索出错:', err);
-      this.showStatus('搜索失败，请稍后重试');
+      this.showStatus(this._swMissing
+        ? '🔄 请刷新页面后重试（音乐代理未就绪）'
+        : '搜索失败，请稍后重试');
     }
   }
 
@@ -378,7 +392,9 @@ export class MusicPlayer {
       console.warn('播放失败:', err);
       this.isLoading = false;
       this._setItemLoading(song, false);
-      this.showStatus('播放失败，试试其他歌曲');
+      this.showStatus(this._swMissing
+        ? '🔄 请刷新页面后重试（音乐代理未就绪）'
+        : '播放失败，试试其他歌曲');
     }
   }
 
@@ -605,6 +621,8 @@ export class MusicPlayer {
       this._defaultFavoritesResolving = false;
       return;
     }
+    // 等待 SW 代理就绪再发 API 请求（最多等 3s）
+    await this._ensureProxyReady();
     try {
       const resolved = [];
       for (const item of defaults) {
@@ -622,6 +640,15 @@ export class MusicPlayer {
       // 整体解析失败，使用空数组
     }
     this._defaultFavoritesResolving = false;
+  }
+
+  /** 等待 SW 代理就绪（有超时兜底） */
+  async _ensureProxyReady() {
+    if (import.meta.env.DEV) return; // 开发环境走 Vite proxy，无需等待 SW
+    // 等 SW 就绪，最多 3s；超时也不阻塞，让后续请求自行报错
+    try {
+      await (window.__swProxyReady ?? Promise.resolve(true));
+    } catch { /* 忽略 */ }
   }
 
   _saveFavorites() {
