@@ -303,8 +303,8 @@ export class MusicPlayer {
       const keywords = query.trim().split(/\s+/).filter(k => k.length >= 2);
       const uniqueKw = [...new Set([query.trim(), ...keywords])];
 
-      // 每个关键词 × 两个源（netease 歌手匹配好，kuwo 歌名匹配好）
-      const sources = ['netease', 'kuwo'];
+      // 只用 netease 源（kuwo 音频直链经常为空，搜到不能播不如不展示）
+      const sources = ['netease'];
       const tasks = [];
       for (const kw of uniqueKw) {
         for (const src of sources) {
