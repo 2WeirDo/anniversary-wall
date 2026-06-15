@@ -199,11 +199,45 @@ export class MusicPlayer {
     return `https://corsproxy.io/?${encodeURIComponent(target)}`;
   }
 
-  async _fetchAPI(params, signal) {
+  /**
+   * 带重试的 API 请求
+   * - 5xx / 网络错误：最多重试 2 次，指数退避（1s → 2s）
+   * - 4xx：不重试，直接抛错
+   * - 超时保护：单次请求 12s 超时
+   */
+  async _fetchAPI(params, signal, _retry = 0) {
+    const MAX_RETRIES = 2;
     const url = this._apiUrl(params);
-    const res = await fetch(url, { signal });
-    if (!res.ok) throw new Error(`请求失败: ${res.status}`);
-    return res;
+
+    // 超时控制（合并外部 signal）
+    const timeoutAbort = new AbortController();
+    const timeoutId = setTimeout(() => timeoutAbort.abort(), 12000);
+    const mergedSignal = signal
+      ? anySignal([signal, timeoutAbort.signal])
+      : timeoutAbort.signal;
+
+    try {
+      const res = await fetch(url, { signal: mergedSignal });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        // 5xx 可重试，4xx 直接抛错
+        if (res.status >= 500 && _retry < MAX_RETRIES) {
+          await sleep(1000 * (_retry + 1)); // 1s → 2s
+          return this._fetchAPI(params, signal, _retry + 1);
+        }
+        throw new Error(`请求失败: ${res.status}`);
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      // 网络错误 / 超时 / 5xx 均可重试；AbortError 不重试
+      if (err.name === 'AbortError' && !timeoutAbort.signal.aborted) throw err;
+      if (_retry < MAX_RETRIES) {
+        await sleep(1000 * (_retry + 1));
+        return this._fetchAPI(params, signal, _retry + 1);
+      }
+      throw err;
+    }
   }
 
   async apiSearch(query, source = SEARCH_SOURCE, signal) {
@@ -693,4 +727,23 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+/** Promise 版 setTimeout */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * 合并多个 AbortSignal — 任意一个触发即 abort
+ * 兼容不支持 AbortSignal.any() 的浏览器
+ */
+function anySignal(signals) {
+  if (AbortSignal.any) return AbortSignal.any(signals);
+  const controller = new AbortController();
+  for (const s of signals) {
+    if (s.aborted) { controller.abort(); return controller.signal; }
+    s.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  return controller.signal;
 }
