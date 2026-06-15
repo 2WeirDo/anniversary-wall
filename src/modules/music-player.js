@@ -34,6 +34,7 @@ export class MusicPlayer {
     this._lastSearchResults = [];
     this.searchTimer = null;
     this._searchAbort = null;
+    this._searchId = 0;              // 搜索版本号，丢弃过期结果
     this._autoPlayDone = false;
     this.favorites = this._loadFavorites();
     this._defaultFavoritesResolved = [];
@@ -345,10 +346,11 @@ export class MusicPlayer {
   async doSearch(query) {
     if (!query.trim()) return;
 
-    // 取消上一次未完成的搜索
+    // 取消上一次未完成的搜索（仅对 fetch 有效，JSONP 靠版本号过滤）
     if (this._searchAbort) { this._searchAbort.abort(); }
     this._searchAbort = new AbortController();
     const signal = this._searchAbort.signal;
+    const searchId = ++this._searchId;  // 当前搜索版本号
 
     this.showStatus('搜索中...');
     try {
@@ -367,6 +369,9 @@ export class MusicPlayer {
 
       const results = await Promise.allSettled(tasks);
 
+      // 丢弃过期结果（用户已触发新搜索）
+      if (searchId !== this._searchId) return;
+
       // 合并去重（按 id+source 唯一键），netease 优先（音频可用）
       const seen = new Set();
       const merged = [];
@@ -380,6 +385,9 @@ export class MusicPlayer {
           }
         }
       }
+
+      // 再次确认没有更新的搜索
+      if (searchId !== this._searchId) return;
 
       this._lastSearchResults = merged;
       if (merged.length === 0) {
