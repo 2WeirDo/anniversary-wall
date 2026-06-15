@@ -294,10 +294,6 @@
   50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.3); }
 }
 
-@keyframes gemPulse {
-  0%, 100% { transform: scale(0.94); opacity: 0.4; }
-  50% { transform: scale(1.04); opacity: 0.6; }
-}
 
 /* ---- 响应式：移动端回退到左轴线单列 ---- */
 @media (max-width: 768px) {

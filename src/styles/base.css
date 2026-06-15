@@ -363,19 +363,4 @@ body::after {
   border-radius: var(--radius-full);
 }
 
-/* ---- Scroll Reveal ---- */
-.reveal-up {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
-}
-.reveal-up.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.reveal-up[data-delay="1"] { transition-delay: 0.1s; }
-.reveal-up[data-delay="2"] { transition-delay: 0.2s; }
-.reveal-up[data-delay="3"] { transition-delay: 0.3s; }
-.reveal-up[data-delay="4"] { transition-delay: 0.4s; }
-.reveal-up[data-delay="5"] { transition-delay: 0.5s; }
 

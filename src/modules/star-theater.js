@@ -392,30 +392,6 @@ export class StarTheater {
     if (this.pointer.active) this.drawCursor(ctx);
   }
 
-  /* ---- 深空背景 ---- */
-  drawSky(ctx) {
-    const g = ctx.createRadialGradient(this.cx, this.cy * 0.5, 0, this.cx, this.cy, Math.max(this.w, this.h) * 0.85);
-    g.addColorStop(0, '#1a1530');
-    g.addColorStop(0.5, '#0f0c1e');
-    g.addColorStop(1, '#060410');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, this.w, this.h);
-  }
-
-  /* ---- 顶部遮罩 — 盖住早期星星，让星空晚些浮现 ---- */
-  drawTopFade(ctx) {
-    const fadeH = this.h * 0.55;
-    const g = ctx.createLinearGradient(0, 0, 0, fadeH);
-    g.addColorStop(0, '#1a1530');
-    g.addColorStop(0.18, '#1a1530');
-    g.addColorStop(0.4, 'rgba(22, 18, 44, 0.7)');
-    g.addColorStop(0.65, 'rgba(16, 12, 32, 0.22)');
-    g.addColorStop(0.85, 'rgba(8, 6, 18, 0.03)');
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, this.w, fadeH);
-  }
-
   /* ---- 星座星云底图 — 每颗星点叠加柔光，自然勾勒动物轮廓 ---- */
   drawConstellationNebula(ctx) {
     const sc = this._scale;
