@@ -35,7 +35,6 @@ export class MusicPlayer {
     this.searchTimer = null;
     this._searchAbort = null;
     this._autoPlayDone = false;
-    this._swMissing = false;           // SW 代理未就绪标记
     this.favorites = this._loadFavorites();
     this._defaultFavoritesResolved = [];
     this._defaultFavoritesResolving = false;
@@ -193,60 +192,105 @@ export class MusicPlayer {
 
   /* ======== API 调用 ======== */
 
-  /** 构建 API URL（开发环境走 Vite proxy，生产环境走 Service Worker 代理） */
+  /** 构建 API URL */
   _apiUrl(params) {
     if (import.meta.env.DEV) return `/api/music/api.php?${params}`;
-    // 生产环境通过 SW 代理到 music-api.gdstudio.xyz，绕过 CORS
-    return `${import.meta.env.BASE_URL}api/music/api.php?${params}`;
+    // 生产环境直接访问 music-api（走 JSONP，无需代理）
+    return `https://music-api.gdstudio.xyz/api.php?${params}`;
   }
 
   /**
-   * 带重试的 API 请求
-   * - 5xx / 网络错误：最多重试 2 次，指数退避（1s → 2s）
-   * - 4xx：不重试，直接抛错
-   * - 超时保护：单次请求 12s 超时
+   * API 请求（开发用 fetch，生产用 JSONP 绕过 CORS）
+   * - 重试：最多 2 次，指数退避（1s → 2s）
+   * - 超时：12s
    */
   async _fetchAPI(params, signal, _retry = 0) {
+    if (import.meta.env.DEV) {
+      return this._devFetch(params, signal, _retry);
+    }
+    return this._jsonpFetch(params, _retry);
+  }
+
+  /** 开发环境：Vite proxy fetch（支持 AbortController） */
+  async _devFetch(params, signal, _retry = 0) {
     const MAX_RETRIES = 2;
     const url = this._apiUrl(params);
-
-    // 超时控制（合并外部 signal）
     const timeoutAbort = new AbortController();
     const timeoutId = setTimeout(() => timeoutAbort.abort(), 12000);
     const mergedSignal = signal
       ? anySignal([signal, timeoutAbort.signal])
       : timeoutAbort.signal;
-
     try {
       const res = await fetch(url, { signal: mergedSignal });
       clearTimeout(timeoutId);
       if (!res.ok) {
-        // 404 + HTML 响应 = GitHub Pages 未匹配到 SW 代理 → 提示刷新
-        if (res.status === 404) {
-          const ct = res.headers.get('content-type') || '';
-          if (ct.includes('text/html')) {
-            this._swMissing = true;
-            throw new Error('Service Worker 代理未就绪，请刷新页面后重试');
-          }
-        }
-        // 5xx 可重试，4xx 直接抛错
         if (res.status >= 500 && _retry < MAX_RETRIES) {
-          await sleep(1000 * (_retry + 1)); // 1s → 2s
-          return this._fetchAPI(params, signal, _retry + 1);
+          await sleep(1000 * (_retry + 1));
+          return this._devFetch(params, signal, _retry + 1);
         }
         throw new Error(`请求失败: ${res.status}`);
       }
       return res;
     } catch (err) {
       clearTimeout(timeoutId);
-      // 网络错误 / 超时 / 5xx 均可重试；AbortError 不重试
       if (err.name === 'AbortError' && !timeoutAbort.signal.aborted) throw err;
       if (_retry < MAX_RETRIES) {
         await sleep(1000 * (_retry + 1));
-        return this._fetchAPI(params, signal, _retry + 1);
+        return this._devFetch(params, signal, _retry + 1);
       }
       throw err;
     }
+  }
+
+  /** 生产环境：JSONP 请求（绕过 CORS，无需代理） */
+  async _jsonpFetch(params, _retry = 0) {
+    const MAX_RETRIES = 2;
+    try {
+      const data = await this._doJsonp(this._apiUrl(params));
+      // 返回类 Response 对象，兼容现有调用方（res.json()）
+      return { ok: true, status: 200, json: async () => data };
+    } catch (err) {
+      if (_retry < MAX_RETRIES) {
+        await sleep(1000 * (_retry + 1));
+        return this._jsonpFetch(params, _retry + 1);
+      }
+      throw err;
+    }
+  }
+
+  /** JSONP 底层：动态插入 <script> 加载数据 */
+  _doJsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cbName = '_mp_' + Math.random().toString(36).slice(2, 10);
+      const script = document.createElement('script');
+      let done = false;
+
+      const cleanup = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeout);
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('请求超时，请检查网络'));
+      }, 12000);
+
+      window[cbName] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      script.onerror = () => {
+        cleanup();
+        reject(new Error('网络请求失败，请稍后重试'));
+      };
+
+      script.src = url + '&callback=' + cbName;
+      document.head.appendChild(script);
+    });
   }
 
   async apiSearch(query, source = SEARCH_SOURCE, signal) {
@@ -301,9 +345,6 @@ export class MusicPlayer {
   async doSearch(query) {
     if (!query.trim()) return;
 
-    // 等待 SW 代理就绪
-    await this._ensureProxyReady();
-
     // 取消上一次未完成的搜索
     if (this._searchAbort) { this._searchAbort.abort(); }
     this._searchAbort = new AbortController();
@@ -349,9 +390,7 @@ export class MusicPlayer {
     } catch (err) {
       if (err.name === 'AbortError') return; // 被新搜索取消，静默忽略
       console.warn('搜索出错:', err);
-      this.showStatus(this._swMissing
-        ? '🔄 请刷新页面后重试（音乐代理未就绪）'
-        : '搜索失败，请稍后重试');
+      this.showStatus('搜索失败，请稍后重试');
     }
   }
 
@@ -392,9 +431,7 @@ export class MusicPlayer {
       console.warn('播放失败:', err);
       this.isLoading = false;
       this._setItemLoading(song, false);
-      this.showStatus(this._swMissing
-        ? '🔄 请刷新页面后重试（音乐代理未就绪）'
-        : '播放失败，试试其他歌曲');
+      this.showStatus('播放失败，试试其他歌曲');
     }
   }
 
@@ -621,8 +658,6 @@ export class MusicPlayer {
       this._defaultFavoritesResolving = false;
       return;
     }
-    // 等待 SW 代理就绪再发 API 请求（最多等 3s）
-    await this._ensureProxyReady();
     try {
       const resolved = [];
       for (const item of defaults) {
@@ -640,15 +675,6 @@ export class MusicPlayer {
       // 整体解析失败，使用空数组
     }
     this._defaultFavoritesResolving = false;
-  }
-
-  /** 等待 SW 代理就绪（有超时兜底） */
-  async _ensureProxyReady() {
-    if (import.meta.env.DEV) return; // 开发环境走 Vite proxy，无需等待 SW
-    // 等 SW 就绪，最多 3s；超时也不阻塞，让后续请求自行报错
-    try {
-      await (window.__swProxyReady ?? Promise.resolve(true));
-    } catch { /* 忽略 */ }
   }
 
   _saveFavorites() {
