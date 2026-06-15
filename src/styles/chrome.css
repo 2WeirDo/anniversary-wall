@@ -640,16 +640,21 @@
 }
 .music-btn-label.marquee {
   text-overflow: clip;
+}
+.marquee-inner {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
   animation: labelMarquee 6s linear infinite;
   animation-play-state: paused;
 }
-.music-btn:hover .music-btn-label.marquee {
+.music-btn:hover .marquee-inner {
   animation-play-state: running;
 }
 @keyframes labelMarquee {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(0); }
-  80% { transform: translateX(calc(-100% + 90px)); }
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(0); }
+  85%  { transform: translateX(calc(-100% + 90px)); }
   100% { transform: translateX(0); }
 }
 

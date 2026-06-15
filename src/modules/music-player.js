@@ -489,10 +489,14 @@ export class MusicPlayer {
     if (!this.labelEl || !this.currentSong) return;
     const title = this.currentSong.title;
     const maxLen = 8;
-    const truncated = title.length > maxLen ? title.slice(0, maxLen) + '…' : title;
-    this.labelEl.textContent = truncated;
-    // 超长标题启用 hover 滚动
-    this.labelEl.classList.toggle('marquee', title.length > maxLen);
+    const needMarquee = title.length > maxLen;
+    if (needMarquee) {
+      // 内层 wrapper 用于 marquee 滚动，外层 90px 视窗裁剪
+      this.labelEl.innerHTML = `<span class="marquee-inner">${escapeHtml(title)}</span>`;
+    } else {
+      this.labelEl.textContent = title;
+    }
+    this.labelEl.classList.toggle('marquee', needMarquee);
   }
 
   /* ======== 面板 ======== */
