@@ -79,7 +79,13 @@ export class Carousel {
     this.bindEvents();
     // 初始布局用 _setCard 直设，避免 layoutAll 对 29 张卡同时创建 GSAP tween
     this._positionAll();
-    this.scheduleAuto();
+    // 延迟两帧启动 ticker，等浏览器完成首帧布局 + 合成层分配
+    // 否则 ticker 同步写入 style.transform 会与初始 paint 竞争 → 首帧掉帧
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.scheduleAuto();
+      });
+    });
     window.addEventListener('resize', () => this._positionAll());
   }
 
@@ -272,6 +278,9 @@ export class Carousel {
     el.style.zIndex = c.zIndex;
     el.classList.toggle('active', c.isActive);
     el.style.pointerEvents = c.isActive ? 'auto' : 'none';
+    // 动态 will-change：仅可视区 ±7 的卡片提升为合成层，远距卡片回退
+    const nearEnough = Math.abs(offset) <= VISIBLE_HALF + 2;
+    el.style.willChange = nearEnough ? 'transform, opacity' : 'auto';
     // 进入可视窗口时触发图片加载
     if (inWindow && !el._imageLoaded) {
       this._loadCardImage(el);

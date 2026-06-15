@@ -94,7 +94,7 @@
   user-select: none;
   -webkit-user-select: none;
   contain: layout style paint;
-  will-change: transform, opacity;
+  /* will-change 由 JS _setCard 动态管理，避免 29 张卡同时创建 GPU 层 */
 }
 .carousel-card:not(.active) {
   opacity: 0.72;
